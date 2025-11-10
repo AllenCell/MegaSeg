@@ -13,7 +13,9 @@ defaults:
 
 tags: ["dev"]
 seed: 12345
-ckpt_path: ${paths.data_dir}/megaseg_model_checkpoint.ckpt
+
+checkpoint:
+  ckpt_path: ${paths.data_dir}/megaseg_model_checkpoint.ckpt
 
 experiment_name: megaseg_b64_deep_new_13-STRUCTS_EVAL
 run_name: dynUNet_st6_base_cytodl
@@ -27,7 +29,10 @@ trainer:
   devices: [0]
 
 model:
-  save_dir: ${paths.data_dir}/models/ms13-structs_deeper_v0_timing
+  save_dir: ${paths.data_dir}/models/ms13-structs
+
+paths:
+  output_dir: ${paths.data_dir}/outputs/
 
 data:
   path: ${paths.data_dir}/ms_eval_data/test_new.csv
