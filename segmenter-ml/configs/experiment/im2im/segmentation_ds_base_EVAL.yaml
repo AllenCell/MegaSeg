@@ -47,3 +47,9 @@ data:
     # patch_shape: [64, 64]
     # 3D
     patch_shape: [32, 128, 128]
+
+callbacks:
+  saving:
+    _target_: cyto_dl.callbacks.ImageSaver
+    save_dir: ${paths.data_dir}/outputs/
+    stages: ["test", "predict"]
