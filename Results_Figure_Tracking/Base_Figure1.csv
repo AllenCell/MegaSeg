@@ -1,0 +1,5 @@
+Structure,img_path,gt_path
+ACTN1,\\allen\aics\assay-dev\users\Suraj\megaSeg\MegaSeg_Results\general_im_gt\ACTN1_10933_IM.tiff,\\allen\aics\assay-dev\users\Suraj\megaSeg\MegaSeg_Results\general_im_gt\ACTN1_10933_GT.tiff
+SEC61B,\\allen\aics\assay-dev\users\Suraj\megaSeg\MegaSeg_Results\general_im_gt\SEC61B_4899_IM.tiff,\\allen\aics\assay-dev\users\Suraj\megaSeg\MegaSeg_Results\general_im_gt\SEC61B_4899_GT.tiff
+ST6GAL1,\\allen\aics\assay-dev\users\Suraj\megaSeg\MegaSeg_Results\general_im_gt\ST6GAL1_5507_IM.tiff,\\allen\aics\assay-dev\users\Suraj\megaSeg\MegaSeg_Results\general_im_gt\ST6GAL1_5507_GT.tiff
+TOMM20,\\allen\aics\assay-dev\users\Suraj\megaSeg\MegaSeg_Results\general_im_gt\TOMM20_3363_IM.tiff,\\allen\aics\assay-dev\users\Suraj\megaSeg\MegaSeg_Results\general_im_gt\TOMM20_3363_GT.tiff
