@@ -1,0 +1,23 @@
+# Benchmark outputs (large)
+benchmark/outputs/
+benchmark/cache/
+
+# Checkpoint weights
+benchmark/checkpoints/*.ckpt
+benchmark/checkpoints/**/*.ckpt
+
+# Python
+*.pyc
+__pycache__/
+
+# OS
+.DS_Store
+
+# Logs
+benchmark/eval.log
+benchmark/scripts/job_logs/
+
+# Environment / IDE
+.venv/
+.pytest_cache/
+uv.lock

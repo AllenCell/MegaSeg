@@ -1,0 +1,47 @@
+# @package _global_
+defaults:
+  - override /data: local/segmentation.yaml
+  - override /model: local/segmentation_ms25_float32.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: gpu.yaml
+  - override /logger: csv.yaml
+
+tags: ["cross_eval", "float32"]
+seed: 12345
+
+test_struct: ???
+
+checkpoint:
+  ckpt_path: ${paths.checkpoint_dir}/individual/ACTN1.ckpt
+
+experiment_name: cross_eval_ACTN1_on_${test_struct}
+run_name: dynUNet_cross_ACTN1_on_${test_struct}
+source_col: raw
+target_col: seg
+spatial_dims: 3
+raw_im_channels: 1
+
+trainer:
+  max_epochs: 1000
+  devices: [0]
+
+model:
+  save_dir: ${paths.log_dir}/eval/float32/cross_eval/ms13-ACTN1/tested_on_${test_struct}
+
+paths:
+  output_dir: ${paths.log_dir}/eval/float32/cross_eval/ms13-ACTN1/tested_on_${test_struct}
+
+data:
+  path: ${paths.data_dir}/variance-100x/${test_struct}/
+  cache_dir: ${paths.cache_dir}
+  subsample:
+  batch_size: 1
+  num_workers: 1
+  _aux:
+    patch_shape: [32, 128, 128]
+
+callbacks:
+  saving:
+    _target_: cyto_dl.callbacks.ImageSaver
+    save_dir: ${paths.log_dir}/eval/float32/cross_eval/ms13-ACTN1/tested_on_${test_struct}
+    stages: ["test", "predict"]

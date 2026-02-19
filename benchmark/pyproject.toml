@@ -1,0 +1,8 @@
+[project]
+name = "megaseg-benchmark"
+version = "0.1.0"
+description = "Cross-structure segmentation evaluation benchmark for MegaSeg models"
+requires-python = ">=3.10"
+
+[tool.pyrootutils]
+root_indicators = [".git", "pyproject.toml"]

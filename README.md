@@ -1,10 +1,51 @@
 # MegaSeg
-A repo to keep track of the ongoing efforts in MegaSeg
 
-## MegaSeg ml experiments and figure generation : ONGOING work
+Multi-structure segmentation for fluorescently-tagged cellular structures. This repository contains classical segmentation workflows, ML-based segmentation experiments, and a comprehensive evaluation benchmark comparing MegaSeg (multi-structure) models against individual (specialized) models.
 
-This repo is currently private and thus uses the absolute path with `/allen` in the following instructions. This will be removed in the future once we add all the configs and other scripts within this repository.
+## Repository Structure
 
-The following path - `/allen/aics/lumenoid/inner_outer_seg/megaseg_exp/` contains all the configs to generate MegaSeg inference on individual `test.csv` as well as `test_new.csv` files. This directory also contains figure generation code in `figures/` subdirectory (Fig 2A is generated). Entire directory structure is explained in the `README.md` within the directory itself. each subdirectory also has its own readme file.
+```
+MegaSeg/
+├── segmenter-classic/       # Classical segmentation notebooks (18 notebooks)
+├── segmenter-ml/            # ML training configs and experiment tracking
+├── benchmark/               # Evaluation benchmark (14 structures, 4 backbones)
+├── data/
+│   ├── variance-100x/       # Per-structure CSVs (train/val/test splits)
+│   └── standardized_test/   # Held-out test_new dataset
+└── Results_Figure_Tracking/ # Figure tracking CSV
+```
 
-To run megaseg training or inference for any config in this directory, use `conda activate /allen/aics/users/ashwin.samudre/miniconda3/envs/acm-eval` and then run MegaSeg with command from `https://github.com/AllenCell/EMT_image_analysis/tree/sm_colony_mask_pred_test_v0/Colony_mask_training_inference` via setting the correct path to config files. NOTE: I use `python ../../cyto-dl/cyto_dl/eval.py instead of python -m cyto_dl.eval` when running inference code and similarly use `train.py` for training.
+## Components
+
+### segmenter-classic
+
+Classical (non-ML) segmentation pipelines implemented as Jupyter notebooks. Covers structure-specific segmentation using traditional image processing methods.
+
+### segmenter-ml
+
+ML-based segmentation training configurations for individual and multi-structure models. Contains Hydra configs for training with [cyto-dl](https://github.com/AllenCell/cyto-dl).
+
+### benchmark
+
+Systematic evaluation comparing MegaSeg multi-structure models (DynUNet, AttentionUNet, SwinUNETR, UNet) against 14 individual specialized models across multiple evaluation paradigms. Includes config generation, batch evaluation runners, quantitative metrics computation, and visualization.
+
+See [`benchmark/README.md`](benchmark/README.md) for full details.
+
+## Data
+
+Test set CSVs for 14 structures live in `data/variance-100x/{STRUCTURE}/` with `train.csv`, `val.csv`, and `test.csv` splits. The held-out evaluation dataset is at `data/standardized_test/test_new.csv`.
+
+**Structures:** ACTN1, ATP2A2, CTNNB1, DSP, GJA1, MYH10, NPM1, NUP153, RAB5A, SEC61B, SON, ST6GAL1, TJP1, TOMM20
+
+## Setup
+
+```bash
+# Clone with submodules (benchmark uses cyto-dl as a submodule)
+git clone --recurse-submodules git@github.com:AllenCell/MegaSeg.git
+
+# Or initialize submodules after cloning
+git submodule update --init --recursive
+
+# Activate environment
+conda activate acm-eval
+```
