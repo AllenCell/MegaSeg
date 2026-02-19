@@ -2,7 +2,7 @@
 defaults:
   - override /data: local/segmentation.yaml
   - override /model: local/segmentation_ms25_swin_unetr_uint8.yaml
-  - override /callbacks: default.yaml
+  - override /callbacks: eval.yaml
   - override /trainer: ddp.yaml
   - override /logger: csv.yaml
 

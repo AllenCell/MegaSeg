@@ -2,7 +2,7 @@
 defaults:
   - override /data: local/segmentation.yaml
   - override /model: local/segmentation_ms25_float32.yaml
-  - override /callbacks: default.yaml
+  - override /callbacks: eval.yaml
   - override /trainer: gpu.yaml
   - override /logger: csv.yaml
 
