@@ -295,7 +295,7 @@ wheels = [
 
 [[package]]
 name = "bioio-ome-tiff"
-version = "1.1.0"
+version = "1.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bioio-base" },
@@ -306,14 +306,13 @@ dependencies = [
     { name = "ome-types", extra = ["lxml"] },
     { name = "pydantic" },
     { name = "pyyaml" },
-    { name = "tifffile" },
+    { name = "tifffile", extra = ["zarr"] },
     { name = "xarray" },
     { name = "xmlschema" },
-    { name = "zarr" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/49/ba/f6c2ba8421ac0208c8cbb12085d101a4b5f22b40a7f8cf53557afab1d1d4/bioio_ome_tiff-1.1.0.tar.gz", hash = "sha256:c25b88d77e169c19a275a5b376fcf772315395f7c37b732dc0c19c9190bd0b4d", size = 30886, upload-time = "2025-04-18T20:21:05.852Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b3/95/fd5ccfb07c5159983a40746b1c0da1c7648918bcfdb940189bf52f7340d1/bioio_ome_tiff-1.4.0.tar.gz", hash = "sha256:0073ff612926ea17c72a32f378d62361e282dd7afbc561e8c0a53316fd8d2e29", size = 34520, upload-time = "2025-07-10T21:34:52.763Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/43/27/a8be335ce5a996f6efc3f1fbf1b468a05de6eadc5ed521ff10d039878609/bioio_ome_tiff-1.1.0-py3-none-any.whl", hash = "sha256:fa7e5e6a112f5f7613f54281d9702e60d9bf2f95a2f8714f917a8a1e3156350e", size = 24969, upload-time = "2025-04-18T20:21:04.616Z" },
+    { url = "https://files.pythonhosted.org/packages/ec/88/cdfc59ac1fb3db84d59d47b8afa3bcf539b8afabc86d8b5230909b6487f9/bioio_ome_tiff-1.4.0-py3-none-any.whl", hash = "sha256:98107a847244a7b515c7a8c39b5119e67f4047b63661238b49b3d0cc36a86cd9", size = 27034, upload-time = "2025-07-10T21:34:51.509Z" },
 ]
 
 [[package]]
@@ -1572,6 +1571,7 @@ name = "megaseg-benchmark"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "bioio-ome-tiff" },
     { name = "cyto-dl" },
     { name = "matplotlib" },
     { name = "numpy" },
@@ -1589,6 +1589,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "bioio-ome-tiff", specifier = ">=1.4.0" },
     { name = "cyto-dl", editable = "cyto-dl" },
     { name = "matplotlib", specifier = ">=3.7" },
     { name = "numpy", specifier = ">=1.23,<2" },
@@ -2773,14 +2774,14 @@ wheels = [
 
 [[package]]
 name = "tifffile"
-version = "2025.1.10"
+version = "2024.12.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d5/fc/697d8dac6936a81eda88e7d4653d567fcb0d504efad3fd28f5272f96fcf9/tifffile-2025.1.10.tar.gz", hash = "sha256:baaf0a3b87bf7ec375fa1537503353f70497eabe1bdde590f2e41cc0346e612f", size = 365585, upload-time = "2025-01-10T19:55:24.166Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/37/c9/fc4e490c5b0ccad68c98ea1d6e0f409bd7d50e2e8fc30a0725594d3104ff/tifffile-2024.12.12.tar.gz", hash = "sha256:c38e929bf74c04b6c8708d87f16b32c85c6d7c2514b99559ea3db8003ba4edda", size = 365416, upload-time = "2024-12-13T02:05:16.73Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/50/7bef6a1259a2c4b81823653a69d2d51074f7b8095db2abae5abee962ab87/tifffile-2025.1.10-py3-none-any.whl", hash = "sha256:ed24cf4c99fb13b4f5fb29f8a0d5605e60558c950bccbdca2a6470732a27cfb3", size = 227551, upload-time = "2025-01-10T19:55:21.055Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/1e/76cbc758f6865a9da18001ac70d1a4154603b71e233f704401fc7d62493e/tifffile-2024.12.12-py3-none-any.whl", hash = "sha256:6ff0f196a46a75c8c0661c70995e06ea4d08a81fe343193e69f1673f4807d508", size = 227538, upload-time = "2024-12-13T02:05:13.974Z" },
 ]
 
 [package.optional-dependencies]

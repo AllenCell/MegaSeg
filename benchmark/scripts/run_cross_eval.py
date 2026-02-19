@@ -6,15 +6,15 @@ models x 14 test sets x 2 dtypes) across multiple GPUs using screen sessions.
 Reads experiment_matrix.csv for job definitions.
 
 Usage:
-    python scripts/run_cross_eval.py                    # Run all pending jobs
-    python scripts/run_cross_eval.py --dry-run          # Show what would be run
-    python scripts/run_cross_eval.py --status           # Show job status
-    python scripts/run_cross_eval.py --train ACTN1      # Run only ACTN1 model cross-evals
-    python scripts/run_cross_eval.py --test ATP2A2      # Run only evals on ATP2A2 test set
-    python scripts/run_cross_eval.py --dtype float32    # Run only float32 jobs
-    python scripts/run_cross_eval.py --dtype uint8 --train ACTN1  # uint8 ACTN1 cross-evals
-    python scripts/run_cross_eval.py --gpus 0,1         # Use only GPUs 0 and 1
-    python scripts/run_cross_eval.py --poll-interval 30 # Seconds between status checks
+    uv run python scripts/run_cross_eval.py                    # Run all pending jobs
+    uv run python scripts/run_cross_eval.py --dry-run          # Show what would be run
+    uv run python scripts/run_cross_eval.py --status           # Show job status
+    uv run python scripts/run_cross_eval.py --train ACTN1      # Run only ACTN1 model cross-evals
+    uv run python scripts/run_cross_eval.py --test ATP2A2      # Run only evals on ATP2A2 test set
+    uv run python scripts/run_cross_eval.py --dtype float32    # Run only float32 jobs
+    uv run python scripts/run_cross_eval.py --dtype uint8 --train ACTN1  # uint8 ACTN1 cross-evals
+    uv run python scripts/run_cross_eval.py --gpus 0,1         # Use only GPUs 0 and 1
+    uv run python scripts/run_cross_eval.py --poll-interval 30 # Seconds between status checks
 """
 
 import argparse
@@ -34,7 +34,6 @@ MATRIX_PATH = PROJECT_ROOT / "scripts" / "experiment_matrix.csv"
 LOG_DIR = PROJECT_ROOT / "scripts" / "job_logs"
 
 CONFIGS_PATH = PROJECT_ROOT / "configs"
-CONDA_ENV = "acm-eval"
 EVAL_SCRIPT = PROJECT_ROOT / "cyto-dl" / "cyto_dl" / "eval.py"
 
 SCREEN_PREFIX = "cross_"
@@ -137,12 +136,11 @@ def launch_job(
     full_output.mkdir(parents=True, exist_ok=True)
 
     eval_cmd = (
-        f"conda activate {CONDA_ENV} && "
         f"cd {PROJECT_ROOT} && "
         f"CUDA_VISIBLE_DEVICES={gpu_id} "
         f"PROJECT_ROOT={PROJECT_ROOT} "
         f"CYTODL_CONFIG_PATH={CONFIGS_PATH} "
-        f"python {EVAL_SCRIPT} "
+        f"uv run python {EVAL_SCRIPT} "
         f"experiment={config_path} "
         f"test_struct={test_struct}"
     )

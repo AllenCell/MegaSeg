@@ -12,6 +12,7 @@ dependencies = [
     "tifffile>=2024.0.0,<2025.2.18",
     "tqdm>=4.64",
     "setuptools<81",
+    "bioio-ome-tiff>=1.4.0",
 ]
 
 [project.optional-dependencies]

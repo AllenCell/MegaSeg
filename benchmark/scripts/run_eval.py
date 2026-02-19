@@ -16,31 +16,31 @@ Job counts per dtype:
 
 Usage:
     # Run all uint8 evals
-    python scripts/run_eval.py --dtype uint8 --gpus 0,1,2,3
+    uv run python scripts/run_eval.py --dtype uint8 --gpus 0,1,2,3
 
     # Run only individual uint8
-    python scripts/run_eval.py --dtype uint8 --type individual
+    uv run python scripts/run_eval.py --dtype uint8 --type individual
 
     # Run megaseg dynunet only
-    python scripts/run_eval.py --dtype uint8 --type megaseg --backbone dynunet
+    uv run python scripts/run_eval.py --dtype uint8 --type megaseg --backbone dynunet
 
     # Filter by structure
-    python scripts/run_eval.py --dtype uint8 --type individual --struct ACTN1
+    uv run python scripts/run_eval.py --dtype uint8 --type individual --struct ACTN1
 
     # Show completion status
-    python scripts/run_eval.py --status --dtype uint8
+    uv run python scripts/run_eval.py --status --dtype uint8
 
     # Dry-run preview
-    python scripts/run_eval.py --dry-run --dtype uint8 --type individual
+    uv run python scripts/run_eval.py --dry-run --dtype uint8 --type individual
 
     # Everything
-    python scripts/run_eval.py --dtype all --type all
+    uv run python scripts/run_eval.py --dtype all --type all
 
     # Dry-run with specific GPUs
-    python scripts/run_eval.py --dry-run --dtype all --gpus 0,1
+    uv run python scripts/run_eval.py --dry-run --dtype all --gpus 0,1
 
     # Pack 8 jobs per GPU (A100-80GB)
-    python scripts/run_eval.py --dtype uint8 --type megaseg --gpus 0,1,2,3 --jobs-per-gpu 8
+    uv run python scripts/run_eval.py --dtype uint8 --type megaseg --gpus 0,1,2,3 --jobs-per-gpu 8
 """
 
 import argparse
@@ -60,12 +60,6 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 LOG_DIR = PROJECT_ROOT / "scripts" / "job_logs"
 
 CONFIGS_PATH = PROJECT_ROOT / "configs"
-CONDA_ENV = "acm-eval"
-# Resolve conda base so screen sessions can source conda.sh in non-login shells.
-_conda_base = subprocess.run(
-    ["conda", "info", "--base"], capture_output=True, text=True, check=True
-).stdout.strip()
-CONDA_SH = Path(_conda_base) / "etc" / "profile.d" / "conda.sh"
 EVAL_SCRIPT = PROJECT_ROOT / "cyto-dl" / "cyto_dl" / "eval.py"
 
 SCREEN_PREFIX = "eval_"
@@ -306,12 +300,11 @@ def launch_job(
     # Build eval command
     extra_args_str = " ".join(f"{k}={v}" for k, v in job.extra_args.items())
     eval_cmd = (
-        f"source {CONDA_SH} && conda activate {CONDA_ENV} && "
         f"cd {PROJECT_ROOT} && "
         f"CUDA_VISIBLE_DEVICES={gpu_id} "
         f"PROJECT_ROOT={PROJECT_ROOT} "
         f"CYTODL_CONFIG_PATH={CONFIGS_PATH} "
-        f"python {EVAL_SCRIPT} "
+        f"uv run python {EVAL_SCRIPT} "
         f"experiment={job.config_path}"
     )
     if extra_args_str:
@@ -493,12 +486,12 @@ def parse_args() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
-            "  python scripts/run_eval.py --dtype uint8 --gpus 0,1,2,3\n"
-            "  python scripts/run_eval.py --dtype uint8 --type individual\n"
-            "  python scripts/run_eval.py --dtype uint8 --type megaseg --backbone dynunet\n"
-            "  python scripts/run_eval.py --status --dtype uint8\n"
-            "  python scripts/run_eval.py --dry-run --dtype uint8 --type individual\n"
-            "  python scripts/run_eval.py --dtype all --type all\n"
+            "  uv run python scripts/run_eval.py --dtype uint8 --gpus 0,1,2,3\n"
+            "  uv run python scripts/run_eval.py --dtype uint8 --type individual\n"
+            "  uv run python scripts/run_eval.py --dtype uint8 --type megaseg --backbone dynunet\n"
+            "  uv run python scripts/run_eval.py --status --dtype uint8\n"
+            "  uv run python scripts/run_eval.py --dry-run --dtype uint8 --type individual\n"
+            "  uv run python scripts/run_eval.py --dtype all --type all\n"
         ),
     )
     parser.add_argument(
@@ -678,7 +671,7 @@ def main() -> None:
 
     if not args.dry_run and launched > 0:
         print("\nMonitoring:")
-        print(f"  python scripts/run_eval.py --status --dtype {args.dtype}")
+        print(f"  uv run python scripts/run_eval.py --status --dtype {args.dtype}")
         print("  screen -ls | grep eval_")
         print(f"\nLogs: {LOG_DIR}/")
 

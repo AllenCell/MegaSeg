@@ -13,6 +13,7 @@ cd MegaSeg/benchmark
 uv sync
 
 # 3. Run a single evaluation
+CYTODL_CONFIG_PATH=$PWD/configs \
 PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/individual/ACTN1
 ```
@@ -79,6 +80,7 @@ Each individual (specialized) DynUNet model evaluated on its own structure's tes
 
 ```bash
 cd benchmark
+CYTODL_CONFIG_PATH=$PWD/configs \
 PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/individual/ACTN1
 ```
@@ -88,6 +90,7 @@ PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
 Each individual model evaluated on the held-out test_new dataset.
 
 ```bash
+CYTODL_CONFIG_PATH=$PWD/configs \
 PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/individual_test_new/ACTN1
 ```
@@ -98,10 +101,12 @@ Each of 4 multi-structure backbones evaluated on each of the 14 structures + tes
 
 ```bash
 # DynUNet megaseg on ACTN1 test set
+CYTODL_CONFIG_PATH=$PWD/configs \
 PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/megaseg/dynunet/ACTN1
 
 # Swin UNETR megaseg on test_new
+CYTODL_CONFIG_PATH=$PWD/configs \
 PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/megaseg/swin_unetr/test_new
 ```
@@ -112,6 +117,7 @@ Each individual model evaluated on every other structure's test set. Uses a para
 
 ```bash
 # ACTN1 model evaluated on ATP2A2 test set
+CYTODL_CONFIG_PATH=$PWD/configs \
 PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/cross_eval/ACTN1_model/cross_eval \
   test_struct=ATP2A2
@@ -167,6 +173,7 @@ Config path pattern: `experiment=eval/{dtype}/{eval_type}/...`
 cd MegaSeg/benchmark
 
 CUDA_VISIBLE_DEVICES=0 \
+CYTODL_CONFIG_PATH=$PWD/configs \
 PROJECT_ROOT=$PWD \
 uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/individual/ACTN1
@@ -174,6 +181,7 @@ uv run python cyto-dl/cyto_dl/eval.py \
 
 Environment variables:
 - `CUDA_VISIBLE_DEVICES`: GPU selection (0-3)
+- `CYTODL_CONFIG_PATH`: path to benchmark configs (required; point to `benchmark/configs`)
 - `PROJECT_ROOT`: root for portable path resolution (defaults to cwd)
 
 ### Where do results go?
@@ -188,15 +196,15 @@ outputs/eval/{dtype}/{eval_type}/...
 
 ```bash
 # Use a different GPU
-CUDA_VISIBLE_DEVICES=1 PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
+CUDA_VISIBLE_DEVICES=1 CYTODL_CONFIG_PATH=$PWD/configs PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/individual/ACTN1 trainer.devices=[0]
 
 # Change batch size
-CUDA_VISIBLE_DEVICES=0 PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
+CUDA_VISIBLE_DEVICES=0 CYTODL_CONFIG_PATH=$PWD/configs PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/individual/ACTN1 data.batch_size=2
 
 # Change number of data-loading workers
-CUDA_VISIBLE_DEVICES=0 PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
+CUDA_VISIBLE_DEVICES=0 CYTODL_CONFIG_PATH=$PWD/configs PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/individual/ACTN1 data.num_workers=8
 ```
 
