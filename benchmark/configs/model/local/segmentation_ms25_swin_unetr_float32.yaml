@@ -1,0 +1,56 @@
+_target_: cyto_dl.models.im2im.MultiTaskIm2Im
+
+save_images_every_n_epochs: 50
+save_dir: ${paths.output_dir}
+
+x_key: ${source_col}
+
+backbone:
+  _target_: monai.networks.nets.SwinUNETR
+  img_size: ${data._aux.patch_shape}     # Must be 3D patch → [Z, Y, X]
+  in_channels: ${raw_im_channels}
+  out_channels: 1
+  feature_size: 48                       # Default = 48 (works well)
+  use_checkpoint: False
+  spatial_dims: ${spatial_dims}          # 3 for 3D
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  dropout_path_rate: 0.0
+
+task_heads: ${kv_to_dict:${model._aux._tasks}}
+
+optimizer:
+  generator:
+    _partial_: True
+    _target_: torch.optim.Adam
+    lr: 0.0001
+    weight_decay: 0.0001
+
+lr_scheduler:
+  generator:
+    _partial_: True
+    _target_: torch.optim.lr_scheduler.ExponentialLR
+    gamma: 0.995
+
+inference_args:
+  sw_batch_size: 1
+  roi_size: ${data._aux.patch_shape}
+  overlap: 0.3
+
+_aux:
+  _tasks:
+    - - ${target_col}
+      - _target_: cyto_dl.nn.BaseHead
+        loss:
+          _target_: monai.losses.GeneralizedDiceFocalLoss
+          sigmoid: True
+        postprocess:
+          input:
+            _target_: cyto_dl.models.im2im.utils.postprocessing.ActThreshLabel
+            rescale_dtype: numpy.float32
+          prediction:
+            _target_: cyto_dl.models.im2im.utils.postprocessing.ActThreshLabel
+            activation:
+              _target_: torch.nn.Sigmoid
+            rescale_dtype: numpy.float32
+

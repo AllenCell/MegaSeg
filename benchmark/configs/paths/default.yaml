@@ -1,0 +1,9 @@
+# Path configuration for megaseg-benchmark
+# All paths derive from root_dir, which comes from PROJECT_ROOT env var or cwd
+root_dir: ${oc.env:PROJECT_ROOT, './'}
+data_dir: ${paths.root_dir}/../data
+log_dir: ${paths.root_dir}/outputs
+checkpoint_dir: ${paths.root_dir}/checkpoints
+cache_dir: ${paths.root_dir}/cache
+output_dir: ${hydra:runtime.output_dir}
+work_dir: ${hydra:runtime.cwd}

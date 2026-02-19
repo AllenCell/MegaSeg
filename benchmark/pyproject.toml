@@ -1,0 +1,38 @@
+[project]
+name = "megaseg-benchmark"
+version = "0.1.0"
+description = "Cross-structure segmentation evaluation benchmark for MegaSeg models"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    "cyto-dl",
+    "numpy>=1.23,<2",
+    "pandas>=2.0",
+    "matplotlib>=3.7",
+    "seaborn>=0.13",
+    "tifffile>=2024.0.0,<2025.2.18",
+    "tqdm>=4.64",
+    "setuptools<81",
+    "bioio-ome-tiff>=1.4.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+]
+
+[tool.pyrootutils]
+root_indicators = [".git", "pyproject.toml"]
+
+[tool.uv]
+constraint-dependencies = [
+    "torch==2.0.1",
+]
+
+[tool.uv.sources]
+cyto-dl = { path = "cyto-dl", editable = true }
+torch = { index = "pytorch-cu117" }
+
+[[tool.uv.index]]
+name = "pytorch-cu117"
+url = "https://download.pytorch.org/whl/cu117"
+explicit = true
