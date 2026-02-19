@@ -46,6 +46,7 @@ git clone --recurse-submodules git@github.com:AllenCell/MegaSeg.git
 # Or initialize submodules after cloning
 git submodule update --init --recursive
 
-# Activate environment
-conda activate acm-eval
+# Install benchmark dependencies
+cd MegaSeg/benchmark
+uv sync
 ```

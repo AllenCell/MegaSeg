@@ -7,14 +7,13 @@ Cross-structure segmentation evaluation benchmark comparing MegaSeg (multi-struc
 ```bash
 # 1. Clone with submodules
 git clone --recurse-submodules git@github.com:AllenCell/MegaSeg.git
-cd MegaSeg
+cd MegaSeg/benchmark
 
-# 2. Activate environment
-conda activate acm-eval
+# 2. Install dependencies (one-time)
+uv sync
 
 # 3. Run a single evaluation
-cd benchmark
-PROJECT_ROOT=$PWD python cyto-dl/cyto_dl/eval.py \
+PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/individual/ACTN1
 ```
 
@@ -80,7 +79,7 @@ Each individual (specialized) DynUNet model evaluated on its own structure's tes
 
 ```bash
 cd benchmark
-PROJECT_ROOT=$PWD python cyto-dl/cyto_dl/eval.py \
+PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/individual/ACTN1
 ```
 
@@ -89,7 +88,7 @@ PROJECT_ROOT=$PWD python cyto-dl/cyto_dl/eval.py \
 Each individual model evaluated on the held-out test_new dataset.
 
 ```bash
-PROJECT_ROOT=$PWD python cyto-dl/cyto_dl/eval.py \
+PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/individual_test_new/ACTN1
 ```
 
@@ -99,11 +98,11 @@ Each of 4 multi-structure backbones evaluated on each of the 14 structures + tes
 
 ```bash
 # DynUNet megaseg on ACTN1 test set
-PROJECT_ROOT=$PWD python cyto-dl/cyto_dl/eval.py \
+PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/megaseg/dynunet/ACTN1
 
 # Swin UNETR megaseg on test_new
-PROJECT_ROOT=$PWD python cyto-dl/cyto_dl/eval.py \
+PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/megaseg/swin_unetr/test_new
 ```
 
@@ -113,7 +112,7 @@ Each individual model evaluated on every other structure's test set. Uses a para
 
 ```bash
 # ACTN1 model evaluated on ATP2A2 test set
-PROJECT_ROOT=$PWD python cyto-dl/cyto_dl/eval.py \
+PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/cross_eval/ACTN1_model/cross_eval \
   test_struct=ATP2A2
 ```
@@ -122,13 +121,13 @@ PROJECT_ROOT=$PWD python cyto-dl/cyto_dl/eval.py \
 
 ```bash
 # Preview all 196 jobs
-python scripts/run_cross_eval.py --dry-run --gpus 0,1,2,3
+uv run python scripts/run_cross_eval.py --dry-run --gpus 0,1,2,3
 
 # Launch all pending
-python scripts/run_cross_eval.py --gpus 0,1,2,3
+uv run python scripts/run_cross_eval.py --gpus 0,1,2,3
 
 # Check status
-python scripts/run_cross_eval.py --status
+uv run python scripts/run_cross_eval.py --status
 ```
 
 ## Quantitative Evaluation
@@ -139,13 +138,13 @@ Compute metrics (Dice, IoU, Precision, Recall, Accuracy) across all completed ev
 cd benchmark
 
 # Compute metrics for all uint8 evaluations
-PROJECT_ROOT=$PWD python scripts/evaluate_benchmark.py compute --dtype uint8 --workers 16
+PROJECT_ROOT=$PWD uv run python scripts/evaluate_benchmark.py compute --dtype uint8 --workers 16
 
 # Print summary report
-PROJECT_ROOT=$PWD python scripts/evaluate_benchmark.py report --dtype uint8 --metric dice
+PROJECT_ROOT=$PWD uv run python scripts/evaluate_benchmark.py report --dtype uint8 --metric dice
 
 # Generate all plots (bar charts, heatmaps, radar, violin, rank, scatter)
-PROJECT_ROOT=$PWD python scripts/evaluate_benchmark.py plot --dtype uint8
+PROJECT_ROOT=$PWD uv run python scripts/evaluate_benchmark.py plot --dtype uint8
 ```
 
 Results are saved to `results/{dtype}/` with CSVs and a `figures/` subdirectory.
@@ -166,11 +165,10 @@ Config path pattern: `experiment=eval/{dtype}/{eval_type}/...`
 
 ```bash
 cd MegaSeg/benchmark
-conda activate acm-eval
 
 CUDA_VISIBLE_DEVICES=0 \
 PROJECT_ROOT=$PWD \
-python cyto-dl/cyto_dl/eval.py \
+uv run python cyto-dl/cyto_dl/eval.py \
   experiment=eval/uint8/individual/ACTN1
 ```
 
@@ -190,13 +188,16 @@ outputs/eval/{dtype}/{eval_type}/...
 
 ```bash
 # Use a different GPU
-... experiment=eval/uint8/individual/ACTN1 trainer.devices=[1]
+CUDA_VISIBLE_DEVICES=1 PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
+  experiment=eval/uint8/individual/ACTN1 trainer.devices=[0]
 
 # Change batch size
-... experiment=eval/uint8/individual/ACTN1 data.batch_size=2
+CUDA_VISIBLE_DEVICES=0 PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
+  experiment=eval/uint8/individual/ACTN1 data.batch_size=2
 
 # Change number of data-loading workers
-... experiment=eval/uint8/individual/ACTN1 data.num_workers=8
+CUDA_VISIBLE_DEVICES=0 PROJECT_ROOT=$PWD uv run python cyto-dl/cyto_dl/eval.py \
+  experiment=eval/uint8/individual/ACTN1 data.num_workers=8
 ```
 
 ### Adding a new structure or backbone
@@ -204,7 +205,7 @@ outputs/eval/{dtype}/{eval_type}/...
 1. Edit registries in `scripts/generate_configs.py` (STRUCTURES list, MEGASEG_BACKBONES dict)
 2. If adding backbone: create model configs for both dtypes in `configs/model/local/`
 3. Add checkpoint and update `checkpoints/README.md`
-4. Re-run: `python scripts/generate_configs.py`
+4. Re-run: `uv run python scripts/generate_configs.py`
 
 ## Structures
 
@@ -252,7 +253,7 @@ This means you should run commands from within the `benchmark/` directory, or se
 If you need to modify the config templates or add structures:
 
 ```bash
-python scripts/generate_configs.py
+uv run python scripts/generate_configs.py
 ```
 
 This regenerates all 204 experiment configs and the experiment_matrix.csv.
