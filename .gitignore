@@ -19,5 +19,8 @@ benchmark/scripts/job_logs/
 
 # Environment / IDE
 .venv/
-.pytest_cache/
+**/.venv/
+**/.pytest_cache/
+**/__pycache__/
+**/.DS_Store
 # uv.lock is tracked (application lockfile)
