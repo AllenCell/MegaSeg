@@ -60,6 +60,21 @@ MEGASEG_BACKBONES = {
     },
 }
 
+# ── Fine-tuning experiment matrix ───────────────────────────────────────────
+
+FINETUNE_DATA_FRACTIONS = {
+    100: -1,  # -1 means use all (160 train samples)
+    50: 80,  # 160 * 0.5
+    20: 32,  # 160 * 0.2
+    10: 16,  # 160 * 0.1
+}
+
+FINETUNE_EPOCH_CONFIGS = {
+    "epochs10": {"max_epochs": 10, "patience": 1000},
+    "epochs50": {"max_epochs": 50, "patience": 1000},
+    "epochs100": {"max_epochs": 100, "patience": 1000},
+    "earlystop": {"max_epochs": 1000, "patience": 100},
+}
 
 # ── Templates ───────────────────────────────────────────────────────────────
 
@@ -320,6 +335,76 @@ def cross_eval_config(model_struct: str, dtype: str) -> str:
     """)
 
 
+def finetune_lmnb1_config(
+    data_pct: int,
+    subsample_train: int,
+    max_epochs: int,
+    patience: int,
+    label: str,
+) -> str:
+    """Generate a fine-tuning experiment config for LMNB1."""
+    if subsample_train > 0:
+        subsample_block = f"""  subsample:
+        train: {subsample_train}"""
+    else:
+        subsample_block = "  subsample:"
+
+    return dedent(f"""\
+    # @package _global_
+    defaults:
+      - override /data: local/segmentation.yaml
+      - override /model: local/segmentation_ms25_uint8.yaml
+      - override /callbacks: eval.yaml
+      - override /trainer: gpu.yaml
+      - override /logger: csv.yaml
+
+    tags: ["finetune", "lmnb1", "data{data_pct}"]
+    seed: 42
+
+    train: True
+    test: True
+
+    checkpoint:
+      ckpt_path: ${{paths.checkpoint_dir}}/megaseg/dynunet.ckpt
+      weights_only: True
+      strict: True
+
+    experiment_name: finetune_lmnb1_{label}
+    run_name: dynunet_lmnb1_{label}
+    source_col: raw
+    target_col: seg
+    spatial_dims: 3
+    raw_im_channels: 1
+
+    trainer:
+      max_epochs: {max_epochs}
+      devices: [0]
+
+    model:
+      save_dir: ${{paths.log_dir}}/finetune/lmnb1/{label}
+
+    paths:
+      output_dir: ${{paths.log_dir}}/finetune/lmnb1/{label}
+
+    data:
+      path: ${{paths.root_dir}}/data/lmnb1/
+      cache_dir: ${{paths.cache_dir}}
+    {subsample_block}
+      batch_size: 1
+      num_workers: 4
+      _aux:
+        patch_shape: [32, 128, 128]
+
+    callbacks:
+      early_stopping:
+        patience: {patience}
+      saving:
+        _target_: cyto_dl.callbacks.ImageSaver
+        save_dir: ${{paths.log_dir}}/finetune/lmnb1/{label}
+        stages: ["test"]
+    """)
+
+
 # ── Generator ───────────────────────────────────────────────────────────────
 
 
@@ -328,7 +413,13 @@ def main():
     project_root = Path(__file__).resolve().parent.parent
     configs_dir = project_root / "configs" / "experiment" / "eval"
 
-    counts = {"individual": 0, "individual_test_new": 0, "megaseg": 0, "cross_eval": 0}
+    counts = {
+        "individual": 0,
+        "individual_test_new": 0,
+        "megaseg": 0,
+        "cross_eval": 0,
+        "finetune": 0,
+    }
 
     for dtype in DTYPES:
         # 1. Individual eval configs (14 per dtype)
@@ -366,7 +457,27 @@ def main():
             path.write_text(cross_eval_config(model_struct, dtype))
             counts["cross_eval"] += 1
 
-    # 5. Generate experiment_matrix.csv (392 rows)
+    # 5. Fine-tuning experiment configs (4 fractions × 4 epoch configs = 16)
+    finetune_dir = project_root / "configs" / "experiment" / "finetune" / "lmnb1"
+    finetune_count = 0
+    for data_pct, subsample_train in FINETUNE_DATA_FRACTIONS.items():
+        for epoch_label, epoch_cfg in FINETUNE_EPOCH_CONFIGS.items():
+            label = f"data{data_pct}_{epoch_label}"
+            path = finetune_dir / f"{label}.yaml"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                finetune_lmnb1_config(
+                    data_pct=data_pct,
+                    subsample_train=subsample_train,
+                    max_epochs=epoch_cfg["max_epochs"],
+                    patience=epoch_cfg["patience"],
+                    label=label,
+                )
+            )
+            finetune_count += 1
+    counts["finetune"] = finetune_count
+
+    # 6. Generate experiment_matrix.csv (392 rows)
     matrix_path = project_root / "scripts" / "experiment_matrix.csv"
     matrix_path.parent.mkdir(parents=True, exist_ok=True)
     row_count = 0
