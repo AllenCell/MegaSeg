@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """Evaluate fine-tuning experiment results.
 
-Computes per-image Dice and IoU metrics for each of the 16 LMNB1
-fine-tuning experiments and generates summary tables/plots.
+Computes per-image Dice and IoU metrics for each of the 7 LMNB1
+fine-tuning experiments (L-shaped design) and generates summary
+tables and plots.
 
 Usage:
     uv run python scripts/evaluate_finetune.py compute --workers 8
@@ -34,9 +35,18 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-DATA_FRACTIONS = [100, 50, 20, 10]
-EPOCH_CONFIGS = ["epochs10", "epochs50", "epochs100", "earlystop"]
-ALL_EXPERIMENTS = [f"data{pct}_{ec}" for pct in DATA_FRACTIONS for ec in EPOCH_CONFIGS]
+# L-shaped experiment design:
+# - Vary epochs with 100% data: converged, 10, 50, 100 epochs
+# - Vary data fraction with convergence: 10%, 20%, 50%, 100%
+ALL_EXPERIMENTS = [
+    "data100_converged",
+    "data100_10epochs",
+    "data100_50epochs",
+    "data100_100epochs",
+    "data10_converged",
+    "data20_converged",
+    "data50_converged",
+]
 
 METRIC_COLS = ["dice", "iou"]
 
@@ -84,7 +94,7 @@ def resolve_pred_dir(experiment: str) -> Path:
 
 def get_test_csv() -> Path:
     """Get the LMNB1 test CSV path."""
-    return PROJECT_ROOT / "data" / "lmnb1" / "test.csv"
+    return PROJECT_ROOT / "data" / "lmnb1" / "test_lmnb1.csv"
 
 
 def derive_prediction_path(raw_filename: str, pred_dir: Path) -> Path:
@@ -145,6 +155,21 @@ def _evaluate_sample(args: tuple) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Experiment metadata parsing
+# ---------------------------------------------------------------------------
+def parse_experiment_label(exp: str) -> dict:
+    """Parse experiment label into data_pct and epoch_cfg."""
+    if "_converged" in exp:
+        data_pct_str = exp.replace("_converged", "").replace("data", "")
+        return {"data_pct": int(data_pct_str), "epoch_cfg": "converged"}
+    else:
+        # data100_10epochs -> data_pct=100, epoch_cfg=10epochs
+        parts = exp.split("_", 1)
+        data_pct = int(parts[0].replace("data", ""))
+        return {"data_pct": data_pct, "epoch_cfg": parts[1]}
+
+
+# ---------------------------------------------------------------------------
 # Compute phase
 # ---------------------------------------------------------------------------
 def compute_all(workers: int, experiments: list[str] | None = None) -> None:
@@ -160,6 +185,11 @@ def compute_all(workers: int, experiments: list[str] | None = None) -> None:
         sys.exit(1)
 
     test_df = pd.read_csv(test_csv)
+    if "raw" not in test_df.columns or "seg" not in test_df.columns:
+        print("ERROR: Test CSV must have 'raw' and 'seg' columns.", file=sys.stderr)
+        print(f"Found columns: {list(test_df.columns)}", file=sys.stderr)
+        sys.exit(1)
+
     exp_list = experiments or ALL_EXPERIMENTS
 
     # Build work items
@@ -171,18 +201,15 @@ def compute_all(workers: int, experiments: list[str] | None = None) -> None:
             skipped.append(exp)
             continue
 
-        # Parse experiment metadata
-        parts = exp.split("_", 1)  # data100_epochs10 -> data100, epochs10
-        data_pct = int(parts[0].replace("data", ""))
-        epoch_cfg = parts[1]
+        exp_meta = parse_experiment_label(exp)
 
         for _, row in test_df.iterrows():
             pred_file = derive_prediction_path(row["raw"], pred_dir)
             sample_id = Path(row["raw"]).stem
             metadata = {
                 "experiment": exp,
-                "data_pct": data_pct,
-                "epoch_cfg": epoch_cfg,
+                "data_pct": exp_meta["data_pct"],
+                "epoch_cfg": exp_meta["epoch_cfg"],
                 "sample_id": sample_id,
             }
             all_items.append((str(pred_file), str(row["seg"]), metadata))
@@ -194,7 +221,7 @@ def compute_all(workers: int, experiments: list[str] | None = None) -> None:
         print()
 
     if not all_items:
-        print("No work items. Are training runs complete?")
+        print("No work items. Are predict runs complete?")
         return
 
     print(
@@ -229,7 +256,8 @@ def report() -> None:
     if not csv_path.is_file():
         print(f"ERROR: Metrics not found: {csv_path}", file=sys.stderr)
         print(
-            "Run: uv run python scripts/evaluate_finetune.py compute", file=sys.stderr
+            "Run: uv run python scripts/evaluate_finetune.py compute",
+            file=sys.stderr,
         )
         sys.exit(1)
 
@@ -237,24 +265,29 @@ def report() -> None:
     results_dir = csv_path.parent
 
     # Summary by experiment
-    summary = df.groupby(["data_pct", "epoch_cfg"])[METRIC_COLS].agg(["mean", "std"])
+    summary = df.groupby("experiment")[METRIC_COLS].agg(["mean", "std", "count"])
     summary.to_csv(results_dir / "summary_stats.csv")
-    print("Summary statistics:")
+    print("Summary statistics by experiment:")
     print(summary.to_string())
     print(f"\nSaved to {results_dir / 'summary_stats.csv'}")
 
-    # Pivot table: data_pct rows x epoch_cfg columns
-    for metric in METRIC_COLS:
-        pivot = df.pivot_table(
-            values=metric, index="data_pct", columns="epoch_cfg", aggfunc="mean"
-        )
-        # Reorder columns
-        col_order = [c for c in EPOCH_CONFIGS if c in pivot.columns]
-        pivot = pivot[col_order]
-        pivot = pivot.sort_index(ascending=False)
-        pivot.to_csv(results_dir / f"pivot_{metric}.csv")
-        print(f"\n{metric.upper()} by data fraction and epoch config:")
-        print(pivot.to_string(float_format="%.4f"))
+    # Epoch comparison (100% data): converged vs 10/50/100 epochs
+    epoch_exps = [e for e in ALL_EXPERIMENTS if e.startswith("data100_")]
+    epoch_df = df[df["experiment"].isin(epoch_exps)]
+    if not epoch_df.empty:
+        epoch_summary = epoch_df.groupby("experiment")[METRIC_COLS].agg(["mean", "std"])
+        epoch_summary.to_csv(results_dir / "epoch_comparison.csv")
+        print("\n\nEpoch comparison (100% data):")
+        print(epoch_summary.to_string())
+
+    # Data fraction comparison (converged): 10% vs 20% vs 50% vs 100%
+    data_exps = [e for e in ALL_EXPERIMENTS if e.endswith("_converged")]
+    data_df = df[df["experiment"].isin(data_exps)]
+    if not data_df.empty:
+        data_summary = data_df.groupby("experiment")[METRIC_COLS].agg(["mean", "std"])
+        data_summary.to_csv(results_dir / "data_fraction_comparison.csv")
+        print("\n\nData fraction comparison (converged):")
+        print(data_summary.to_string())
 
 
 # ---------------------------------------------------------------------------
@@ -264,7 +297,7 @@ def plot() -> None:
     """Generate visualizations from per-sample metrics."""
     csv_path = PROJECT_ROOT / "results" / "finetune" / "per_sample_metrics.csv"
     if not csv_path.is_file():
-        print(f"ERROR: Metrics not found. Run compute first.", file=sys.stderr)
+        print("ERROR: Metrics not found. Run compute first.", file=sys.stderr)
         sys.exit(1)
 
     df = pd.read_csv(csv_path)
@@ -272,38 +305,42 @@ def plot() -> None:
 
     sns.set_theme(style="whitegrid", font_scale=1.1)
 
-    # 1. Heatmap: mean Dice by data fraction x epoch config
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-    for ax, metric in zip(axes, METRIC_COLS):
-        pivot = df.pivot_table(
-            values=metric, index="data_pct", columns="epoch_cfg", aggfunc="mean"
+    # 1. Bar chart: mean Dice by experiment (all 7)
+    fig, ax = plt.subplots(figsize=(12, 6))
+    exp_order = [e for e in ALL_EXPERIMENTS if e in df["experiment"].unique()]
+    summary = df.groupby("experiment")["dice"].agg(["mean", "std"]).reindex(exp_order)
+    bars = ax.bar(
+        range(len(summary)),
+        summary["mean"],
+        yerr=summary["std"],
+        capsize=4,
+        color="steelblue",
+        edgecolor="black",
+        alpha=0.8,
+    )
+    ax.set_xticks(range(len(summary)))
+    ax.set_xticklabels(summary.index, rotation=45, ha="right")
+    ax.set_ylabel("Mean Dice Score")
+    ax.set_title("LMNB1 Fine-Tuning: Dice by Experiment")
+    ax.set_ylim(0, 1)
+    # Add value labels on bars
+    for bar, val in zip(bars, summary["mean"]):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.02,
+            f"{val:.3f}",
+            ha="center",
+            va="bottom",
+            fontsize=9,
         )
-        col_order = [c for c in EPOCH_CONFIGS if c in pivot.columns]
-        pivot = pivot[col_order].sort_index(ascending=False)
-
-        sns.heatmap(
-            pivot,
-            annot=True,
-            fmt=".3f",
-            cmap="YlOrRd",
-            ax=ax,
-            vmin=0,
-            vmax=1,
-            linewidths=0.5,
-        )
-        ax.set_title(f"Mean {metric.upper()}")
-        ax.set_xlabel("Epoch Config")
-        ax.set_ylabel("Data Fraction (%)")
-
     plt.tight_layout()
-    fig.savefig(results_dir / "heatmap.png", dpi=150, bbox_inches="tight")
+    fig.savefig(results_dir / "bar_dice.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
-    print(f"Saved heatmap to {results_dir / 'heatmap.png'}")
+    print(f"Saved bar chart to {results_dir / 'bar_dice.png'}")
 
     # 2. Box plots: Dice distribution per experiment
-    fig, ax = plt.subplots(figsize=(16, 6))
-    order = [f"data{p}_{e}" for p in DATA_FRACTIONS for e in EPOCH_CONFIGS]
-    order = [o for o in order if o in df["experiment"].unique()]
+    fig, ax = plt.subplots(figsize=(14, 6))
+    order = [o for o in ALL_EXPERIMENTS if o in df["experiment"].unique()]
     sns.boxplot(data=df, x="experiment", y="dice", order=order, ax=ax)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
     ax.set_title("Dice Score Distribution by Experiment")
@@ -314,35 +351,90 @@ def plot() -> None:
     plt.close(fig)
     print(f"Saved boxplot to {results_dir / 'boxplot_dice.png'}")
 
-    # 3. Line plot: mean Dice vs epochs, grouped by data fraction
-    fig, ax = plt.subplots(figsize=(10, 6))
-    epoch_means = df[df["epoch_cfg"] != "earlystop"].copy()
-    epoch_means["epochs"] = (
-        epoch_means["epoch_cfg"].str.replace("epochs", "").astype(int)
-    )
-    summary = epoch_means.groupby(["data_pct", "epochs"])["dice"].mean().reset_index()
-
-    for pct in DATA_FRACTIONS:
-        subset = summary[summary["data_pct"] == pct].sort_values("epochs")
-        ax.plot(
-            subset["epochs"], subset["dice"], "o-", label=f"{pct}% data", linewidth=2
+    # 3. Line plot: Epoch effect (100% data)
+    epoch_exps = {
+        "data100_10epochs": 10,
+        "data100_50epochs": 50,
+        "data100_100epochs": 100,
+        "data100_converged": 1000,  # placeholder x-position for converged
+    }
+    epoch_df = df[df["experiment"].isin(epoch_exps.keys())].copy()
+    if not epoch_df.empty:
+        epoch_df["epochs"] = epoch_df["experiment"].map(epoch_exps)
+        epoch_summary = (
+            epoch_df.groupby("epochs")["dice"].agg(["mean", "std"]).reset_index()
         )
 
-    # Add early-stop points as stars
-    es_data = df[df["epoch_cfg"] == "earlystop"].groupby("data_pct")["dice"].mean()
-    for pct in DATA_FRACTIONS:
-        if pct in es_data.index:
-            ax.plot(1000, es_data[pct], "*", markersize=12)
+        fig, ax = plt.subplots(figsize=(8, 6))
+        ax.errorbar(
+            epoch_summary["epochs"],
+            epoch_summary["mean"],
+            yerr=epoch_summary["std"],
+            fmt="o-",
+            linewidth=2,
+            capsize=5,
+            markersize=8,
+            color="steelblue",
+        )
+        # Mark the converged point specially
+        converged_row = epoch_summary[epoch_summary["epochs"] == 1000]
+        if not converged_row.empty:
+            ax.plot(
+                1000,
+                converged_row["mean"].values[0],
+                "*",
+                markersize=15,
+                color="red",
+                zorder=5,
+                label="converged",
+            )
+            ax.legend()
+        ax.set_xlabel("Fine-Tuning Epochs")
+        ax.set_ylabel("Mean Dice Score")
+        ax.set_title("Effect of Fine-Tuning Duration (100% Data)")
+        ax.set_xscale("log")
+        ax.set_ylim(0, 1)
+        plt.tight_layout()
+        fig.savefig(results_dir / "epoch_effect.png", dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Saved epoch effect plot to {results_dir / 'epoch_effect.png'}")
 
-    ax.set_xlabel("Max Epochs")
-    ax.set_ylabel("Mean Dice Score")
-    ax.set_title("Fine-tuning Convergence by Data Fraction")
-    ax.legend()
-    ax.set_xscale("log")
-    plt.tight_layout()
-    fig.savefig(results_dir / "convergence.png", dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"Saved convergence plot to {results_dir / 'convergence.png'}")
+    # 4. Line plot: Data fraction effect (converged)
+    data_exps = {
+        "data10_converged": 10,
+        "data20_converged": 20,
+        "data50_converged": 50,
+        "data100_converged": 100,
+    }
+    data_df = df[df["experiment"].isin(data_exps.keys())].copy()
+    if not data_df.empty:
+        data_df["data_pct"] = data_df["experiment"].map(data_exps)
+        data_summary = (
+            data_df.groupby("data_pct")["dice"].agg(["mean", "std"]).reset_index()
+        )
+
+        fig, ax = plt.subplots(figsize=(8, 6))
+        ax.errorbar(
+            data_summary["data_pct"],
+            data_summary["mean"],
+            yerr=data_summary["std"],
+            fmt="s-",
+            linewidth=2,
+            capsize=5,
+            markersize=8,
+            color="darkorange",
+        )
+        ax.set_xlabel("Training Data Fraction (%)")
+        ax.set_ylabel("Mean Dice Score")
+        ax.set_title("Effect of Training Data Size (Converged Models)")
+        ax.set_ylim(0, 1)
+        ax.set_xticks([10, 20, 50, 100])
+        plt.tight_layout()
+        fig.savefig(
+            results_dir / "data_fraction_effect.png", dpi=150, bbox_inches="tight"
+        )
+        plt.close(fig)
+        print(f"Saved data fraction plot to {results_dir / 'data_fraction_effect.png'}")
 
 
 # ---------------------------------------------------------------------------

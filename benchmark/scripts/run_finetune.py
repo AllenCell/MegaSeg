@@ -1,16 +1,16 @@
 #!/usr/bin/env python
-"""Batch fine-tuning runner for LMNB1 experiments.
+"""Batch predict runner for LMNB1 fine-tuning experiments.
 
-Manages 16 training jobs across multiple GPUs using screen sessions.
-Each job fine-tunes the MegaSeg DynUNet on LMNB1 data with a specific
-data fraction and epoch configuration.
+Runs eval.py predict passes for 7 fine-tuned LMNB1 models across GPUs
+using screen sessions. Each job generates 67 prediction TIFFs from the
+test set using an existing fine-tuned checkpoint.
 
 Usage:
-    # Run all 16 experiments
+    # Run all 7 experiments
     uv run python scripts/run_finetune.py --gpus 0,1,2,3
 
     # Run specific experiments
-    uv run python scripts/run_finetune.py --gpus 0 --experiments data100_epochs10,data50_epochs50
+    uv run python scripts/run_finetune.py --gpus 0 --experiments data100_converged,data100_10epochs
 
     # Show status
     uv run python scripts/run_finetune.py --status
@@ -36,15 +36,22 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 LOG_DIR = PROJECT_ROOT / "scripts" / "job_logs"
 
 CONFIGS_PATH = PROJECT_ROOT / "configs"
-TRAIN_SCRIPT = PROJECT_ROOT / "cyto-dl" / "cyto_dl" / "train.py"
+EVAL_SCRIPT = PROJECT_ROOT / "cyto-dl" / "cyto_dl" / "eval.py"
+UV_BIN = "/home/ashwin.samudre/.local/bin/uv"
 
 SCREEN_PREFIX = "ft_"
 DEFAULT_GPUS = [0, 1, 2, 3]
 
-# All 16 experiment labels
-DATA_FRACTIONS = [100, 50, 20, 10]
-EPOCH_CONFIGS = ["epochs10", "epochs50", "epochs100", "earlystop"]
-ALL_EXPERIMENTS = [f"data{pct}_{ec}" for pct in DATA_FRACTIONS for ec in EPOCH_CONFIGS]
+# The 7 L-shaped experiments
+ALL_EXPERIMENTS = [
+    "data100_converged",
+    "data100_10epochs",
+    "data100_50epochs",
+    "data100_100epochs",
+    "data10_converged",
+    "data20_converged",
+    "data50_converged",
+]
 
 # Expected .tif count in output seg/ dir (67 test FOVs)
 EXPECTED_TEST_FILES = 67
@@ -53,14 +60,15 @@ EXPECTED_TEST_FILES = 67
 # ---------------------------------------------------------------------------
 # Job definition
 # ---------------------------------------------------------------------------
-class FinetuneJob:
-    """A single fine-tuning job."""
+class PredictJob:
+    """A single predict job."""
 
     __slots__ = ("label", "config_path", "output_dir")
 
     def __init__(self, label: str) -> None:
         self.label = label
         self.config_path = f"finetune/lmnb1/{label}"
+        # Output goes to outputs/finetune/lmnb1/{label}/seg/
         self.output_dir = f"outputs/finetune/lmnb1/{label}"
 
     @property
@@ -68,29 +76,21 @@ class FinetuneJob:
         return f"{SCREEN_PREFIX}{self.label}"
 
 
-def generate_jobs(experiments: Optional[list[str]] = None) -> list[FinetuneJob]:
-    """Generate fine-tuning jobs, optionally filtered."""
+def generate_jobs(experiments: Optional[list[str]] = None) -> list[PredictJob]:
+    """Generate predict jobs, optionally filtered."""
     labels = experiments if experiments else ALL_EXPERIMENTS
-    return [FinetuneJob(label) for label in labels]
+    return [PredictJob(label) for label in labels]
 
 
 # ---------------------------------------------------------------------------
 # Output / screen helpers
 # ---------------------------------------------------------------------------
-def check_output_complete(job: FinetuneJob) -> bool:
-    """Return True if the job's test output has expected .tif count."""
+def check_output_complete(job: PredictJob) -> bool:
+    """Return True if the job's output has expected .tif count."""
     seg_dir = PROJECT_ROOT / job.output_dir / "seg"
     if not seg_dir.is_dir():
         return False
     return len(glob.glob(str(seg_dir / "*.tif*"))) >= EXPECTED_TEST_FILES
-
-
-def check_checkpoint_exists(job: FinetuneJob) -> bool:
-    """Return True if a checkpoint was saved (training started/completed)."""
-    ckpt_dir = PROJECT_ROOT / job.output_dir / "checkpoints"
-    if not ckpt_dir.is_dir():
-        return False
-    return len(list(ckpt_dir.glob("*.ckpt"))) > 0
 
 
 def get_running_screens() -> set[str]:
@@ -120,26 +120,26 @@ def get_running_screens() -> set[str]:
 # ---------------------------------------------------------------------------
 # Job launching
 # ---------------------------------------------------------------------------
-def launch_job(job: FinetuneJob, gpu_id: int, dry_run: bool = False) -> bool:
-    """Launch a training job in a detached screen session."""
+def launch_job(job: PredictJob, gpu_id: int, dry_run: bool = False) -> bool:
+    """Launch a predict job in a detached screen session."""
     session = job.session_name
     log_file = LOG_DIR / f"{session}.log"
 
     full_output = PROJECT_ROOT / job.output_dir
     full_output.mkdir(parents=True, exist_ok=True)
 
-    train_cmd = (
+    eval_cmd = (
         f"cd {PROJECT_ROOT} && "
         f"CUDA_VISIBLE_DEVICES={gpu_id} "
         f"PROJECT_ROOT={PROJECT_ROOT} "
         f"CYTODL_CONFIG_PATH={CONFIGS_PATH} "
-        f"uv run python {TRAIN_SCRIPT} "
+        f"{UV_BIN} run python {EVAL_SCRIPT} "
         f"experiment={job.config_path}"
     )
 
     if dry_run:
         print(f"  [DRY-RUN] GPU {gpu_id} | {session}")
-        print(f"    {train_cmd}")
+        print(f"    {eval_cmd}")
         return True
 
     screen_cmd = [
@@ -151,7 +151,7 @@ def launch_job(job: FinetuneJob, gpu_id: int, dry_run: bool = False) -> bool:
         str(log_file),
         "bash",
         "-c",
-        train_cmd,
+        eval_cmd,
     ]
 
     try:
@@ -171,7 +171,7 @@ def wait_for_gpu_slot(
     gpu_assignments: dict[str, int],
     poll_interval: int,
 ) -> int:
-    """Block until a GPU has no running finetune jobs."""
+    """Block until a GPU has no running predict jobs."""
     while True:
         running = get_running_screens()
         gpu_load: dict[int, int] = {g: 0 for g in gpus}
@@ -215,29 +215,30 @@ def infer_gpu_assignments_from_logs() -> dict[str, int]:
 # ---------------------------------------------------------------------------
 # Status display
 # ---------------------------------------------------------------------------
-def show_status(jobs: list[FinetuneJob]) -> None:
+def show_status(jobs: list[PredictJob]) -> None:
     """Print job statuses."""
     running_screens = get_running_screens()
 
     print("=" * 65)
-    print("Fine-tuning Status (LMNB1)")
+    print("Fine-tuning Predict Status (LMNB1)")
     print("=" * 65)
 
     completed = 0
     running = 0
-    has_ckpt = 0
     pending = 0
 
     for job in jobs:
+        seg_dir = PROJECT_ROOT / job.output_dir / "seg"
         if check_output_complete(job):
-            status = "DONE"
+            tif_count = len(glob.glob(str(seg_dir / "*.tif*")))
+            status = f"DONE ({tif_count} TIFs)"
             completed += 1
         elif job.session_name in running_screens:
-            status = "RUNNING"
+            tif_count = (
+                len(glob.glob(str(seg_dir / "*.tif*"))) if seg_dir.is_dir() else 0
+            )
+            status = f"RUNNING ({tif_count}/{EXPECTED_TEST_FILES} TIFs)"
             running += 1
-        elif check_checkpoint_exists(job):
-            status = "CKPT (no test output)"
-            has_ckpt += 1
         else:
             status = "PENDING"
             pending += 1
@@ -246,7 +247,7 @@ def show_status(jobs: list[FinetuneJob]) -> None:
 
     print(
         f"\n  Total: {len(jobs)}  |  Done: {completed}  |  "
-        f"Running: {running}  |  Ckpt: {has_ckpt}  |  Pending: {pending}"
+        f"Running: {running}  |  Pending: {pending}"
     )
     print("=" * 65)
 
@@ -256,7 +257,7 @@ def show_status(jobs: list[FinetuneJob]) -> None:
 # ---------------------------------------------------------------------------
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Launch and track LMNB1 fine-tuning jobs.",
+        description="Launch and track LMNB1 fine-tuning predict jobs.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
@@ -269,15 +270,15 @@ def parse_args() -> argparse.Namespace:
         "--experiments",
         type=str,
         default=None,
-        help="Comma-separated experiment labels (default: all 16).",
+        help=f"Comma-separated experiment labels (default: all {len(ALL_EXPERIMENTS)}).",
     )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--status", action="store_true")
     parser.add_argument(
         "--poll-interval",
         type=int,
-        default=60,
-        help="Seconds between GPU checks (default: 60).",
+        default=30,
+        help="Seconds between GPU checks (default: 30).",
     )
     return parser.parse_args()
 
@@ -343,7 +344,7 @@ def main() -> None:
     print(f"\nLaunched {launched} job(s).")
     if not args.dry_run and launched > 0:
         print("\nMonitor:")
-        print("  uv run python scripts/run_finetune.py --status")
+        print(f"  {UV_BIN} run python scripts/run_finetune.py --status")
         print("  screen -ls | grep ft_")
         print(f"  Logs: {LOG_DIR}/")
 

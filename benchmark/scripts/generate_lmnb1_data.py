@@ -1,124 +1,80 @@
 #!/usr/bin/env python3
-"""Generate standardized LMNB1 CSV data manifests from downloaded TIFF files.
+"""Copy LMNB1 data CSVs from user's finetune setup into benchmark.
 
-Creates train.csv, val.csv, test.csv in benchmark/data/lmnb1/ with the same
-format used by the existing benchmark structures:
+The user's CSVs are pre-validated and use the correct format (raw,seg columns,
+no index). We copy the test CSV into a dedicated test/ subdirectory because
+eval.py predict configs point data.path to this directory, and cyto-dl's
+DataframeDatamodule auto-discovers CSVs by filename prefix.
 
-    ,raw,seg
-    0,/allen/.../raw/0000_raw.tiff,/allen/.../seg/0000_seg.tiff
+Source: /allen/aics/users/ashwin.samudre/EMT_image_analysis/
+  Colony_mask_training_inference/data/megaseg_finetune_lamin/
 
-Source data (downloaded by Suraj) lives at:
-    /allen/aics/lumenoid/inner_outer_seg/megaseg_exp/fine-tune/data_downloads/
+Layout created:
+  benchmark/data/lmnb1/
+    test_lmnb1.csv          <- full test CSV (67 rows, for evaluation script)
+    test/
+      test_lmnb1.csv        <- same test CSV in isolated dir (for eval.py predict)
 """
 
-import re
+import shutil
 import sys
 from pathlib import Path
 
-import pandas as pd
-
 # ── Constants ──────────────────────────────────────────────────────────────
 
-DATA_ROOT = Path(
-    "/allen/aics/lumenoid/inner_outer_seg/megaseg_exp/fine-tune/data_downloads"
+SOURCE_ROOT = Path(
+    "/allen/aics/users/ashwin.samudre/EMT_image_analysis/"
+    "Colony_mask_training_inference/data/megaseg_finetune_lamin"
 )
 
-SPLITS = {
-    "train": "train_lmnb1_s3_cytodl",
-    "val": "val_lmnb1_s3_cytodl",
-    "test": "test_lmnb1_s3_cytodl",
-}
+# Test CSV lives in its own subdirectory in the source too
+SOURCE_TEST_CSV = SOURCE_ROOT / "test" / "test_lmnb1_s3_cytodl_local.csv"
 
-# From the original LMNB1 dataset download (267 FOVs total)
-EXPECTED_COUNTS = {"train": 160, "val": 40, "test": 67}
-
-# Pattern to extract the numeric ID from filenames like "0000_raw.tiff"
-_STEM_RE = re.compile(r"^(\d+)_(?:raw|seg)$")
+EXPECTED_TEST_ROWS = 67
 
 
-def _stem_key(filename: str) -> str:
-    """Extract the numeric identifier from a raw/seg TIFF filename."""
-    stem = Path(filename).stem
-    m = _STEM_RE.match(stem)
-    return m.group(1) if m else stem
-
-
-def generate_csv(split: str, subdir: str, output_path: Path) -> pd.DataFrame:
-    """Generate a standardized CSV for one split."""
-    raw_dir = DATA_ROOT / subdir / "raw"
-    seg_dir = DATA_ROOT / subdir / "seg"
-
-    if not raw_dir.is_dir():
-        print(f"ERROR: Raw directory not found: {raw_dir}", file=sys.stderr)
-        sys.exit(1)
-    if not seg_dir.is_dir():
-        print(f"ERROR: Seg directory not found: {seg_dir}", file=sys.stderr)
-        sys.exit(1)
-
-    raw_by_key = {
-        _stem_key(f.name): f.name
-        for f in sorted(raw_dir.iterdir())
-        if f.suffix == ".tiff"
-    }
-    seg_by_key = {
-        _stem_key(f.name): f.name
-        for f in sorted(seg_dir.iterdir())
-        if f.suffix == ".tiff"
-    }
-
-    if len(raw_by_key) != len(seg_by_key):
-        print(
-            f"ERROR: Mismatch in {subdir}: {len(raw_by_key)} raw vs "
-            f"{len(seg_by_key)} seg files",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    missing_in_seg = set(raw_by_key) - set(seg_by_key)
-    missing_in_raw = set(seg_by_key) - set(raw_by_key)
-    if missing_in_seg or missing_in_raw:
-        print(
-            f"ERROR: Key mismatch in {subdir}: "
-            f"{len(missing_in_seg)} raw-only, {len(missing_in_raw)} seg-only",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    expected = EXPECTED_COUNTS[split]
-    if len(raw_by_key) != expected:
-        print(
-            f"  WARNING: Expected {expected} {split} files, found {len(raw_by_key)}",
-            file=sys.stderr,
-        )
-
-    rows = []
-    for key in sorted(raw_by_key):
-        rows.append(
-            {
-                "raw": str(raw_dir / raw_by_key[key]),
-                "seg": str(seg_dir / seg_by_key[key]),
-            }
-        )
-
-    df = pd.DataFrame(rows)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(output_path, index=True)
-    return df
-
-
-def main() -> None:
+def main():
     project_root = Path(__file__).resolve().parent.parent
     output_dir = project_root / "data" / "lmnb1"
+    test_subdir = output_dir / "test"
 
-    print(f"Source data: {DATA_ROOT}")
-    print(f"Output dir:  {output_dir}\n")
+    print(f"Source: {SOURCE_ROOT}")
+    print(f"Output: {output_dir}\n")
 
-    for split, subdir in SPLITS.items():
-        output_path = output_dir / f"{split}.csv"
-        df = generate_csv(split, subdir, output_path)
-        print(f"  {split}.csv: {len(df)} rows -> {output_path}")
+    # Validate source exists
+    if not SOURCE_TEST_CSV.is_file():
+        print(f"ERROR: Source test CSV not found: {SOURCE_TEST_CSV}", file=sys.stderr)
+        sys.exit(1)
 
-    print("\nDone. Generated 3 CSVs.")
+    # Validate row count
+    with open(SOURCE_TEST_CSV) as f:
+        lines = f.readlines()
+    data_rows = len(lines) - 1  # subtract header
+    if data_rows != EXPECTED_TEST_ROWS:
+        print(
+            f"WARNING: Expected {EXPECTED_TEST_ROWS} test rows, found {data_rows}",
+            file=sys.stderr,
+        )
+
+    # Create directories
+    test_subdir.mkdir(parents=True, exist_ok=True)
+
+    # Copy test CSV to root (for evaluation script)
+    dest_root = output_dir / "test_lmnb1.csv"
+    shutil.copy2(SOURCE_TEST_CSV, dest_root)
+    print(f"  Copied test CSV -> {dest_root} ({data_rows} rows)")
+
+    # Copy test CSV to test/ subdirectory (for eval.py predict configs)
+    dest_test = test_subdir / "test_lmnb1.csv"
+    shutil.copy2(SOURCE_TEST_CSV, dest_test)
+    print(f"  Copied test CSV -> {dest_test} ({data_rows} rows)")
+
+    # Validate format (no index column)
+    header = lines[0].strip()
+    if header != "raw,seg":
+        print(f"WARNING: Unexpected header: '{header}' (expected 'raw,seg')")
+
+    print("\nDone.")
 
 
 if __name__ == "__main__":
