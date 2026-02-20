@@ -2,6 +2,12 @@
 benchmark/outputs/
 benchmark/cache/
 
+# Generated data manifests
+benchmark/data/
+
+# Evaluation results
+benchmark/results/
+
 # Checkpoint weights
 benchmark/checkpoints/*.ckpt
 benchmark/checkpoints/**/*.ckpt
