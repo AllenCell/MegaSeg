@@ -62,6 +62,10 @@ BACKBONES = ["dynunet", "attention_unet", "swin_unetr", "unet"]
 
 METRIC_COLS = ["dice", "iou", "precision", "recall", "accuracy"]
 
+# Structures to include in plots (exclude NPM1 — nucleolar marker with
+# fundamentally different signal characteristics that distorts visual scales)
+PLOT_STRUCTURES = [s for s in STRUCTURES if s != "NPM1"]
+
 EVAL_TYPES = ["individual", "individual_test_new", "megaseg", "cross_eval"]
 
 # Plot configuration
@@ -801,7 +805,7 @@ def save_figure(fig: plt.Figure, outdir: Path, name: str) -> None:
 
 
 def plot_cross_eval_heatmap(df: pd.DataFrame, metric: str, outdir: Path) -> None:
-    """Plot 1: 14x14 cross-evaluation heatmap."""
+    """Plot 1: Cross-evaluation heatmap (excluding NPM1)."""
     mask = df["eval_type"] == "cross_eval"
     subset = df[mask]
     if subset.empty:
@@ -812,14 +816,14 @@ def plot_cross_eval_heatmap(df: pd.DataFrame, metric: str, outdir: Path) -> None
     heatmap_data = means.pivot(
         index="model_struct", columns="test_struct", values=metric
     )
-    heatmap_data = heatmap_data.reindex(index=STRUCTURES, columns=STRUCTURES)
+    heatmap_data = heatmap_data.reindex(index=PLOT_STRUCTURES, columns=PLOT_STRUCTURES)
 
     fig, ax = plt.subplots(figsize=(10, 9))
     sns.heatmap(
         heatmap_data,
         annot=True,
         fmt=".2f",
-        cmap="RdYlGn",
+        cmap="viridis",
         vmin=0,
         vmax=1,
         square=True,
@@ -830,7 +834,7 @@ def plot_cross_eval_heatmap(df: pd.DataFrame, metric: str, outdir: Path) -> None
     )
 
     # Highlight diagonal
-    for i in range(len(STRUCTURES)):
+    for i in range(len(PLOT_STRUCTURES)):
         ax.add_patch(plt.Rectangle((i, i), 1, 1, fill=False, edgecolor="black", lw=2))
 
     ax.set_title(
@@ -845,6 +849,63 @@ def plot_cross_eval_heatmap(df: pd.DataFrame, metric: str, outdir: Path) -> None
     save_figure(fig, outdir, "cross_eval_heatmap")
 
 
+def plot_cross_eval_clustermap(df: pd.DataFrame, metric: str, outdir: Path) -> None:
+    """Hierarchically clustered cross-evaluation heatmap (Ward linkage).
+
+    Same data as plot_cross_eval_heatmap but with rows/columns reordered by
+    Ward hierarchical clustering to reveal structure groupings.
+    """
+    from scipy.cluster.hierarchy import linkage
+
+    mask = df["eval_type"] == "cross_eval"
+    subset = df[mask]
+    if subset.empty:
+        log.warning("No cross_eval data; skipping clustermap")
+        return
+
+    means = subset.groupby(["model_struct", "test_struct"])[metric].mean().reset_index()
+    heatmap_data = means.pivot(
+        index="model_struct", columns="test_struct", values=metric
+    )
+    heatmap_data = heatmap_data.reindex(index=PLOT_STRUCTURES, columns=PLOT_STRUCTURES)
+    heatmap_data = heatmap_data.fillna(0)
+
+    # Compute Ward linkage for both axes
+    row_linkage = linkage(heatmap_data.values, method="ward", metric="euclidean")
+    col_linkage = linkage(heatmap_data.values.T, method="ward", metric="euclidean")
+
+    g = sns.clustermap(
+        heatmap_data,
+        row_linkage=row_linkage,
+        col_linkage=col_linkage,
+        cmap="viridis",
+        vmin=0,
+        vmax=1,
+        annot=True,
+        fmt=".2f",
+        linewidths=0.5,
+        linecolor="white",
+        figsize=(11, 10),
+        cbar_kws={"label": metric.capitalize()},
+        dendrogram_ratio=(0.12, 0.12),
+    )
+
+    g.ax_heatmap.set_xlabel("Tested On", fontsize=12)
+    g.ax_heatmap.set_ylabel("Trained On", fontsize=12)
+    g.ax_heatmap.tick_params(axis="both", labelsize=9)
+    g.figure.suptitle(
+        f"{metric.upper()} — Cross-Evaluation Clustermap (Ward linkage)",
+        fontsize=14,
+        y=1.02,
+    )
+
+    outdir.mkdir(parents=True, exist_ok=True)
+    g.figure.savefig(outdir / "cross_eval_clustermap.pdf", bbox_inches="tight")
+    g.figure.savefig(outdir / "cross_eval_clustermap.png", bbox_inches="tight")
+    plt.close(g.figure)
+    log.info("Saved cross_eval_clustermap.{pdf,png} to %s", outdir)
+
+
 def plot_individual_vs_megaseg(df: pd.DataFrame, metric: str, outdir: Path) -> None:
     """Plot 2: Grouped bar chart — individual vs 4 MegaSeg backbones per structure."""
     mask = df["eval_type"].isin(["individual", "megaseg"]) & (
@@ -854,6 +915,9 @@ def plot_individual_vs_megaseg(df: pd.DataFrame, metric: str, outdir: Path) -> N
     if subset.empty:
         log.warning("No individual/megaseg data; skipping bar chart")
         return
+
+    # Filter to PLOT_STRUCTURES only
+    subset = subset[subset["test_struct"].isin(PLOT_STRUCTURES)]
 
     subset["model_label"] = subset.apply(
         lambda r: "individual"
@@ -881,7 +945,7 @@ def plot_individual_vs_megaseg(df: pd.DataFrame, metric: str, outdir: Path) -> N
     }
 
     fig, ax = plt.subplots(figsize=(14, 6))
-    n_structs = len(STRUCTURES)
+    n_structs = len(PLOT_STRUCTURES)
     n_models = len(model_order)
     bar_width = 0.15
     x = np.arange(n_structs)
@@ -890,10 +954,11 @@ def plot_individual_vs_megaseg(df: pd.DataFrame, metric: str, outdir: Path) -> N
         model_data = stats[stats["model_label"] == model].set_index("test_struct")
         means = [
             model_data.loc[s, "mean"] if s in model_data.index else 0
-            for s in STRUCTURES
+            for s in PLOT_STRUCTURES
         ]
         stds = [
-            model_data.loc[s, "std"] if s in model_data.index else 0 for s in STRUCTURES
+            model_data.loc[s, "std"] if s in model_data.index else 0
+            for s in PLOT_STRUCTURES
         ]
         offset = (i - n_models / 2 + 0.5) * bar_width
         ax.bar(
@@ -913,7 +978,7 @@ def plot_individual_vs_megaseg(df: pd.DataFrame, metric: str, outdir: Path) -> N
         f"{metric.upper()} — Individual vs MegaSeg by Structure", fontsize=14, pad=12
     )
     ax.set_xticks(x)
-    ax.set_xticklabels(STRUCTURES, rotation=45, ha="right", fontsize=9)
+    ax.set_xticklabels(PLOT_STRUCTURES, rotation=45, ha="right", fontsize=9)
     ax.set_ylim(0, 1.05)
     ax.legend(loc="upper right", fontsize=9)
     ax.grid(axis="y", alpha=0.3)
@@ -929,6 +994,9 @@ def plot_backbone_comparison(df: pd.DataFrame, metric: str, outdir: Path) -> Non
         log.warning("No megaseg data; skipping backbone comparison")
         return
 
+    # Filter to PLOT_STRUCTURES only
+    subset = subset[subset["test_struct"].isin(PLOT_STRUCTURES)]
+
     stats = (
         subset.groupby(["test_struct", "backbone"])[metric]
         .agg(["mean", "std"])
@@ -936,7 +1004,7 @@ def plot_backbone_comparison(df: pd.DataFrame, metric: str, outdir: Path) -> Non
     )
 
     fig, ax = plt.subplots(figsize=(12, 6))
-    n_structs = len(STRUCTURES)
+    n_structs = len(PLOT_STRUCTURES)
     n_bb = len(BACKBONES)
     bar_width = 0.18
     x = np.arange(n_structs)
@@ -944,9 +1012,11 @@ def plot_backbone_comparison(df: pd.DataFrame, metric: str, outdir: Path) -> Non
     for i, bb in enumerate(BACKBONES):
         bb_data = stats[stats["backbone"] == bb].set_index("test_struct")
         means = [
-            bb_data.loc[s, "mean"] if s in bb_data.index else 0 for s in STRUCTURES
+            bb_data.loc[s, "mean"] if s in bb_data.index else 0 for s in PLOT_STRUCTURES
         ]
-        stds = [bb_data.loc[s, "std"] if s in bb_data.index else 0 for s in STRUCTURES]
+        stds = [
+            bb_data.loc[s, "std"] if s in bb_data.index else 0 for s in PLOT_STRUCTURES
+        ]
         offset = (i - n_bb / 2 + 0.5) * bar_width
         ax.bar(
             x + offset,
@@ -963,7 +1033,7 @@ def plot_backbone_comparison(df: pd.DataFrame, metric: str, outdir: Path) -> Non
     ax.set_ylabel(metric.capitalize(), fontsize=12)
     ax.set_title(f"{metric.upper()} — MegaSeg Backbone Comparison", fontsize=14, pad=12)
     ax.set_xticks(x)
-    ax.set_xticklabels(STRUCTURES, rotation=45, ha="right", fontsize=9)
+    ax.set_xticklabels(PLOT_STRUCTURES, rotation=45, ha="right", fontsize=9)
     ax.set_ylim(0, 1.05)
     ax.legend(loc="upper right", fontsize=9)
     ax.grid(axis="y", alpha=0.3)
@@ -993,8 +1063,10 @@ def plot_delta_improvement(df: pd.DataFrame, metric: str, outdir: Path) -> None:
             ax.set_visible(False)
             continue
 
-        # Compute deltas and sort
-        common = sorted(set(bb_means.index) & set(ind_means.index))
+        # Compute deltas and sort (filter to PLOT_STRUCTURES)
+        common = sorted(
+            set(bb_means.index) & set(ind_means.index) & set(PLOT_STRUCTURES)
+        )
         deltas = pd.Series(
             {s: bb_means[s] - ind_means[s] for s in common}
         ).sort_values()
@@ -1107,10 +1179,16 @@ def plot_test_new_generalization(df: pd.DataFrame, metric: str, outdir: Path) ->
 
 def plot_summary_overview(df: pd.DataFrame, metric: str, outdir: Path) -> None:
     """Plot 6: Overall mean metric by eval type — high-level comparison."""
+    # Filter to PLOT_STRUCTURES for structure-based eval types
+    plot_df = df[
+        df["test_struct"].isin(PLOT_STRUCTURES) | (df["test_set"] == "test_new")
+    ]
     categories = []
 
     # Individual
-    ind = df[(df["eval_type"] == "individual") & (df["test_set"] == "standard")]
+    ind = plot_df[
+        (plot_df["eval_type"] == "individual") & (plot_df["test_set"] == "standard")
+    ]
     if not ind.empty:
         categories.append(
             (
@@ -1123,10 +1201,10 @@ def plot_summary_overview(df: pd.DataFrame, metric: str, outdir: Path) -> None:
 
     # MegaSeg backbones
     for bb in BACKBONES:
-        mega = df[
-            (df["eval_type"] == "megaseg")
-            & (df["backbone"] == bb)
-            & (df["test_set"] == "standard")
+        mega = plot_df[
+            (plot_df["eval_type"] == "megaseg")
+            & (plot_df["backbone"] == bb)
+            & (plot_df["test_set"] == "standard")
         ]
         if not mega.empty:
             label = f"MegaSeg\n{BACKBONE_LABELS.get(bb, bb)}"
@@ -1135,7 +1213,7 @@ def plot_summary_overview(df: pd.DataFrame, metric: str, outdir: Path) -> None:
             )
 
     # Cross-eval diagonal vs off-diagonal
-    cross = df[df["eval_type"] == "cross_eval"]
+    cross = plot_df[plot_df["eval_type"] == "cross_eval"]
     if not cross.empty:
         diag = cross[cross["model_struct"] == cross["test_struct"]]
         off_diag = cross[cross["model_struct"] != cross["test_struct"]]
@@ -1169,7 +1247,9 @@ def plot_summary_overview(df: pd.DataFrame, metric: str, outdir: Path) -> None:
     bars = ax.bar(x, means, yerr=stds, capsize=4, color=colors, alpha=0.85, width=0.6)
 
     # Reference line at individual mean
-    ind_data = df[(df["eval_type"] == "individual") & (df["test_set"] == "standard")]
+    ind_data = plot_df[
+        (plot_df["eval_type"] == "individual") & (plot_df["test_set"] == "standard")
+    ]
     if not ind_data.empty:
         ind_mean = ind_data[metric].mean()
         ax.axhline(
@@ -1229,6 +1309,7 @@ def plot_all(
         log.info("Generating plots for metric=%s in %s", m, metric_dir)
 
         plot_cross_eval_heatmap(df, m, metric_dir)
+        plot_cross_eval_clustermap(df, m, metric_dir)
         plot_individual_vs_megaseg(df, m, metric_dir)
         plot_backbone_comparison(df, m, metric_dir)
         plot_delta_improvement(df, m, metric_dir)
