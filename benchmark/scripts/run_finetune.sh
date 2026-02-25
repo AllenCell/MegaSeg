@@ -27,12 +27,20 @@ run_experiment() {
     echo "Running: $experiment (GPU $gpu)"
     echo "Config dir: $CONFIG_DIR"
     echo "========================================="
+
+    # Disable RichProgressBar when not attached to a TTY (e.g. nohup/background)
+    local extra_args=()
+    if [[ ! -t 1 ]]; then
+        extra_args+=("~callbacks.rich_progress_bar")
+    fi
+
     CYTODL_CONFIG_PATH="$CONFIG_DIR" \
     PROJECT_ROOT="$BENCHMARK_DIR" \
         "$UV" run --directory "$BENCHMARK_DIR" \
         python -m cyto_dl.train \
         experiment="$experiment" \
-        trainer.devices="[$gpu]"
+        trainer.devices="[$gpu]" \
+        "${extra_args[@]}"
 }
 
 if [[ "${1:-}" == "--phase1" ]]; then
