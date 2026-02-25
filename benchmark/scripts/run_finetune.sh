@@ -18,6 +18,7 @@ BENCHMARK_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 CONFIG_DIR="$BENCHMARK_DIR/configs"
 
 GPU="${GPU:-0}"
+UV="${UV:-/home/ashwin.samudre/.local/bin/uv}"
 
 run_experiment() {
     local experiment="$1"
@@ -28,6 +29,7 @@ run_experiment() {
     echo "========================================="
     CYTODL_CONFIG_PATH="$CONFIG_DIR" \
     PROJECT_ROOT="$BENCHMARK_DIR" \
+        "$UV" run --directory "$BENCHMARK_DIR" \
         python -m cyto_dl.train \
         experiment="$experiment" \
         trainer.devices="[$gpu]"
