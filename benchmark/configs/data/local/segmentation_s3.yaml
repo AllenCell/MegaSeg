@@ -21,6 +21,7 @@ transforms:
         expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
+            fs_kwargs: {anon: true}
             dimension_order_out: ${eval:'"ZYX" if ${spatial_dims}==3 else "YX"'}
             C: ${raw_channel}
             Z: ${eval:'None if ${spatial_dims}==3 else 38'}
@@ -29,6 +30,7 @@ transforms:
         expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
+            fs_kwargs: {anon: true}
             dimension_order_out: ${eval:'"ZYX" if ${spatial_dims}==3 else "YX"'}
             C: 0
             Z: ${eval:'None if ${spatial_dims}==3 else 38'}
@@ -74,6 +76,7 @@ transforms:
         expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
+            fs_kwargs: {anon: true}
             dimension_order_out: ${eval:'"ZYX" if ${spatial_dims}==3 else "YX"'}
             C: ${raw_channel}
             Z: ${eval:'None if ${spatial_dims}==3 else 38'}
@@ -82,6 +85,7 @@ transforms:
         expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
+            fs_kwargs: {anon: true}
             dimension_order_out: ${eval:'"ZYX" if ${spatial_dims}==3 else "YX"'}
             C: 0
             Z: ${eval:'None if ${spatial_dims}==3 else 38'}
@@ -107,6 +111,7 @@ transforms:
         expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
+            fs_kwargs: {anon: true}
             dimension_order_out: ${eval:'"ZYX" if ${spatial_dims}==3 else "YX"'}
             C: ${raw_channel}
             Z: ${eval:'None if ${spatial_dims}==3 else 38'}
@@ -127,6 +132,7 @@ transforms:
         expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
+            fs_kwargs: {anon: true}
             dimension_order_out: ${eval:'"ZYX" if ${spatial_dims}==3 else "YX"'}
             C: ${raw_channel}
             Z: ${eval:'None if ${spatial_dims}==3 else 38'}
@@ -135,6 +141,7 @@ transforms:
         expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
+            fs_kwargs: {anon: true}
             dimension_order_out: ${eval:'"ZYX" if ${spatial_dims}==3 else "YX"'}
             C: 0
             Z: ${eval:'None if ${spatial_dims}==3 else 38'}
