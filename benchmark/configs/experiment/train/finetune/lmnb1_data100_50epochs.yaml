@@ -1,0 +1,38 @@
+# @package _global_
+defaults:
+  - override /data: local/segmentation_finetune.yaml
+  - override /model: local/segmentation_ms25_float32.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: ddp.yaml
+  - override /logger: csv.yaml
+
+tags: ["finetune", "lmnb1"]
+seed: 12345
+test: false
+
+channel_name: EGFP
+
+checkpoint:
+  ckpt_path: /allen/aics/assay-dev/users/Suraj/megaSeg/Amil/cyto-dl/logs/train/runs/megaseg_b64_deep_new_13-STRUCTS/dynUNet_st6_base_cytodl/2024-07-15_00-39-47/checkpoints/epoch_650.ckpt
+  weights_only: true
+  strict: true
+
+experiment_name: lmnb1_data100_50epochs
+run_name: lmnb1_ft_data100_50epochs
+source_col: raw
+target_col: seg
+spatial_dims: 3
+raw_im_channels: 1
+
+trainer:
+  max_epochs: 50
+  devices: [0]
+
+data:
+  path: /allen/aics/rep_learn/MegaSeg/data/variance-100x/LMNB1/local/
+  cache_dir: /allen/aics/rep_learn/MegaSeg/benchmark/cache/
+  subsample:
+  batch_size: 32
+  num_workers: 12
+  _aux:
+    patch_shape: [32, 128, 128]

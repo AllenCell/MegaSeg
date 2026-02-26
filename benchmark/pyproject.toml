@@ -13,6 +13,7 @@ dependencies = [
     "tqdm>=4.64",
     "setuptools<81",
     "bioio-ome-tiff>=1.4.0",
+    "s3fs>=2023.1",
 ]
 
 [project.optional-dependencies]

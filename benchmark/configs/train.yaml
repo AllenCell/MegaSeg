@@ -1,0 +1,32 @@
+# @package _global_
+
+defaults:
+  - _self_
+  - data: null
+  - model: null
+  - callbacks: default.yaml
+  - logger: null
+  - trainer: default.yaml
+  - paths: default.yaml
+  - extras: default.yaml
+  - hydra: default.yaml
+  - experiment: null
+  - hparams_search: null
+  - optional local: default.yaml
+  - debug: null
+
+experiment_name: "catchall_experiment"
+run_name: "catchall_run"
+task_name: "train"
+
+tags: ["dev"]
+
+train: True
+test: True
+
+checkpoint:
+  ckpt_path: null
+  weights_only: null
+  strict: True
+
+seed: null

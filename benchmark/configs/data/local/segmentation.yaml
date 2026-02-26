@@ -19,6 +19,7 @@ transforms:
       # channels are [blank, membrane,blank, structure, blank, nuclear dye, brightfield ]
       - _target_: monai.transforms.LoadImaged
         keys: ${source_col}
+        expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
             # NOTE: eval is used so only the experiment file is required to change for beginning users. This is not recommended when creating your own configs.
@@ -28,6 +29,7 @@ transforms:
       # channels are [nucseg, cellseg, nuclear boundary seg, cell boundary seg]
       - _target_: monai.transforms.LoadImaged
         keys: ${target_col}
+        expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
             dimension_order_out: ${eval:'"ZYX" if ${spatial_dims}==3 else "YX"'}
@@ -73,6 +75,7 @@ transforms:
       # channels are [blank, membrane,blank, structure, blank, nuclear dye, brightfield ]
       - _target_: monai.transforms.LoadImaged
         keys: ${source_col}
+        expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
             # NOTE: eval is used so only the experiment file is required to change for beginning users. This is not recommended when creating your own configs.
@@ -82,6 +85,7 @@ transforms:
       # channels are [nucseg, cellseg, nuclear boundary seg, cell boundary seg]
       - _target_: monai.transforms.LoadImaged
         keys: ${target_col}
+        expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
             dimension_order_out: ${eval:'"ZYX" if ${spatial_dims}==3 else "YX"'}
@@ -107,6 +111,7 @@ transforms:
       # channels are [blank, membrane,blank, structure, blank, nuclear dye, brightfield ]
       - _target_: monai.transforms.LoadImaged
         keys: ${source_col}
+        expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
             # NOTE: eval is used so only the experiment file is required to change for beginning users. This is not recommended when creating your own configs.
@@ -128,6 +133,7 @@ transforms:
       # channels are [blank, membrane,blank, structure, blank, nuclear dye, brightfield ]
       - _target_: monai.transforms.LoadImaged
         keys: ${source_col}
+        expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
             # NOTE: eval is used so only the experiment file is required to change for beginning users. This is not recommended when creating your own configs.
@@ -137,6 +143,7 @@ transforms:
       # channels are [nucseg, cellseg, nuclear boundary seg, cell boundary seg]
       - _target_: monai.transforms.LoadImaged
         keys: ${target_col}
+        expanduser: false
         reader:
           - _target_: cyto_dl.image.io.MonaiBioReader
             dimension_order_out: ${eval:'"ZYX" if ${spatial_dims}==3 else "YX"'}
