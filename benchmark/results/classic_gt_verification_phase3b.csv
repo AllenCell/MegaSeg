@@ -26,6 +26,6 @@ SON,SON_138060.tiff,test,phase3b_per_struct,0.9959907598955335,/allen/aics/rep_l
 ST6GAL1,ST6GAL1_15256.tiff,test,phase3b_per_struct,0.9984849202215804,/allen/aics/rep_learn/MegaSeg/benchmark/results/classic_fresh_outputs_per_struct/ST6GAL1/ST6GAL1_15256_fresh_seg.tiff,
 ST6GAL1,ST6GAL1_5851.tiff,test,phase3b_per_struct,0.8794628146414617,/allen/aics/rep_learn/MegaSeg/benchmark/results/classic_fresh_outputs_per_struct/ST6GAL1/ST6GAL1_5851_fresh_seg.tiff,
 ST6GAL1,ST6GAL1_15270.tiff,test,phase3b_per_struct,0.8688734879363259,/allen/aics/rep_learn/MegaSeg/benchmark/results/classic_fresh_outputs_per_struct/ST6GAL1/ST6GAL1_15270_fresh_seg.tiff,
-TOMM20,TOMM20_3766.tiff,test,phase3b_per_struct,,,workflow load failed
-TOMM20,TOMM20_3490.tiff,test,phase3b_per_struct,,,workflow load failed
-TOMM20,TOMM20_3817.tiff,test,phase3b_per_struct,,,workflow load failed
+TOMM20,TOMM20_3766.tiff,test,phase3b_per_struct,0.9999736830379884,/allen/aics/rep_learn/MegaSeg/benchmark/results/classic_fresh_outputs_per_struct/TOMM20/TOMM20_3766_fresh_seg.tiff,
+TOMM20,TOMM20_3490.tiff,test,phase3b_per_struct,0.9995840665493521,/allen/aics/rep_learn/MegaSeg/benchmark/results/classic_fresh_outputs_per_struct/TOMM20/TOMM20_3490_fresh_seg.tiff,
+TOMM20,TOMM20_3817.tiff,test,phase3b_per_struct,0.9997066686856808,/allen/aics/rep_learn/MegaSeg/benchmark/results/classic_fresh_outputs_per_struct/TOMM20/TOMM20_3817_fresh_seg.tiff,

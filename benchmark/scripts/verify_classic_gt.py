@@ -170,9 +170,36 @@ def _peak_local_max_mask(image, **kwargs):
             "local_maxi = _peak_local_max_mask(",
         )
 
-    # For "main_only" (TOMM20), we only need the Workflow function,
-    # not the broken main(). No source patching needed since we import
-    # just the workflow function.
+    elif broken_reason == "main_only":
+        # Strip module-level executable code (notebook leftovers) that runs
+        # at import time.  TOMM20's top-level code triggers a tifffile call
+        # that hits numpy 2.x's removed ndarray.newbyteorder().
+        #
+        # Strategy: parse with AST to find the end of the last function/class
+        # definition, then truncate everything after it (the notebook leftover
+        # executable statements).
+        import ast
+
+        tree = ast.parse(source)
+        last_keep_line = 0
+        for node in ast.iter_child_nodes(tree):
+            if isinstance(
+                node,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef,
+                    ast.ClassDef,
+                    ast.Import,
+                    ast.ImportFrom,
+                ),
+            ):
+                end = getattr(node, "end_lineno", None)
+                if end is not None:
+                    last_keep_line = max(last_keep_line, end)
+
+        if last_keep_line > 0:
+            lines = source.split("\n")
+            source = "\n".join(lines[:last_keep_line])
 
     return source
 
@@ -189,7 +216,7 @@ def load_workflow_function(
         return None
 
     try:
-        if broken_reason and broken_reason != "main_only":
+        if broken_reason:
             # Apply source patches and compile
             patched_source = patch_script_source(script_path, broken_reason)
             module_name = f"classic_seg_{structure}_patched"
