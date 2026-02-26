@@ -599,6 +599,209 @@ def run_phase3(
     return pd.DataFrame(results)
 
 
+def run_phase3_per_struct(
+    samples_per_struct: int = 3,
+    output_dir: Optional[str] = None,
+) -> pd.DataFrame:
+    """Re-run classic workflows on per-structure test.csv images, save fresh
+    outputs, and compare against GT seg files.
+
+    Uses only the test split from each structure's CSV in variance-100x/.
+
+    Args:
+        samples_per_struct: Number of test images to process per structure.
+        output_dir: Directory to save fresh segmentation outputs.
+    """
+    print("\n" + "=" * 70)
+    print(
+        f"PHASE 3b: Re-run workflows on per-structure test.csv "
+        f"({samples_per_struct} samples/structure), saving outputs"
+    )
+    print("=" * 70)
+
+    if output_dir is None:
+        output_dir = str(
+            Path(
+                "/allen/aics/rep_learn/MegaSeg/benchmark/results"
+                "/classic_fresh_outputs_per_struct"
+            )
+        )
+    out_path = Path(output_dir)
+    out_path.mkdir(parents=True, exist_ok=True)
+    print(f"Saving fresh outputs to: {out_path}")
+
+    # Load workflows (cache per structure)
+    workflow_cache: dict[str, Optional[Callable]] = {}
+    results = []
+
+    for structure in sorted(STRUCTURES_WITH_CSVS):
+        print(f"\n--- {structure} ---")
+
+        # Load test.csv for this structure
+        test_csv = VARIANCE_DIR / structure / "test.csv"
+        if not test_csv.exists():
+            print(f"  SKIP: {test_csv} not found")
+            continue
+
+        df_test = pd.read_csv(test_csv)
+        n = min(samples_per_struct, len(df_test))
+        sampled = df_test.sample(n=n, random_state=42)
+
+        # Load workflow (cached)
+        if structure not in workflow_cache:
+            workflow_cache[structure] = load_workflow_function(structure)
+
+        workflow_fn = workflow_cache[structure]
+        if workflow_fn is None:
+            print(f"  SKIP: Could not load workflow for {structure}")
+            for _, row in sampled.iterrows():
+                filename = os.path.basename(row["raw"])
+                results.append(
+                    {
+                        "structure": structure,
+                        "image_id": filename,
+                        "split": "test",
+                        "source": "phase3b_per_struct",
+                        "dice_fresh_vs_gt": None,
+                        "fresh_output_path": None,
+                        "error": "workflow load failed",
+                    }
+                )
+            continue
+
+        for _, row in sampled.iterrows():
+            raw_path = row["raw"]
+            gt_path = row["seg"]
+            filename = os.path.basename(raw_path)
+
+            if not os.path.exists(raw_path):
+                print(f"  MISSING raw: {filename}")
+                results.append(
+                    {
+                        "structure": structure,
+                        "image_id": filename,
+                        "split": "test",
+                        "source": "phase3b_per_struct",
+                        "dice_fresh_vs_gt": None,
+                        "fresh_output_path": None,
+                        "error": "raw file missing",
+                    }
+                )
+                continue
+
+            if not os.path.exists(gt_path):
+                print(f"  MISSING seg: {os.path.basename(gt_path)}")
+                results.append(
+                    {
+                        "structure": structure,
+                        "image_id": filename,
+                        "split": "test",
+                        "source": "phase3b_per_struct",
+                        "dice_fresh_vs_gt": None,
+                        "fresh_output_path": None,
+                        "error": "seg file missing",
+                    }
+                )
+                continue
+
+            try:
+                # Load raw image
+                struct_img = load_image_3d(raw_path)
+
+                # Run workflow
+                pred_fresh = workflow_fn(struct_img, output_type="array")
+
+                # Save fresh output
+                fresh_filename = filename.replace(".tiff", "_fresh_seg.tiff")
+                fresh_out_path = out_path / structure / fresh_filename
+                fresh_out_path.parent.mkdir(parents=True, exist_ok=True)
+
+                pred_save = ((pred_fresh > 0).astype(np.uint8)) * 255
+                from tifffile import imwrite
+
+                imwrite(str(fresh_out_path), pred_save)
+
+                # Load GT
+                gt = load_image_3d(gt_path)
+
+                # Compute Dice
+                d = dice_score(pred_fresh, gt)
+                print(f"  [test] {filename}: Dice = {d:.6f}  -> {fresh_out_path.name}")
+
+                results.append(
+                    {
+                        "structure": structure,
+                        "image_id": filename,
+                        "split": "test",
+                        "source": "phase3b_per_struct",
+                        "dice_fresh_vs_gt": d,
+                        "fresh_output_path": str(fresh_out_path),
+                        "error": None,
+                    }
+                )
+
+            except Exception as e:
+                print(f"  [test] ERROR {filename}: {e}")
+                traceback.print_exc()
+                results.append(
+                    {
+                        "structure": structure,
+                        "image_id": filename,
+                        "split": "test",
+                        "source": "phase3b_per_struct",
+                        "dice_fresh_vs_gt": None,
+                        "fresh_output_path": None,
+                        "error": str(e),
+                    }
+                )
+
+    return pd.DataFrame(results)
+
+
+def print_phase3b_summary(df: pd.DataFrame) -> None:
+    """Print Phase 3b summary."""
+    if df.empty:
+        print("\nPHASE 3b: No results.")
+        return
+
+    print(f"\n{'=' * 70}")
+    print("PHASE 3b SUMMARY")
+    print(f"{'=' * 70}")
+
+    valid = df[df["dice_fresh_vs_gt"].notna()].copy()
+    errors = df[df["dice_fresh_vs_gt"].isna()]
+
+    if not valid.empty:
+        summary = (
+            valid.groupby("structure")["dice_fresh_vs_gt"]
+            .agg(["count", "mean", "min", "max", "std"])
+            .round(6)
+        )
+        summary.columns = ["N", "Mean Dice", "Min Dice", "Max Dice", "Std"]
+        print("\nFresh output vs GT (per-structure test.csv):")
+        print(summary.to_string())
+
+        print(
+            f"\nOverall: N={len(valid)}, "
+            f"Mean={valid['dice_fresh_vs_gt'].mean():.6f}, "
+            f"Min={valid['dice_fresh_vs_gt'].min():.6f}, "
+            f"Max={valid['dice_fresh_vs_gt'].max():.6f}"
+        )
+
+        # Show all rows sorted
+        print("\nAll comparisons (sorted by Dice):")
+        for _, row in valid.sort_values("dice_fresh_vs_gt").iterrows():
+            print(
+                f"  {row['structure']:>12s} | {row['image_id']:>30s} | "
+                f"Dice={row['dice_fresh_vs_gt']:.6f}"
+            )
+
+    if not errors.empty:
+        print(f"\nErrors ({len(errors)}):")
+        for _, row in errors.iterrows():
+            print(f"  {row['structure']:>12s} | {row['image_id']}: {row['error']}")
+
+
 def print_phase3_summary(df: pd.DataFrame) -> None:
     """Print Phase 3 summary with all three Dice comparisons."""
     if df.empty:
@@ -730,10 +933,15 @@ def main():
         help="Run Phase 3: re-run workflows, save outputs, compare fresh vs existing",
     )
     parser.add_argument(
+        "--phase3-per-struct",
+        action="store_true",
+        help="Run Phase 3b: re-run workflows on per-structure test.csv, save outputs",
+    )
+    parser.add_argument(
         "--save-outputs",
         type=str,
         default=None,
-        help="Directory to save fresh segmentation outputs (Phase 3)",
+        help="Directory to save fresh segmentation outputs (Phase 3/3b)",
     )
     parser.add_argument(
         "--output",
@@ -744,7 +952,12 @@ def main():
     args = parser.parse_args()
 
     # Default: run phases 1+2 if none specified
-    if not args.phase1 and not args.phase2 and not args.phase3:
+    if (
+        not args.phase1
+        and not args.phase2
+        and not args.phase3
+        and not args.phase3_per_struct
+    ):
         args.phase1 = True
         args.phase2 = True
 
@@ -772,7 +985,20 @@ def main():
         df3.to_csv(p3_out, index=False)
         print(f"\nPhase 3 results saved to: {p3_out}")
 
-    # Save combined Phase 1+2 results (Phase 3 has different columns)
+    if args.phase3_per_struct:
+        df3b = run_phase3_per_struct(
+            samples_per_struct=args.samples, output_dir=args.save_outputs
+        )
+        print_phase3b_summary(df3b)
+        p3b_out = Path(
+            "/allen/aics/rep_learn/MegaSeg/benchmark/results"
+            "/classic_gt_verification_phase3b.csv"
+        )
+        p3b_out.parent.mkdir(parents=True, exist_ok=True)
+        df3b.to_csv(p3b_out, index=False)
+        print(f"\nPhase 3b results saved to: {p3b_out}")
+
+    # Save combined Phase 1+2 results (Phase 3/3b have different columns)
     phase12 = [r for r in all_results]
     if phase12:
         combined = pd.concat(phase12, ignore_index=True)
