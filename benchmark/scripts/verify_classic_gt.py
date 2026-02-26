@@ -404,6 +404,253 @@ def run_phase2(samples_per_split: int = 3) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------------------
+# Phase 3: Re-run workflows, save outputs, compare fresh vs existing
+# ---------------------------------------------------------------------------
+def run_phase3(
+    n_samples: int = 20,
+    output_dir: Optional[str] = None,
+) -> pd.DataFrame:
+    """Re-run classic workflows on test_new.csv images, save fresh outputs,
+    and compare them against existing classic outputs in ms_classic/{STRUCT}/.
+
+    Args:
+        n_samples: Total number of images to process (~20).
+        output_dir: Directory to save fresh segmentation outputs.
+    """
+    print("\n" + "=" * 70)
+    print(
+        f"PHASE 3: Re-run workflows, save outputs, compare fresh vs existing "
+        f"(sampling {n_samples} images)"
+    )
+    print("=" * 70)
+
+    if output_dir is None:
+        output_dir = str(
+            Path(
+                "/allen/aics/rep_learn/MegaSeg/benchmark/results/classic_fresh_outputs"
+            )
+        )
+    out_path = Path(output_dir)
+    out_path.mkdir(parents=True, exist_ok=True)
+    print(f"Saving fresh outputs to: {out_path}")
+
+    # Load test_new.csv
+    df_test = pd.read_csv(TEST_NEW_CSV)
+
+    # Build candidate list: images whose structure has existing outputs AND
+    # a loadable workflow
+    candidates = []
+    for _, row in df_test.iterrows():
+        raw_path = row["raw"]
+        gt_path = row["seg"]
+        filename = os.path.basename(raw_path)
+        structure = extract_structure_from_filename(filename)
+
+        if structure not in STRUCTURES_WITH_OUTPUTS:
+            continue
+        if structure not in STRUCTURES:
+            continue
+
+        # Check existing classic output exists
+        classic_filename = filename.replace(".tiff", "_classic_seg.tiff")
+        classic_path = MS_CLASSIC_DIR / structure / classic_filename
+        if not classic_path.exists():
+            continue
+
+        candidates.append(
+            {
+                "structure": structure,
+                "filename": filename,
+                "raw_path": raw_path,
+                "gt_path": gt_path,
+                "classic_path": str(classic_path),
+            }
+        )
+
+    print(f"Found {len(candidates)} candidate images with existing classic outputs")
+
+    # Sample
+    df_cand = pd.DataFrame(candidates)
+    if len(df_cand) > n_samples:
+        # Stratified-ish: sample proportionally per structure, at least 1 each
+        df_cand = (
+            df_cand.groupby("structure", group_keys=False)
+            .apply(
+                lambda x: x.sample(
+                    n=min(
+                        len(x), max(1, n_samples // len(df_cand["structure"].unique()))
+                    ),
+                    random_state=42,
+                )
+            )
+            .reset_index(drop=True)
+        )
+        # If still over, trim
+        if len(df_cand) > n_samples:
+            df_cand = df_cand.sample(n=n_samples, random_state=42).reset_index(
+                drop=True
+            )
+
+    print(
+        f"Processing {len(df_cand)} images across {df_cand['structure'].nunique()} structures"
+    )
+
+    # Load workflows (cache per structure)
+    workflow_cache: dict[str, Optional[Callable]] = {}
+    results = []
+
+    for _, row in df_cand.iterrows():
+        structure = row["structure"]
+        filename = row["filename"]
+        raw_path = row["raw_path"]
+        gt_path = row["gt_path"]
+        classic_path = row["classic_path"]
+
+        # Load workflow (cached)
+        if structure not in workflow_cache:
+            print(f"\n--- Loading workflow: {structure} ---")
+            workflow_cache[structure] = load_workflow_function(structure)
+
+        workflow_fn = workflow_cache[structure]
+        if workflow_fn is None:
+            print(f"  SKIP {filename}: workflow failed to load")
+            results.append(
+                {
+                    "structure": structure,
+                    "image_id": filename,
+                    "split": "test_new",
+                    "source": "phase3_rerun",
+                    "dice_fresh_vs_existing": None,
+                    "dice_fresh_vs_gt": None,
+                    "dice_existing_vs_gt": None,
+                    "fresh_output_path": None,
+                    "error": "workflow load failed",
+                }
+            )
+            continue
+
+        try:
+            # Load raw image
+            struct_img = load_image_3d(raw_path)
+
+            # Run workflow
+            pred_fresh = workflow_fn(struct_img, output_type="array")
+
+            # Save fresh output
+            fresh_filename = filename.replace(".tiff", f"_fresh_seg.tiff")
+            fresh_out_path = out_path / structure / fresh_filename
+            fresh_out_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # Save as uint8 {0, 255} to match classic output format
+            pred_save = ((pred_fresh > 0).astype(np.uint8)) * 255
+            from tifffile import imwrite
+
+            imwrite(str(fresh_out_path), pred_save)
+
+            # Load existing classic output
+            pred_existing = load_image_3d(classic_path)
+
+            # Load GT
+            gt = load_image_3d(gt_path)
+
+            # Compute all three Dice comparisons
+            d_fresh_existing = dice_score(pred_fresh, pred_existing)
+            d_fresh_gt = dice_score(pred_fresh, gt)
+            d_existing_gt = dice_score(pred_existing, gt)
+
+            print(
+                f"  {filename}: "
+                f"fresh_vs_existing={d_fresh_existing:.6f}  "
+                f"fresh_vs_gt={d_fresh_gt:.6f}  "
+                f"existing_vs_gt={d_existing_gt:.6f}"
+            )
+
+            results.append(
+                {
+                    "structure": structure,
+                    "image_id": filename,
+                    "split": "test_new",
+                    "source": "phase3_rerun",
+                    "dice_fresh_vs_existing": d_fresh_existing,
+                    "dice_fresh_vs_gt": d_fresh_gt,
+                    "dice_existing_vs_gt": d_existing_gt,
+                    "fresh_output_path": str(fresh_out_path),
+                    "error": None,
+                }
+            )
+
+        except Exception as e:
+            print(f"  ERROR {filename}: {e}")
+            traceback.print_exc()
+            results.append(
+                {
+                    "structure": structure,
+                    "image_id": filename,
+                    "split": "test_new",
+                    "source": "phase3_rerun",
+                    "dice_fresh_vs_existing": None,
+                    "dice_fresh_vs_gt": None,
+                    "dice_existing_vs_gt": None,
+                    "fresh_output_path": None,
+                    "error": str(e),
+                }
+            )
+
+    return pd.DataFrame(results)
+
+
+def print_phase3_summary(df: pd.DataFrame) -> None:
+    """Print Phase 3 summary with all three Dice comparisons."""
+    if df.empty:
+        print("\nPHASE 3: No results.")
+        return
+
+    print(f"\n{'=' * 70}")
+    print("PHASE 3 SUMMARY")
+    print(f"{'=' * 70}")
+
+    valid = df[df["dice_fresh_vs_existing"].notna()].copy()
+    errors = df[df["dice_fresh_vs_existing"].isna()]
+
+    if not valid.empty:
+        # Per-structure summary for fresh_vs_existing
+        summary = (
+            valid.groupby("structure")["dice_fresh_vs_existing"]
+            .agg(["count", "mean", "min", "max"])
+            .round(6)
+        )
+        summary.columns = ["N", "Mean", "Min", "Max"]
+        print("\nFresh vs Existing classic output (Dice):")
+        print(summary.to_string())
+
+        print(
+            f"\nOverall fresh_vs_existing: N={len(valid)}, "
+            f"Mean={valid['dice_fresh_vs_existing'].mean():.6f}, "
+            f"Min={valid['dice_fresh_vs_existing'].min():.6f}, "
+            f"Max={valid['dice_fresh_vs_existing'].max():.6f}"
+        )
+
+        # Show all rows sorted by fresh_vs_existing Dice
+        print("\nAll comparisons (sorted by fresh_vs_existing Dice):")
+        print(
+            f"  {'Structure':>12s} | {'Image':>30s} | {'fresh_v_exist':>13s} | {'fresh_v_gt':>10s} | {'exist_v_gt':>10s}"
+        )
+        print(f"  {'-' * 12} | {'-' * 30} | {'-' * 13} | {'-' * 10} | {'-' * 10}")
+        for _, row in valid.sort_values("dice_fresh_vs_existing").iterrows():
+            print(
+                f"  {row['structure']:>12s} | {row['image_id']:>30s} | "
+                f"{row['dice_fresh_vs_existing']:>13.6f} | "
+                f"{row['dice_fresh_vs_gt']:>10.6f} | "
+                f"{row['dice_existing_vs_gt']:>10.6f}"
+            )
+
+    if not errors.empty:
+        print(f"\nErrors ({len(errors)}):")
+        for _, row in errors.iterrows():
+            print(f"  {row['structure']:>12s} | {row['image_id']}: {row['error']}")
+
+
+# ---------------------------------------------------------------------------
 # Summary reporting
 # ---------------------------------------------------------------------------
 def print_summary(df: pd.DataFrame, phase_label: str) -> None:
@@ -478,6 +725,17 @@ def main():
         help="Number of samples per split for Phase 2 (default: 3)",
     )
     parser.add_argument(
+        "--phase3",
+        action="store_true",
+        help="Run Phase 3: re-run workflows, save outputs, compare fresh vs existing",
+    )
+    parser.add_argument(
+        "--save-outputs",
+        type=str,
+        default=None,
+        help="Directory to save fresh segmentation outputs (Phase 3)",
+    )
+    parser.add_argument(
         "--output",
         type=str,
         default=None,
@@ -485,8 +743,8 @@ def main():
     )
     args = parser.parse_args()
 
-    # Default: run both phases if neither specified
-    if not args.phase1 and not args.phase2:
+    # Default: run phases 1+2 if none specified
+    if not args.phase1 and not args.phase2 and not args.phase3:
         args.phase1 = True
         args.phase2 = True
 
@@ -502,9 +760,22 @@ def main():
         print_summary(df2, "PHASE 2")
         all_results.append(df2)
 
-    # Save combined results
-    if all_results:
-        combined = pd.concat(all_results, ignore_index=True)
+    if args.phase3:
+        df3 = run_phase3(n_samples=args.samples, output_dir=args.save_outputs)
+        print_phase3_summary(df3)
+        # Save Phase 3 results separately (different columns than Phase 1/2)
+        p3_out = Path(
+            "/allen/aics/rep_learn/MegaSeg/benchmark/results"
+            "/classic_gt_verification_phase3.csv"
+        )
+        p3_out.parent.mkdir(parents=True, exist_ok=True)
+        df3.to_csv(p3_out, index=False)
+        print(f"\nPhase 3 results saved to: {p3_out}")
+
+    # Save combined Phase 1+2 results (Phase 3 has different columns)
+    phase12 = [r for r in all_results]
+    if phase12:
+        combined = pd.concat(phase12, ignore_index=True)
         if args.output:
             out_path = Path(args.output)
         else:
