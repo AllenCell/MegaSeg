@@ -1,3 +1,7 @@
+# NOTE: S3 real-time data loading is functional but very slow for training
+# (~10-15 min/epoch vs ~15-30s with local NFS data). For practical training,
+# download data locally first and use segmentation_finetune.yaml instead.
+# This config is kept for reference and light evaluation use only.
 _target_: cyto_dl.datamodules.dataframe.DataframeDatamodule
 
 path:
