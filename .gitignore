@@ -17,6 +17,9 @@ __pycache__/
 benchmark/eval.log
 benchmark/scripts/job_logs/
 
+# Personal design docs / plans
+docs/plans/
+
 # Environment / IDE
 .venv/
 **/.venv/
