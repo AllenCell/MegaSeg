@@ -35,17 +35,29 @@ PRED_BASE = PROJECT_ROOT / "outputs" / "eval" / "finetune" / "lmnb1"
 RESULTS_DIR = PROJECT_ROOT / "results" / "finetune" / "lmnb1"
 
 ALL_EXPERIMENTS = [
-    "data100_converged",
+    # Base model (no fine-tuning)
+    "base_megaseg",
+    # 100% data
     "data100_10epochs",
     "data100_50epochs",
     "data100_100epochs",
-    "data10_converged",
-    "data20_converged",
+    "data100_converged",
+    # 50% data
+    "data50_10epochs",
+    "data50_50epochs",
+    "data50_100epochs",
     "data50_converged",
+    # 20% data
+    "data20_10epochs",
+    "data20_50epochs",
+    "data20_100epochs",
+    "data20_converged",
+    # 10% data
+    "data10_10epochs",
+    "data10_50epochs",
+    "data10_100epochs",
+    "data10_converged",
 ]
-
-# Also support evaluating the base model (no fine-tuning)
-BASE_EXPERIMENT = "base_megaseg"
 
 
 # ---------------------------------------------------------------------------
