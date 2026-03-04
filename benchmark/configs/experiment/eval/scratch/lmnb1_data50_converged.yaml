@@ -1,0 +1,49 @@
+# @package _global_
+defaults:
+  - override /data: local/segmentation_finetune.yaml
+  - override /model: local/segmentation_ms25_float32.yaml
+  - override /callbacks: eval.yaml
+  - override /trainer: gpu.yaml
+  - override /logger: csv.yaml
+
+tags: ["scratch", "lmnb1", "data50_converged"]
+seed: 12345
+
+channel_name: EGFP
+
+checkpoint:
+  ckpt_path: ${paths.root_dir}/outputs/train/runs/lmnb1_scratch_data50_converged/lmnb1_scratch_data50_converged/2026-03-03_16-48-33/checkpoints/epoch_250.ckpt
+  weights_only: null
+  strict: true
+
+experiment_name: scratch_lmnb1_data50_converged
+run_name: dynunet_lmnb1_data50_converged
+source_col: raw
+target_col: seg
+spatial_dims: 3
+raw_im_channels: 1
+
+trainer:
+  max_epochs: 1000
+  devices: [0]
+
+model:
+  save_dir: ${paths.log_dir}/eval/scratch/lmnb1/data50_converged
+
+paths:
+  output_dir: ${paths.log_dir}/eval/scratch/lmnb1/data50_converged
+
+data:
+  path: ${paths.data_dir}/variance-100x/LMNB1/local_renamed/test/
+  cache_dir: ${paths.cache_dir}
+  subsample:
+  batch_size: 1
+  num_workers: 1
+  _aux:
+    patch_shape: [32, 128, 128]
+
+callbacks:
+  saving:
+    _target_: cyto_dl.callbacks.ImageSaver
+    save_dir: ${paths.log_dir}/eval/scratch/lmnb1/data50_converged
+    stages: ["test", "predict"]

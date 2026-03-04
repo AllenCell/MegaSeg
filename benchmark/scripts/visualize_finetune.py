@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 """
-Generate figures for LMNB1 fine-tuning experiments.
+Generate figures for LMNB1 experiments (fine-tuning or from-scratch).
 
 1. Per-experiment GT vs prediction comparison figures (3 rows x 2 cols).
 2. A 4x4 heatmap of mean Dice scores (data fraction x epochs).
 
 Usage:
-    uv run python scripts/visualize_finetune.py
-    uv run python scripts/visualize_finetune.py --output-dir results/finetune/lmnb1/figures
-    uv run python scripts/visualize_finetune.py --heatmap-only
+    uv run python scripts/visualize_finetune.py --mode finetune
+    uv run python scripts/visualize_finetune.py --mode scratch
+    uv run python scripts/visualize_finetune.py --mode scratch --heatmap-only
 """
 
 import argparse
@@ -29,12 +29,10 @@ import tifffile
 PROJECT_ROOT = Path(__file__).resolve().parent.parent  # benchmark/
 DATA_ROOT = PROJECT_ROOT.parent / "data"
 
-PRED_BASE = PROJECT_ROOT / "outputs" / "eval" / "finetune" / "lmnb1"
 GT_DIR = DATA_ROOT / "variance-100x" / "LMNB1" / "seg"
-RESULTS_DIR = PROJECT_ROOT / "results" / "finetune" / "lmnb1"
 
-EXPERIMENTS = [
-    "base_megaseg",
+# Grid experiments (shared between modes)
+GRID_EXPERIMENTS = [
     # 100% data
     "data100_10epochs",
     "data100_50epochs",
@@ -56,6 +54,26 @@ EXPERIMENTS = [
     "data10_100epochs",
     "data10_converged",
 ]
+
+# Mode-specific settings
+MODE_CONFIG = {
+    "finetune": {
+        "pred_base": PROJECT_ROOT / "outputs" / "eval" / "finetune" / "lmnb1",
+        "results_dir": PROJECT_ROOT / "results" / "finetune" / "lmnb1",
+        "figures_dir": PROJECT_ROOT / "results" / "finetune" / "lmnb1" / "figures",
+        "experiments": ["base_megaseg"] + GRID_EXPERIMENTS,
+        "label": "Fine-Tuning",
+        "has_baseline": True,
+    },
+    "scratch": {
+        "pred_base": PROJECT_ROOT / "outputs" / "eval" / "scratch" / "lmnb1",
+        "results_dir": PROJECT_ROOT / "results" / "scratch" / "lmnb1",
+        "figures_dir": PROJECT_ROOT / "results" / "scratch" / "lmnb1" / "figures",
+        "experiments": GRID_EXPERIMENTS,
+        "label": "From-Scratch Training",
+        "has_baseline": False,
+    },
+}
 
 # Labels for display
 EXP_LABELS = {
@@ -139,10 +157,10 @@ def load_and_project(path: Path, is_gt: bool = False) -> tuple[np.ndarray, np.nd
     return proj, mask
 
 
-def make_figure(experiment: str, output_dir: Path) -> None:
+def make_figure(experiment: str, output_dir: Path, pred_base: Path) -> None:
     """Create a 3-row x 2-col figure for one experiment."""
     exp_label = EXP_LABELS.get(experiment, experiment)
-    pred_dir = PRED_BASE / experiment / "seg"
+    pred_dir = pred_base / experiment / "seg"
 
     fig, axes = plt.subplots(
         len(SAMPLES), 2, figsize=(8, 3.5 * len(SAMPLES)), squeeze=False
@@ -191,15 +209,21 @@ def make_figure(experiment: str, output_dir: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def make_heatmap(output_dir: Path, summary_csv: Path | None = None) -> None:
+def make_heatmap(
+    output_dir: Path,
+    summary_csv: Path | None = None,
+    results_dir: Path | None = None,
+    label: str = "Fine-Tuning",
+    has_baseline: bool = True,
+) -> None:
     """Create a 4x4 heatmap of mean Dice scores (data fraction x epochs).
 
     Rows: data fractions (100%, 50%, 20%, 10%)
     Columns: epoch configs (10, 50, 100, converged)
-    Also annotates with the base_megaseg score.
+    Also annotates with the base_megaseg score if has_baseline=True.
     """
-    csv_path = summary_csv or RESULTS_DIR / "summary.csv"
-    if not csv_path.is_file():
+    csv_path = summary_csv or (results_dir / "summary.csv" if results_dir else None)
+    if csv_path is None or not csv_path.is_file():
         print(f"  ERROR: summary.csv not found at {csv_path}")
         return
 
@@ -214,9 +238,11 @@ def make_heatmap(output_dir: Path, summary_csv: Path | None = None) -> None:
             if not row.empty:
                 grid[i, j] = row["dice_mean"].iloc[0]
 
-    # Get base_megaseg score for annotation
-    base_row = df[df["experiment"] == "base_megaseg"]
-    base_dice = base_row["dice_mean"].iloc[0] if not base_row.empty else None
+    # Get base_megaseg score for annotation (only for finetune mode)
+    base_dice = None
+    if has_baseline:
+        base_row = df[df["experiment"] == "base_megaseg"]
+        base_dice = base_row["dice_mean"].iloc[0] if not base_row.empty else None
 
     # --- Figure ---
     fig, ax = plt.subplots(figsize=(8, 6))
@@ -253,7 +279,7 @@ def make_heatmap(output_dir: Path, summary_csv: Path | None = None) -> None:
     ax.set_xlabel("Training Epochs", fontsize=12, labelpad=8)
     ax.set_ylabel("Training Data Fraction", fontsize=12, labelpad=8)
 
-    title = "LMNB1 Fine-Tuning: Mean Dice Score (n=67 test samples)"
+    title = f"LMNB1 {label}: Mean Dice Score (n=67 test samples)"
     if base_dice is not None:
         title += f"\nBaseline (no fine-tuning): {base_dice:.3f}"
     ax.set_title(title, fontsize=13, fontweight="bold", pad=12)
@@ -279,18 +305,26 @@ def make_heatmap(output_dir: Path, summary_csv: Path | None = None) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Visualize LMNB1 fine-tuning results")
+    parser = argparse.ArgumentParser(
+        description="Visualize LMNB1 experiment results (finetune or scratch)"
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["finetune", "scratch"],
+        default="finetune",
+        help="Experiment mode: finetune (pretrained) or scratch (random init)",
+    )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=PROJECT_ROOT / "results" / "finetune" / "lmnb1" / "figures",
-        help="Directory to save figures",
+        default=None,
+        help="Directory to save figures (default: mode-specific figures dir)",
     )
     parser.add_argument(
         "--experiments",
         nargs="+",
-        default=EXPERIMENTS,
-        help="Experiments to visualize",
+        default=None,
+        help="Experiments to visualize (default: all for the chosen mode)",
     )
     parser.add_argument(
         "--heatmap-only",
@@ -306,26 +340,42 @@ def main():
         "--summary-csv",
         type=Path,
         default=None,
-        help="Path to summary.csv (default: results/finetune/lmnb1/summary.csv)",
+        help="Path to summary.csv (default: mode-specific results dir)",
     )
     args = parser.parse_args()
 
-    args.output_dir.mkdir(parents=True, exist_ok=True)
+    cfg = MODE_CONFIG[args.mode]
+    experiments = args.experiments or cfg["experiments"]
+    output_dir = args.output_dir or cfg["figures_dir"]
+    pred_base = cfg["pred_base"]
+    results_dir = cfg["results_dir"]
+    label = cfg["label"]
+    has_baseline = cfg["has_baseline"]
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"Mode: {args.mode} ({label})")
 
     if not args.heatmap_only:
-        print(f"Saving figures to {args.output_dir}")
+        print(f"Saving figures to {output_dir}")
         print(f"Samples: {[s['label'] for s in SAMPLES]}")
         print()
 
-        for exp in args.experiments:
+        for exp in experiments:
             print(f"Processing {exp}...")
-            make_figure(exp, args.output_dir)
+            make_figure(exp, output_dir, pred_base=pred_base)
 
-        print(f"\n{len(args.experiments)} comparison figures saved.")
+        print(f"\n{len(experiments)} comparison figures saved.")
 
     if not args.skip_heatmap:
         print("\nGenerating heatmap...")
-        make_heatmap(args.output_dir, summary_csv=args.summary_csv)
+        make_heatmap(
+            output_dir,
+            summary_csv=args.summary_csv,
+            results_dir=results_dir,
+            label=label,
+            has_baseline=has_baseline,
+        )
 
     print("\nDone.")
 
