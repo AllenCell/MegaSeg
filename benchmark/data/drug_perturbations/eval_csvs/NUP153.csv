@@ -1,0 +1,13 @@
+file_path,split
+s3://production.files.allencell.org/e02/148/210/764/aed/b08/b40/688/088/1a3/fc/3500003143_100X_20190612_24h-Scene-156_aligned_cropped-P156-G08.ome.tiff,predict
+s3://production.files.allencell.org/7c4/61f/6bd/db5/2db/22a/c41/6c0/7c2/dba/54/3500003143_100X_20190611_4h-Scene-155_aligned_cropped-P155-G08.ome.tiff,predict
+s3://production.files.allencell.org/1c4/d1a/051/ba9/648/d78/841/835/1aa/0a8/aa/3500003143_100X_20190611_4h-Scene-153_aligned_cropped-P153-G08.ome.tiff,predict
+s3://production.files.allencell.org/927/50d/a8e/2ed/a65/429/c4b/890/8cb/028/0f/3500002731_100X_20190205_24hr-Scene-091_aligned_cropped-P91-F05.ome.tiff,predict
+s3://production.files.allencell.org/e68/d1f/239/663/4f1/009/249/449/5e1/c62/3f/3500002731_100X_20190205_24hr-Scene-093_aligned_cropped-P93-G05.ome.tiff,predict
+s3://production.files.allencell.org/c79/7dd/e40/27e/307/51b/842/b64/a3b/8d3/6d/3500003858_100X_20200225_24hr-Scene-160-P160-F08.ome.tiff,predict
+s3://production.files.allencell.org/360/a6c/4df/1bf/81c/86a/f43/9fe/140/6fa/f2/3500002728_100X_20190205_4hrs-Scene-093_aligned_cropped-P93-G05.ome.tiff,predict
+s3://production.files.allencell.org/6f1/125/657/5b0/f46/b38/b40/e68/d27/b17/54/3500002731_100X_20190205_4hr-Scene-095_aligned_cropped-P95-G05.ome.tiff,predict
+s3://production.files.allencell.org/e57/01f/4ad/5fa/fc3/698/b47/563/28c/a45/9b/3500002731_100X_20190205_4hr-Scene-090_aligned_cropped-P90-F05.ome.tiff,predict
+s3://production.files.allencell.org/534/a32/a98/d3a/b09/078/14a/9b7/8cf/daa/72/3500002731_100X_20190205_24hr-Scene-239_aligned_cropped-P239-G11.ome.tiff,predict
+s3://production.files.allencell.org/470/fd5/27a/910/ea1/96a/c4e/89f/eab/995/a5/3500002705_100X_20190129_4hours-Scene-210_aligned_cropped-P210-G11.ome.tiff,predict
+s3://production.files.allencell.org/a81/4d4/7ff/b02/5e0/a9a/243/36f/56a/516/bb/3500002731_100X_20190205_24hr-Scene-237_aligned_cropped-P237-G11.ome.tiff,predict

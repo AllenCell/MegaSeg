@@ -1,0 +1,7 @@
+file_path,split
+s3://production.files.allencell.org/19d/16c/01a/70c/e06/52b/b48/387/94a/59b/ba/3500002153_100X_20180731-1_AcquisitionBlock2_pt2-Scene-20-P20-F08.ome.tiff,predict
+s3://production.files.allencell.org/118/fc0/692/370/d92/fba/f4f/637/ae3/b14/a1/3500002153_100X_20180731-1_AcquisitionBlock2_pt2-Scene-18-P18-F08.ome.tiff,predict
+s3://production.files.allencell.org/133/67b/008/e3e/295/d0a/140/c80/9d7/6c2/08/3500002148_100X_20180730_Block7-Scene-18-aligned_cropped-P18-F08.ome.tiff,predict
+s3://production.files.allencell.org/e30/b78/79c/741/af3/a0b/54a/ed8/86d/c9e/76/3500002241_100X_20180822_AcquisitionBlock10_pt10-Scene-20-aligned_cropped-P18-F11.ome.tiff,predict
+s3://production.files.allencell.org/819/cac/699/b03/d87/5f9/24b/406/b55/14d/5b/3500002270_100X_20180828-Scene-197-aligned_cropped-P236-F11.ome.tiff,predict
+s3://production.files.allencell.org/50d/b70/e9b/e11/574/37b/c4e/91f/bac/495/2e/3500002201_100X_20180813_AcquisitionBlock10_pt10_2-Scene-20-aligned_cropped-P20-F11.ome.tiff,predict
