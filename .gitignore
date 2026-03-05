@@ -12,24 +12,45 @@ benchmark/results/
 benchmark/checkpoints/*.ckpt
 benchmark/checkpoints/**/*.ckpt
 
+# nnUNet artifacts (large, generated)
+benchmark/nnUNet_raw/
+benchmark/nnUNet_preprocessed/
+benchmark/nnUNet_results/
+
+# Training logs
+benchmark/logs/
+benchmark/eval.log
+benchmark/train.log
+benchmark/scripts/job_logs/
+
+# Virtual environments
+benchmark/envs/
+.venv/
+**/.venv/
+
+# Large local data (raw images, segmentations)
+data/caroline_data/
+data/new_data/
+data/variance-100x/*/raw/
+data/variance-100x/*/seg/
+
+# Temp / intermediate files
+*.bak
+benchmark/output.csv
+benchmark/ip_manifest_*.csv
+benchmark/scripts/.nfs*
+
 # Python
 *.pyc
 __pycache__/
+**/__pycache__/
+**/.pytest_cache/
 
 # OS
 .DS_Store
-
-# Logs
-benchmark/eval.log
-benchmark/scripts/job_logs/
+**/.DS_Store
 
 # Personal design docs / plans
 docs/plans/
 
-# Environment / IDE
-.venv/
-**/.venv/
-**/.pytest_cache/
-**/__pycache__/
-**/.DS_Store
 # uv.lock is tracked (application lockfile)
