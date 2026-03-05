@@ -1,14 +1,19 @@
 #!/usr/bin/env python
 """
-Compute Dice scores for LMNB1 fine-tuning experiments (test set only).
+Compute Dice scores for LMNB1 experiments (test set only).
+
+Supports two modes:
+  - finetune: MegaSeg pretrained → fine-tuned (includes base_megaseg baseline)
+  - scratch:  Random init → trained from scratch (no baseline)
 
 Reads the test CSV, finds matching prediction TIFFs for each experiment,
 binarizes (pred >= 0.5, GT > 0), computes Dice = 2*TP / (2*TP + FP + FN),
 and outputs per-sample CSV + summary table.
 
 Usage:
-    uv run python scripts/compute_lmnb1_dice.py
-    uv run python scripts/compute_lmnb1_dice.py --experiments data100_converged data10_converged
+    uv run python scripts/compute_lmnb1_dice.py --mode finetune
+    uv run python scripts/compute_lmnb1_dice.py --mode scratch
+    uv run python scripts/compute_lmnb1_dice.py --mode scratch --experiments data100_converged
 """
 
 import argparse
@@ -31,12 +36,9 @@ DATA_ROOT = PROJECT_ROOT.parent / "data"
 TEST_CSV = (
     DATA_ROOT / "variance-100x" / "LMNB1" / "local" / "test_lmnb1_local_cytodl.csv"
 )
-PRED_BASE = PROJECT_ROOT / "outputs" / "eval" / "finetune" / "lmnb1"
-RESULTS_DIR = PROJECT_ROOT / "results" / "finetune" / "lmnb1"
 
-ALL_EXPERIMENTS = [
-    # Base model (no fine-tuning)
-    "base_megaseg",
+# Grid experiments (shared between finetune and scratch)
+GRID_EXPERIMENTS = [
     # 100% data
     "data100_10epochs",
     "data100_50epochs",
@@ -58,6 +60,22 @@ ALL_EXPERIMENTS = [
     "data10_100epochs",
     "data10_converged",
 ]
+
+# Mode-specific settings
+MODE_CONFIG = {
+    "finetune": {
+        "pred_base": PROJECT_ROOT / "outputs" / "eval" / "finetune" / "lmnb1",
+        "results_dir": PROJECT_ROOT / "results" / "finetune" / "lmnb1",
+        "experiments": ["base_megaseg"] + GRID_EXPERIMENTS,
+        "label": "Fine-Tuning",
+    },
+    "scratch": {
+        "pred_base": PROJECT_ROOT / "outputs" / "eval" / "scratch" / "lmnb1",
+        "results_dir": PROJECT_ROOT / "results" / "scratch" / "lmnb1",
+        "experiments": GRID_EXPERIMENTS,
+        "label": "From-Scratch Training",
+    },
+}
 
 
 # ---------------------------------------------------------------------------
@@ -201,6 +219,7 @@ def derive_pred_path(raw_path: str, pred_seg_dir: Path) -> Path:
 
 def compute_for_experiments(
     experiments: list[str],
+    pred_base: Path,
     workers: int = 8,
 ) -> pd.DataFrame:
     """Compute Dice for the given experiments on the test set."""
@@ -215,7 +234,7 @@ def compute_for_experiments(
     # Build work items
     all_items = []
     for exp in experiments:
-        pred_dir = PRED_BASE / exp / "seg"
+        pred_dir = pred_base / exp / "seg"
         if not pred_dir.is_dir():
             print(f"WARNING: Pred dir missing for {exp}: {pred_dir}")
             continue
@@ -262,15 +281,15 @@ def compute_for_experiments(
     return df
 
 
-def print_summary(df: pd.DataFrame) -> None:
+def print_summary(df: pd.DataFrame, label: str = "Fine-Tuning") -> pd.DataFrame:
     """Print summary table of mean Dice per experiment."""
     if df.empty:
-        return
+        return pd.DataFrame()
 
     valid = df[df["error"] == ""]
 
     print(f"\n{'=' * 80}")
-    print("LMNB1 Fine-Tuning Results — Dice Score (Test Set, n=67)")
+    print(f"LMNB1 {label} Results — Dice Score (Test Set, n=67)")
     print(f"{'=' * 80}")
 
     summary_rows = []
@@ -303,13 +322,19 @@ def print_summary(df: pd.DataFrame) -> None:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Compute LMNB1 fine-tuning Dice scores"
+        description="Compute LMNB1 Dice scores (finetune or scratch)"
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["finetune", "scratch"],
+        default="finetune",
+        help="Experiment mode: finetune (pretrained) or scratch (random init)",
     )
     parser.add_argument(
         "--experiments",
         nargs="+",
-        default=ALL_EXPERIMENTS,
-        help=f"Experiments to evaluate (default: all 7). Options: {ALL_EXPERIMENTS}",
+        default=None,
+        help="Experiments to evaluate (default: all for the chosen mode)",
     )
     parser.add_argument(
         "--workers",
@@ -320,26 +345,37 @@ def main():
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=RESULTS_DIR,
-        help=f"Output directory for CSVs (default: {RESULTS_DIR})",
+        default=None,
+        help="Output directory for CSVs (default: mode-specific results dir)",
     )
     args = parser.parse_args()
 
+    cfg = MODE_CONFIG[args.mode]
+    experiments = args.experiments or cfg["experiments"]
+    output_dir = args.output_dir or cfg["results_dir"]
+    pred_base = cfg["pred_base"]
+    label = cfg["label"]
+
+    print(f"Mode: {args.mode} ({label})")
+    print(f"Pred base: {pred_base}")
+    print(f"Output dir: {output_dir}")
+    print()
+
     # Compute
-    df = compute_for_experiments(args.experiments, workers=args.workers)
+    df = compute_for_experiments(experiments, pred_base=pred_base, workers=args.workers)
     if df.empty:
         return
 
     # Save per-sample CSV
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    per_sample_path = args.output_dir / "per_sample_metrics.csv"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    per_sample_path = output_dir / "per_sample_metrics.csv"
     df.to_csv(per_sample_path, index=False)
     print(f"\nPer-sample metrics saved to {per_sample_path}")
 
     # Print and save summary
-    summary = print_summary(df)
-    if summary is not None:
-        summary_path = args.output_dir / "summary.csv"
+    summary = print_summary(df, label=label)
+    if not summary.empty:
+        summary_path = output_dir / "summary.csv"
         summary.to_csv(summary_path, index=False)
         print(f"Summary saved to {summary_path}")
 
