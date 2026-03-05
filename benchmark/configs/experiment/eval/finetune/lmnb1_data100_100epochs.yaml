@@ -1,0 +1,49 @@
+# @package _global_
+defaults:
+  - override /data: local/segmentation_finetune.yaml
+  - override /model: local/segmentation_ms25_float32.yaml
+  - override /callbacks: eval.yaml
+  - override /trainer: gpu.yaml
+  - override /logger: csv.yaml
+
+tags: ["finetune", "lmnb1", "data100_100epochs"]
+seed: 12345
+
+channel_name: EGFP
+
+checkpoint:
+  ckpt_path: ${paths.root_dir}/outputs/train/runs/lmnb1_data100_100epochs/lmnb1_ft_data100_100epochs/2026-02-25_15-00-39/checkpoints/epoch_081.ckpt
+  weights_only: null
+  strict: true
+
+experiment_name: finetune_lmnb1_data100_100epochs
+run_name: dynunet_lmnb1_data100_100epochs
+source_col: raw
+target_col: seg
+spatial_dims: 3
+raw_im_channels: 1
+
+trainer:
+  max_epochs: 1000
+  devices: [0]
+
+model:
+  save_dir: ${paths.log_dir}/eval/finetune/lmnb1/data100_100epochs
+
+paths:
+  output_dir: ${paths.log_dir}/eval/finetune/lmnb1/data100_100epochs
+
+data:
+  path: ${paths.data_dir}/variance-100x/LMNB1/local/test/
+  cache_dir: ${paths.cache_dir}
+  subsample:
+  batch_size: 1
+  num_workers: 1
+  _aux:
+    patch_shape: [32, 128, 128]
+
+callbacks:
+  saving:
+    _target_: cyto_dl.callbacks.ImageSaver
+    save_dir: ${paths.log_dir}/eval/finetune/lmnb1/data100_100epochs
+    stages: ["test", "predict"]
