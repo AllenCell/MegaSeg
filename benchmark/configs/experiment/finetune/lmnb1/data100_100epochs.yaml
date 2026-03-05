@@ -1,0 +1,47 @@
+# @package _global_
+# Fine-tuned LMNB1 predict config: data100_100epochs
+# Run with: CYTODL_CONFIG_PATH=configs uv run python cyto-dl/cyto_dl/eval.py \
+#           experiment=finetune/lmnb1/data100_100epochs
+defaults:
+  - override /data: local/segmentation.yaml
+  - override /model: local/segmentation_ms25_uint8.yaml
+  - override /callbacks: eval.yaml
+  - override /trainer: gpu.yaml
+  - override /logger: csv.yaml
+
+tags: ["finetune", "lmnb1", "predict", "data100"]
+seed: 12345
+
+checkpoint:
+  ckpt_path: /allen/aics/users/ashwin.samudre/EMT_image_analysis/Colony_mask_training_inference/logs/train/runs/megaseg_finetune_lamin/dynUNet_st6_base_cytodl_ft_lamin_100epochs/2026-01-16_12-51-55/checkpoints/epoch_738.ckpt
+
+experiment_name: finetune_lmnb1_data100_100epochs
+run_name: dynunet_lmnb1_data100_100epochs_predict
+source_col: raw
+target_col: seg
+spatial_dims: 3
+raw_im_channels: 1
+
+trainer:
+  devices: [0]
+
+model:
+  save_dir: ${paths.log_dir}/finetune/lmnb1/data100_100epochs
+
+paths:
+  output_dir: ${paths.log_dir}/finetune/lmnb1/data100_100epochs
+
+data:
+  path: ${paths.root_dir}/data/lmnb1/test/
+  cache_dir: ${paths.cache_dir}
+  subsample:
+  batch_size: 1
+  num_workers: 1
+  _aux:
+    patch_shape: [32, 128, 128]
+
+callbacks:
+  saving:
+    _target_: cyto_dl.callbacks.ImageSaver
+    save_dir: ${paths.log_dir}/finetune/lmnb1/data100_100epochs
+    stages: ["test", "predict"]
