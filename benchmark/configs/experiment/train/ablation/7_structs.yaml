@@ -12,7 +12,7 @@ tags: ["ablation", "7-structs", "from-scratch"]
 seed: 12345
 test: false
 
-channel_name: EGFP
+channel_name: "C:0"
 
 checkpoint:
   ckpt_path: null

@@ -10,7 +10,7 @@ defaults:
 tags: ["ablation_eval", "14_structs"]
 seed: 12345
 
-channel_name: EGFP
+channel_name: "C:0"
 
 checkpoint:
   ckpt_path: CHECKPOINT_PATH_PLACEHOLDER
