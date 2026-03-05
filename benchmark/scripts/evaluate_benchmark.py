@@ -6,12 +6,14 @@ Three-phase pipeline:
   compute — reads prediction/GT TIFF pairs, computes metrics, writes per-sample CSV
   report  — reads per-sample CSV, generates comparison tables
   plot    — reads per-sample CSV, generates publication-quality visualization plots
+  filter  — removes bottom-N low-signal samples per structure, regenerates reports & plots
 
 Usage:
     python scripts/evaluate_benchmark.py compute --dtype uint8 --workers 16
     python scripts/evaluate_benchmark.py report --dtype uint8 --metric dice
     python scripts/evaluate_benchmark.py plot --dtype uint8
     python scripts/evaluate_benchmark.py plot --dtype uint8 --metric dice
+    python scripts/evaluate_benchmark.py filter --dtype uint8 --bottom-n 10
 """
 
 import argparse
@@ -728,10 +730,22 @@ def report_cross_eval_heatmap(
 # ---------------------------------------------------------------------------
 
 
-def report_all(project_root: Path, dtype: str, metric: str = "dice") -> None:
-    """Run all report generators."""
-    df = _load_results(project_root, dtype)
-    output_dir = project_root / "results" / dtype
+def report_all(
+    project_root: Path,
+    dtype: str,
+    metric: str = "dice",
+    df: pd.DataFrame | None = None,
+    output_dir: Path | None = None,
+) -> None:
+    """Run all report generators.
+
+    If *df* is provided it is used directly; otherwise the per-sample CSV is
+    loaded from ``results/{dtype}/per_sample_metrics.csv``.
+    """
+    if df is None:
+        df = _load_results(project_root, dtype)
+    if output_dir is None:
+        output_dir = project_root / "results" / dtype
     output_dir.mkdir(parents=True, exist_ok=True)
 
     log.info("Loaded %d samples from results CSV", len(df))
@@ -1295,9 +1309,15 @@ def plot_all(
     dtype: str,
     metric: str | None = None,
     outdir: Path | None = None,
+    df: pd.DataFrame | None = None,
 ) -> None:
-    """Generate all visualization plots."""
-    df = _load_results(project_root, dtype)
+    """Generate all visualization plots.
+
+    If *df* is provided it is used directly; otherwise the per-sample CSV is
+    loaded from ``results/{dtype}/per_sample_metrics.csv``.
+    """
+    if df is None:
+        df = _load_results(project_root, dtype)
     if outdir is None:
         outdir = project_root / "results" / dtype / "figures"
 
@@ -1317,6 +1337,135 @@ def plot_all(
         plot_summary_overview(df, m, metric_dir)
 
     log.info("All plots saved to %s", outdir)
+
+
+# ---------------------------------------------------------------------------
+# Low-signal sample filtering
+# ---------------------------------------------------------------------------
+
+
+def identify_low_signal_samples(
+    df: pd.DataFrame,
+    bottom_n: int = 10,
+    metric: str = "dice",
+    reference_backbone: str = "dynunet",
+) -> pd.DataFrame:
+    """Identify the bottom-N samples per structure by metric.
+
+    Uses MegaSeg predictions with *reference_backbone* on the standard test
+    set as the reference distribution.  Returns a DataFrame with columns
+    ``[test_struct, sample_id, <metric>]`` for the excluded samples, sorted
+    by structure then metric ascending.
+    """
+    ref = df[
+        (df["eval_type"] == "megaseg")
+        & (df["backbone"] == reference_backbone)
+        & (df["test_set"] == "standard")
+    ].copy()
+
+    if ref.empty:
+        raise ValueError(
+            f"No megaseg/{reference_backbone}/standard rows found in data "
+            f"— cannot identify low-signal samples"
+        )
+
+    excluded_rows = []
+    for struct in sorted(ref["test_struct"].unique()):
+        struct_df = ref[ref["test_struct"] == struct].sort_values(metric)
+        bottom = struct_df.head(bottom_n)
+        excluded_rows.append(bottom[["test_struct", "sample_id", metric]])
+
+    excluded = pd.concat(excluded_rows, ignore_index=True)
+    log.info(
+        "Identified %d low-signal samples (%d structures x bottom %d by %s)",
+        len(excluded),
+        excluded["test_struct"].nunique(),
+        bottom_n,
+        metric,
+    )
+    return excluded
+
+
+def filter_all(
+    project_root: Path,
+    dtype: str,
+    bottom_n: int = 10,
+    metric: str = "dice",
+    reference_backbone: str = "dynunet",
+    plot_metric: str | None = None,
+) -> None:
+    """Filter low-signal samples, save artefacts, regenerate reports & plots.
+
+    Steps:
+      1. Load the full per-sample CSV.
+      2. Identify the bottom-N samples per structure (from megaseg/dynunet).
+      3. Remove those samples from ALL eval types.
+      4. Save filtered CSV + excluded-samples manifest.
+      5. Re-run reports and plots into ``results/{dtype}/filtered/``.
+    """
+    df = _load_results(project_root, dtype)
+    out_dir = project_root / "results" / dtype / "filtered"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # --- Step 1: Identify bottom-N ---
+    excluded = identify_low_signal_samples(
+        df,
+        bottom_n=bottom_n,
+        metric=metric,
+        reference_backbone=reference_backbone,
+    )
+
+    # Save the excluded manifest
+    manifest_path = out_dir / "excluded_samples.csv"
+    excluded.to_csv(manifest_path, index=False)
+    log.info("Saved excluded-sample manifest to %s", manifest_path)
+
+    # --- Step 2: Build exclusion set and filter ---
+    exclude_keys = set(zip(excluded["test_struct"], excluded["sample_id"]))
+
+    mask_keep = ~df.apply(
+        lambda r: (r["test_struct"], r["sample_id"]) in exclude_keys, axis=1
+    )
+    df_filtered = df[mask_keep].copy()
+
+    n_removed = len(df) - len(df_filtered)
+    log.info(
+        "Filtered: %d -> %d rows (%d removed across all eval types)",
+        len(df),
+        len(df_filtered),
+        n_removed,
+    )
+
+    # Save filtered per-sample CSV
+    filtered_csv = out_dir / "per_sample_metrics.csv"
+    df_filtered.to_csv(filtered_csv, index=False)
+    log.info("Saved filtered per-sample CSV to %s", filtered_csv)
+
+    # Print removal breakdown by eval type
+    for et in sorted(df["eval_type"].unique()):
+        orig = len(df[df["eval_type"] == et])
+        filt = len(df_filtered[df_filtered["eval_type"] == et])
+        log.info("  %-25s %5d -> %5d  (-%d)", et, orig, filt, orig - filt)
+
+    # --- Step 3: Reports ---
+    report_all(
+        project_root=project_root,
+        dtype=dtype,
+        metric=metric,
+        df=df_filtered,
+        output_dir=out_dir,
+    )
+
+    # --- Step 4: Plots ---
+    plot_all(
+        project_root=project_root,
+        dtype=dtype,
+        metric=plot_metric,
+        outdir=out_dir / "figures",
+        df=df_filtered,
+    )
+
+    log.info("All filtered artefacts written to %s", out_dir)
 
 
 # ---------------------------------------------------------------------------
@@ -1367,6 +1516,37 @@ def parse_args() -> argparse.Namespace:
         help="Output directory (default: results/{dtype}/figures)",
     )
 
+    # -- filter --
+    p_filter = sub.add_parser(
+        "filter",
+        help="Remove bottom-N low-signal samples per structure, regenerate reports & plots",
+    )
+    p_filter.add_argument("--dtype", required=True, choices=["uint8", "float32"])
+    p_filter.add_argument(
+        "--bottom-n",
+        type=int,
+        default=10,
+        help="Number of lowest-scoring samples to remove per structure (default: 10)",
+    )
+    p_filter.add_argument(
+        "--metric",
+        choices=METRIC_COLS,
+        default="dice",
+        help="Metric used to rank samples for exclusion (default: dice)",
+    )
+    p_filter.add_argument(
+        "--reference-backbone",
+        choices=BACKBONES,
+        default="dynunet",
+        help="MegaSeg backbone used to identify low-signal samples (default: dynunet)",
+    )
+    p_filter.add_argument(
+        "--plot-metric",
+        choices=METRIC_COLS,
+        default=None,
+        help="Generate plots for this metric only (default: all)",
+    )
+
     return parser.parse_args()
 
 
@@ -1398,6 +1578,15 @@ def main() -> None:
             dtype=args.dtype,
             metric=args.metric,
             outdir=args.outdir,
+        )
+    elif args.command == "filter":
+        filter_all(
+            project_root=args.project_root,
+            dtype=args.dtype,
+            bottom_n=args.bottom_n,
+            metric=args.metric,
+            reference_backbone=args.reference_backbone,
+            plot_metric=args.plot_metric,
         )
 
 
