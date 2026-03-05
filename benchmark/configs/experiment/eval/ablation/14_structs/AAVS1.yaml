@@ -1,0 +1,50 @@
+# @package _global_
+# Eval: ablation 14_structs model tested on AAVS1
+defaults:
+  - override /data: local/segmentation_finetune.yaml
+  - override /model: local/segmentation_ms25_float32.yaml
+  - override /callbacks: eval.yaml
+  - override /trainer: gpu.yaml
+  - override /logger: csv.yaml
+
+tags: ["ablation_eval", "14_structs"]
+seed: 12345
+
+channel_name: EGFP
+
+checkpoint:
+  ckpt_path: CHECKPOINT_PATH_PLACEHOLDER
+  weights_only: true
+  strict: true
+
+experiment_name: ablation_eval_14_structs_AAVS1
+run_name: dynunet_14_structs_AAVS1
+source_col: raw
+target_col: seg
+spatial_dims: 3
+raw_im_channels: 1
+
+trainer:
+  max_epochs: 1000
+  devices: [0]
+
+model:
+  save_dir: ${paths.log_dir}/eval/ablation/14_structs/AAVS1
+
+paths:
+  output_dir: ${paths.log_dir}/eval/ablation/14_structs/AAVS1
+
+data:
+  path: ${paths.data_dir}/variance-100x/AAVS1/
+  cache_dir: ${paths.cache_dir}
+  subsample:
+  batch_size: 1
+  num_workers: 1
+  _aux:
+    patch_shape: [32, 128, 128]
+
+callbacks:
+  saving:
+    _target_: cyto_dl.callbacks.ImageSaver
+    save_dir: ${paths.log_dir}/eval/ablation/14_structs/AAVS1
+    stages: ["test", "predict"]
