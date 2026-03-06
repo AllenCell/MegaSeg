@@ -7,8 +7,9 @@ Runs each of the 14 classic workflows on every structure's test set
   - Per-sample metrics CSV (same schema as per_sample_metrics.csv)
   - 14x14 heatmap CSV (rows=workflow, cols=test_struct, values=mean Dice)
 
-Supports --skip-existing to resume interrupted runs and --metrics-only to
-recompute metrics from saved TIFFs without re-running workflows.
+Supports --skip-existing to resume interrupted runs, --metrics-only to
+recompute metrics from saved TIFFs without re-running workflows, and
+--workflows to run a subset in parallel.
 
 Usage:
     python scripts/run_classic_cross_eval.py
@@ -192,6 +193,7 @@ def format_elapsed(seconds: float) -> str:
 def run_cross_eval(
     data_dir: Path,
     output_dir: Path,
+    workflows: list[str] | None = None,
     skip_existing: bool = False,
     metrics_only: bool = False,
     dry_run: bool = False,
@@ -200,7 +202,8 @@ def run_cross_eval(
 
     Returns a list of metric dicts (one per image).
     """
-    total_cells = len(WORKFLOWS) * len(TEST_STRUCTS)
+    wf_list = workflows if workflows is not None else WORKFLOWS
+    total_cells = len(wf_list) * len(TEST_STRUCTS)
     total_images = total_cells * 67  # approximate
     results = []
     global_count = 0
@@ -208,9 +211,9 @@ def run_cross_eval(
     global_skipped = 0
     t_start = time.time()
 
-    for wi, workflow in enumerate(WORKFLOWS, 1):
+    for wi, workflow in enumerate(wf_list, 1):
         print(f"\n{'=' * 70}")
-        print(f"Workflow {wi}/{len(WORKFLOWS)}: {workflow}")
+        print(f"Workflow {wi}/{len(wf_list)}: {workflow}")
         print(f"{'=' * 70}")
 
         # Load workflow function once per workflow (expensive import)
@@ -449,6 +452,13 @@ def main():
         help=f"Output path for heatmap CSV (default: {DEFAULT_HEATMAP_CSV})",
     )
     parser.add_argument(
+        "--workflows",
+        type=str,
+        default=None,
+        help="Comma-separated list of workflows to run (default: all 14). "
+        "E.g. --workflows ACTN1,DSP,TJP1",
+    )
+    parser.add_argument(
         "--skip-existing",
         action="store_true",
         help="Skip images that already have prediction TIFFs (resume support)",
@@ -470,8 +480,20 @@ def main():
     metrics_csv = Path(args.metrics_csv)
     heatmap_csv = Path(args.heatmap_csv)
 
+    # Parse --workflows filter
+    wf_list = None
+    if args.workflows:
+        wf_list = [w.strip() for w in args.workflows.split(",")]
+        unknown = [w for w in wf_list if w not in WORKFLOWS]
+        if unknown:
+            print(f"ERROR: Unknown workflow(s): {unknown}", file=sys.stderr)
+            print(f"  Valid workflows: {WORKFLOWS}", file=sys.stderr)
+            sys.exit(1)
+
+    active_wf = wf_list if wf_list is not None else WORKFLOWS
+
     print("Classic aicssegmentation cross-eval")
-    print(f"  Workflows:    {len(WORKFLOWS)} {WORKFLOWS}")
+    print(f"  Workflows:    {len(active_wf)} {active_wf}")
     print(f"  Test structs: {len(TEST_STRUCTS)} {TEST_STRUCTS}")
     print(f"  Data dir:     {data_dir}")
     print(f"  Output dir:   {output_dir}")
@@ -491,6 +513,7 @@ def main():
     results = run_cross_eval(
         data_dir=data_dir,
         output_dir=output_dir,
+        workflows=wf_list,
         skip_existing=args.skip_existing,
         metrics_only=args.metrics_only,
         dry_run=args.dry_run,
@@ -500,9 +523,15 @@ def main():
         print("\n[dry-run] No outputs written.")
         return
 
-    # Write outputs
-    write_metrics_csv(results, metrics_csv)
-    write_heatmap_csv(results, heatmap_csv)
+    # Write outputs (only full aggregation when running all workflows)
+    if wf_list is None:
+        write_metrics_csv(results, metrics_csv)
+        write_heatmap_csv(results, heatmap_csv)
+    else:
+        print(
+            f"\nSubset run ({len(wf_list)} workflows). "
+            "Run with --metrics-only (no --workflows) to aggregate all results."
+        )
 
     print("\nDone.")
 
