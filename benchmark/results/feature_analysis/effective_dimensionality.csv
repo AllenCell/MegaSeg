@@ -1,0 +1,13 @@
+model,layer,n_active_channels,total_channels,dim_95pct
+MegaSeg pretrained,enc1 (128ch),128,128,3
+MegaSeg pretrained,enc2 (256ch),214,256,8
+MegaSeg pretrained,bottleneck (320ch),0,320,0
+FT 100% converged,enc1 (128ch),128,128,2
+FT 100% converged,enc2 (256ch),206,256,8
+FT 100% converged,bottleneck (320ch),0,320,0
+Scratch 100% converged,enc1 (128ch),128,128,2
+Scratch 100% converged,enc2 (256ch),256,256,4
+Scratch 100% converged,bottleneck (320ch),320,320,12
+FT 10% 10ep,enc1 (128ch),128,128,3
+FT 10% 10ep,enc2 (256ch),223,256,8
+FT 10% 10ep,bottleneck (320ch),0,320,0

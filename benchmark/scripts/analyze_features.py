@@ -522,12 +522,13 @@ def load_test_images(
     csv_path: str,
     n_images: int = 5,
     patch_shape: Tuple[int, int, int] = (32, 128, 128),
-    channel_name: str = "EGFP",
+    egfp_channel_idx: int = 2,
 ) -> List[Tuple[str, torch.Tensor]]:
     """Load test images as patches for activation analysis.
 
     The raw LMNB1 images are multi-channel (Z, C, Y, X) with shape ~(70, 7, 624, 924).
-    We select the EGFP channel, apply z-score normalization (matching training pipeline),
+    We select the EGFP channel (index 2, confirmed via bioio in prior session),
+    apply z-score normalization (matching training pipeline),
     and extract a center patch of the specified size.
 
     Returns list of (sample_id, tensor) where tensor is [1, 1, Z, Y, X].
@@ -538,26 +539,7 @@ def load_test_images(
     raw_col = [c for c in df.columns if c.lower() in ("raw", "source", "input")][0]
     samples = df.head(n_images)
 
-    # Determine EGFP channel index using bioio
-    egfp_channel_idx = None
-    first_path = samples.iloc[0][raw_col]
-    try:
-        from bioio import BioImage
-
-        bio_img = BioImage(first_path)
-        if bio_img.channel_names:
-            for idx, name in enumerate(bio_img.channel_names):
-                if channel_name.lower() in name.lower():
-                    egfp_channel_idx = idx
-                    print(f"  Found channel '{name}' at index {idx}")
-                    break
-        if egfp_channel_idx is None:
-            print(f"  Channel '{channel_name}' not found in {bio_img.channel_names}")
-            print("  Falling back to channel index 3 (typical EGFP position)")
-            egfp_channel_idx = 3
-    except ImportError:
-        print("  bioio not available, using channel index 3 for EGFP")
-        egfp_channel_idx = 3
+    print(f"  Using EGFP channel index: {egfp_channel_idx}")
 
     images = []
     for _, row in samples.iterrows():
@@ -1112,6 +1094,545 @@ def run_feature_visualization(
 
 
 # ---------------------------------------------------------------------------
+# Phase 3: Deep Interpretability (GradCAM, CKA, Layer Contribution)
+# ---------------------------------------------------------------------------
+
+
+def _linear_cka(X: np.ndarray, Y: np.ndarray) -> float:
+    """Compute linear CKA (Centered Kernel Alignment) between two feature matrices.
+
+    X: (n_samples, d1), Y: (n_samples, d2)
+    Returns CKA similarity in [0, 1].
+
+    Reference: Kornblith et al., "Similarity of Neural Network Representations
+    Revisited" (ICML 2019).
+    """
+    # Center columns
+    X = X - X.mean(axis=0, keepdims=True)
+    Y = Y - Y.mean(axis=0, keepdims=True)
+
+    # Compute CKA via HSIC with linear kernel
+    # HSIC(K, L) = (1/n^2) * tr(KHLH) where H = I - 1/n * 11^T
+    # For linear kernel: simplifies to ||Y^T X||_F^2 / (||X^T X||_F * ||Y^T Y||_F)
+    XtX = X.T @ X
+    YtY = Y.T @ Y
+    YtX = Y.T @ X
+
+    hsic_xy = np.linalg.norm(YtX, "fro") ** 2
+    hsic_xx = np.linalg.norm(XtX, "fro") ** 2
+    hsic_yy = np.linalg.norm(YtY, "fro") ** 2
+
+    denom = np.sqrt(hsic_xx * hsic_yy)
+    if denom < 1e-12:
+        return 0.0
+    return float(hsic_xy / denom)
+
+
+def run_cka_analysis(
+    checkpoints: Dict,
+    out_dir: Path,
+    n_images: int = 20,
+    device: str = "cuda",
+):
+    """Phase 3A: CKA similarity between models at each layer.
+
+    Compares all pairs of models to see how similar their representations are
+    at each layer. Key question: does fine-tuning change shallow layers or deep layers?
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    fig_dir = out_dir / "figures"
+    fig_dir.mkdir(parents=True, exist_ok=True)
+
+    print("\nLoading test images for CKA analysis...")
+    images = load_test_images(TEST_CSV, n_images=n_images)
+    print(f"Loaded {len(images)} images")
+
+    # Layers to compare (skip output_block - single channel)
+    cka_layers = LAYER_NAMES[:-1]
+
+    # Extract spatially-averaged features for each model
+    all_features = {}
+    for ckpt_key, ckpt_info in checkpoints.items():
+        print(f"\nExtracting features: {ckpt_info['label']}")
+        model = load_dynunet(ckpt_info["path"], device=device)
+        features = extract_layer_features(model, images, cka_layers, device=device)
+        all_features[ckpt_key] = features
+        del model
+        torch.cuda.empty_cache()
+
+    ckpt_keys = list(checkpoints.keys())
+    n_models = len(ckpt_keys)
+
+    # Compute CKA for all model pairs at each layer
+    cka_results = []
+    for layer in cka_layers:
+        for i in range(n_models):
+            for j in range(i, n_models):
+                feat_i = all_features[ckpt_keys[i]].get(layer)
+                feat_j = all_features[ckpt_keys[j]].get(layer)
+                if feat_i is None or feat_j is None:
+                    continue
+                # Remove zero-variance features from both
+                var_i = feat_i.var(axis=0)
+                var_j = feat_j.var(axis=0)
+                keep = (var_i > 1e-10) & (var_j > 1e-10)
+                if keep.sum() < 2:
+                    cka_val = 0.0
+                else:
+                    cka_val = _linear_cka(feat_i[:, keep], feat_j[:, keep])
+
+                cka_results.append(
+                    {
+                        "layer": layer,
+                        "model_a": checkpoints[ckpt_keys[i]]["label"],
+                        "model_b": checkpoints[ckpt_keys[j]]["label"],
+                        "key_a": ckpt_keys[i],
+                        "key_b": ckpt_keys[j],
+                        "cka": cka_val,
+                        "n_shared_active": int(keep.sum()),
+                    }
+                )
+
+    cka_df = pd.DataFrame(cka_results)
+    cka_df.to_csv(out_dir / "cka_similarity.csv", index=False)
+    print(f"\nSaved: {out_dir / 'cka_similarity.csv'}")
+
+    # --- Figure: CKA heatmap per model pair across layers ---
+    # Create one heatmap per pair
+    pairs = []
+    for i in range(n_models):
+        for j in range(i + 1, n_models):
+            pairs.append((ckpt_keys[i], ckpt_keys[j]))
+
+    n_pairs = len(pairs)
+    fig, axes = plt.subplots(1, 1, figsize=(12, max(6, n_pairs * 0.8 + 2)))
+    ax = axes
+
+    # Build matrix: rows=pairs, cols=layers
+    pair_labels = []
+    cka_matrix = np.zeros((n_pairs, len(cka_layers)))
+    for p_idx, (ki, kj) in enumerate(pairs):
+        pair_labels.append(f"{checkpoints[ki]['label']} vs {checkpoints[kj]['label']}")
+        for l_idx, layer in enumerate(cka_layers):
+            row = cka_df[
+                (cka_df["key_a"] == ki)
+                & (cka_df["key_b"] == kj)
+                & (cka_df["layer"] == layer)
+            ]
+            if not row.empty:
+                cka_matrix[p_idx, l_idx] = row.iloc[0]["cka"]
+
+    layer_short_no_output = LAYER_SHORT[:-1]
+    sns.heatmap(
+        cka_matrix,
+        ax=ax,
+        xticklabels=layer_short_no_output,
+        yticklabels=pair_labels,
+        annot=True,
+        fmt=".3f",
+        cmap="YlGnBu",
+        vmin=0,
+        vmax=1,
+        linewidths=0.5,
+    )
+    ax.set_title("Linear CKA Similarity Across Layers", fontsize=13, fontweight="bold")
+    ax.set_xlabel("Layer")
+
+    plt.tight_layout()
+    fig.savefig(fig_dir / "cka_similarity_heatmap.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {fig_dir / 'cka_similarity_heatmap.png'}")
+
+    # Print summary
+    print("\nCKA Summary (key pairs):")
+    for _, row in cka_df.iterrows():
+        if row["key_a"] != row["key_b"]:
+            print(
+                f"  {row['model_a']:25s} vs {row['model_b']:25s}  "
+                f"{row['layer']:20s}  CKA={row['cka']:.3f}  "
+                f"({row['n_shared_active']} active ch)"
+            )
+
+    return {"cka": cka_df}
+
+
+def run_gradcam_analysis(
+    checkpoints: Dict,
+    out_dir: Path,
+    n_images: int = 3,
+    device: str = "cuda",
+):
+    """Phase 3B: GradCAM-style attribution for segmentation models.
+
+    For each model, compute gradient-weighted activation maps at key layers
+    to visualize what spatial features the model attends to.
+    Uses the mean output as the target (since this is segmentation, not classification).
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    fig_dir = out_dir / "figures"
+    fig_dir.mkdir(parents=True, exist_ok=True)
+
+    print("\nLoading test images for GradCAM...")
+    images = load_test_images(TEST_CSV, n_images=n_images)
+    print(f"Loaded {len(images)} images")
+
+    # Focus on a few key layers
+    cam_layers = ["downsamples.1", "downsamples.2", "bottleneck", "upsamples.0"]
+    cam_short = ["enc1", "enc2", "bottleneck", "dec0"]
+
+    ckpt_keys = list(checkpoints.keys())
+
+    for img_idx, (sample_id, img_tensor) in enumerate(images[:2]):  # 2 images only
+        fig, axes = plt.subplots(
+            len(ckpt_keys),
+            len(cam_layers) + 2,  # +2 for input and prediction
+            figsize=(4 * (len(cam_layers) + 2), 4 * len(ckpt_keys)),
+        )
+        if len(ckpt_keys) == 1:
+            axes = axes[np.newaxis, :]
+
+        for m_idx, (ckpt_key, ckpt_info) in enumerate(checkpoints.items()):
+            print(f"\n  GradCAM: {ckpt_info['label']} on {sample_id}")
+            model = load_dynunet(ckpt_info["path"], device=device)
+            model.eval()
+
+            # Register hooks for activations and gradients
+            activations_store = {}
+            gradients_store = {}
+            hooks = []
+            modules = dict(model.named_modules())
+
+            for layer_name in cam_layers:
+                if layer_name not in modules:
+                    continue
+
+                def fwd_hook(name):
+                    def hook_fn(module, input, output):
+                        activations_store[name] = output
+
+                    return hook_fn
+
+                def bwd_hook(name):
+                    def hook_fn(module, input, output):
+                        gradients_store[name] = output[0]
+
+                    return hook_fn
+
+                hooks.append(
+                    modules[layer_name].register_forward_hook(fwd_hook(layer_name))
+                )
+                hooks.append(
+                    modules[layer_name].register_full_backward_hook(
+                        bwd_hook(layer_name)
+                    )
+                )
+
+            # Forward + backward
+            img_gpu = img_tensor.to(device).requires_grad_(False)
+            # Need to enable grad for the model parameters
+            for p in model.parameters():
+                p.requires_grad_(True)
+
+            # Re-run with grad enabled on input
+            img_input = img_gpu.clone().detach().requires_grad_(True)
+            output = model(img_input)
+            # Target: mean of positive predictions (segmentation target)
+            target = output.mean()
+            target.backward()
+
+            # Show input (center Z slice)
+            z_mid = img_tensor.shape[2] // 2
+            input_slice = img_tensor[0, 0, z_mid].numpy()
+            axes[m_idx, 0].imshow(input_slice, cmap="gray")
+            axes[m_idx, 0].set_title("Input" if m_idx == 0 else "")
+            axes[m_idx, 0].set_ylabel(
+                f"{ckpt_info['label']}\n(Dice={ckpt_info['dice']:.3f})",
+                fontsize=9,
+            )
+            axes[m_idx, 0].set_xticks([])
+            axes[m_idx, 0].set_yticks([])
+
+            # Show prediction
+            pred = output.detach().cpu()[0, 0, z_mid].numpy()
+            axes[m_idx, 1].imshow(pred, cmap="hot")
+            axes[m_idx, 1].set_title("Prediction" if m_idx == 0 else "")
+            axes[m_idx, 1].set_xticks([])
+            axes[m_idx, 1].set_yticks([])
+
+            # GradCAM for each layer
+            for l_idx, (layer_name, short) in enumerate(zip(cam_layers, cam_short)):
+                ax = axes[m_idx, l_idx + 2]
+                if (
+                    layer_name not in activations_store
+                    or layer_name not in gradients_store
+                ):
+                    ax.text(
+                        0.5,
+                        0.5,
+                        "N/A",
+                        ha="center",
+                        va="center",
+                        transform=ax.transAxes,
+                    )
+                    ax.set_title(short if m_idx == 0 else "")
+                    ax.set_xticks([])
+                    ax.set_yticks([])
+                    continue
+
+                act = activations_store[layer_name].detach()  # [B, C, Z, Y, X]
+                grad = gradients_store[layer_name].detach()  # [B, C, Z, Y, X]
+
+                # GradCAM: channel weights = global avg pool of gradients
+                weights = grad.mean(dim=tuple(range(2, grad.dim())))  # [B, C]
+                # Weighted sum of activations
+                cam = (weights[:, :, None, None, None] * act).sum(dim=1)  # [B, Z, Y, X]
+                cam = torch.relu(cam)  # Only positive contributions
+
+                # Get center Z slice and resize to input spatial dims
+                cam_np = cam[0].cpu().numpy()
+                cam_z = cam_np.shape[0] // 2
+                cam_slice = cam_np[cam_z]
+
+                # Normalize to [0, 1]
+                if cam_slice.max() > 0:
+                    cam_slice = cam_slice / cam_slice.max()
+
+                ax.imshow(input_slice, cmap="gray", alpha=0.5)
+                # Resize cam_slice to match input_slice if needed
+                from scipy.ndimage import zoom as scipy_zoom
+
+                if cam_slice.shape != input_slice.shape:
+                    zoom_factors = (
+                        input_slice.shape[0] / cam_slice.shape[0],
+                        input_slice.shape[1] / cam_slice.shape[1],
+                    )
+                    cam_slice = scipy_zoom(cam_slice, zoom_factors, order=1)
+
+                ax.imshow(cam_slice, cmap="jet", alpha=0.5)
+                ax.set_title(short if m_idx == 0 else "")
+                ax.set_xticks([])
+                ax.set_yticks([])
+
+                # Annotate if dead
+                if cam_slice.max() < 1e-8:
+                    ax.text(
+                        0.5,
+                        0.5,
+                        "DEAD",
+                        ha="center",
+                        va="center",
+                        transform=ax.transAxes,
+                        fontsize=14,
+                        color="red",
+                        fontweight="bold",
+                    )
+
+            # Cleanup
+            for h in hooks:
+                h.remove()
+            del model, img_gpu, img_input, output
+            torch.cuda.empty_cache()
+
+        plt.suptitle(
+            f"GradCAM Attribution: {sample_id}",
+            fontsize=13,
+            fontweight="bold",
+            y=1.01,
+        )
+        plt.tight_layout()
+        fig.savefig(
+            fig_dir / f"gradcam_{sample_id[:30]}.png", dpi=150, bbox_inches="tight"
+        )
+        plt.close(fig)
+        print(f"  Saved: {fig_dir / f'gradcam_{sample_id[:30]}.png'}")
+
+
+def run_layer_contribution(
+    checkpoints: Dict,
+    out_dir: Path,
+    n_images: int = 5,
+    device: str = "cuda",
+):
+    """Phase 3C: Measure relative contribution of each encoder layer to output.
+
+    For each model, zero out skip connections one at a time and measure
+    the change in output. This quantifies how much each encoder level
+    contributes vs the bottleneck pathway.
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    print("\nLoading test images for layer contribution analysis...")
+    images = load_test_images(TEST_CSV, n_images=n_images)
+    print(f"Loaded {len(images)} images")
+
+    # We'll hook the UnetUpBlock inputs to zero out skip connections
+    # DynUNet upsamples.i receives: (decoder_features, skip_connection_from_encoder)
+    # The skip connection is the second argument to forward()
+
+    results = []
+    for ckpt_key, ckpt_info in checkpoints.items():
+        print(f"\n{'=' * 60}")
+        print(f"Layer contribution: {ckpt_info['label']}")
+        print(f"{'=' * 60}")
+
+        model = load_dynunet(ckpt_info["path"], device=device)
+
+        # Get baseline output
+        baseline_outputs = []
+        for sample_id, img_tensor in images:
+            with torch.no_grad():
+                out = model(img_tensor.to(device))
+                baseline_outputs.append(out.cpu())
+
+        # For each upsample block, hook to zero the skip connection
+        upsample_names = ["upsamples.0", "upsamples.1", "upsamples.2", "upsamples.3"]
+        encoder_source = ["enc2 (256ch)", "enc1 (128ch)", "enc0 (64ch)", "input (32ch)"]
+
+        for up_idx, (up_name, enc_src) in enumerate(
+            zip(upsample_names, encoder_source)
+        ):
+            # Hook that zeros the skip connection input
+            def zero_skip_hook(module, args):
+                # UnetUpBlock.forward(self, inp, skip)
+                # args = (inp, skip) - zero out skip
+                if len(args) >= 2:
+                    return (args[0], torch.zeros_like(args[1]))
+                return args
+
+            modules = dict(model.named_modules())
+            hook = modules[up_name].register_forward_pre_hook(zero_skip_hook)
+
+            ablated_outputs = []
+            for sample_id, img_tensor in images:
+                with torch.no_grad():
+                    out = model(img_tensor.to(device))
+                    ablated_outputs.append(out.cpu())
+
+            hook.remove()
+
+            # Measure change
+            for i, (sample_id, _) in enumerate(images):
+                baseline = baseline_outputs[i]
+                ablated = ablated_outputs[i]
+                # L2 distance normalized by baseline magnitude
+                l2_change = (baseline - ablated).norm().item()
+                baseline_norm = baseline.norm().item()
+                rel_change = l2_change / (baseline_norm + 1e-8)
+
+                # Cosine similarity
+                cos_sim = torch.nn.functional.cosine_similarity(
+                    baseline.flatten().unsqueeze(0),
+                    ablated.flatten().unsqueeze(0),
+                ).item()
+
+                results.append(
+                    {
+                        "model": ckpt_info["label"],
+                        "model_key": ckpt_key,
+                        "ablated_skip": enc_src,
+                        "upsample_block": up_name,
+                        "sample_id": sample_id,
+                        "l2_change": l2_change,
+                        "baseline_norm": baseline_norm,
+                        "rel_change": rel_change,
+                        "cosine_sim": cos_sim,
+                    }
+                )
+
+        del model
+        torch.cuda.empty_cache()
+
+    contrib_df = pd.DataFrame(results)
+    contrib_df.to_csv(out_dir / "layer_contributions.csv", index=False)
+    print(f"\nSaved: {out_dir / 'layer_contributions.csv'}")
+
+    # --- Figure: Layer contribution bar chart ---
+    fig_dir = out_dir / "figures"
+    fig_dir.mkdir(parents=True, exist_ok=True)
+
+    # Average across images
+    avg_contrib = (
+        contrib_df.groupby(["model", "ablated_skip"])["rel_change"].mean().reset_index()
+    )
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ckpt_keys = list(checkpoints.keys())
+    skip_names = encoder_source
+    x = np.arange(len(skip_names))
+    bar_width = 0.2
+
+    for i, ck in enumerate(ckpt_keys):
+        model_label = checkpoints[ck]["label"]
+        vals = []
+        for skip in skip_names:
+            row = avg_contrib[
+                (avg_contrib["model"] == model_label)
+                & (avg_contrib["ablated_skip"] == skip)
+            ]
+            vals.append(row["rel_change"].values[0] if not row.empty else 0)
+
+        ax.bar(
+            x + i * bar_width,
+            vals,
+            bar_width,
+            label=model_label,
+            color=checkpoints[ck]["color"],
+            alpha=0.85,
+        )
+
+    ax.set_xticks(x + bar_width * (len(ckpt_keys) - 1) / 2)
+    ax.set_xticklabels(skip_names, rotation=15)
+    ax.set_ylabel("Relative Output Change (L2)")
+    ax.set_title(
+        "Skip Connection Contribution: Output Change When Zeroed",
+        fontweight="bold",
+    )
+    ax.legend()
+    plt.tight_layout()
+    fig.savefig(fig_dir / "layer_contributions.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {fig_dir / 'layer_contributions.png'}")
+
+    # Print summary table
+    print("\nLayer Contribution Summary (avg rel. output change when skip zeroed):")
+    pivot = avg_contrib.pivot(
+        index="model", columns="ablated_skip", values="rel_change"
+    )
+    print(pivot.to_string(float_format="%.4f"))
+
+    return {"contributions": contrib_df}
+
+
+def run_deep_interpretability(
+    checkpoints: Dict,
+    out_dir: Path,
+    n_images: int = 5,
+    device: str = "cuda",
+):
+    """Run all Phase 3 analyses."""
+    print("\n" + "=" * 70)
+    print("PHASE 3A: CKA SIMILARITY ANALYSIS")
+    print("=" * 70)
+    cka_results = run_cka_analysis(
+        checkpoints, out_dir, n_images=n_images, device=device
+    )
+
+    print("\n" + "=" * 70)
+    print("PHASE 3B: GRADCAM ATTRIBUTION")
+    print("=" * 70)
+    run_gradcam_analysis(checkpoints, out_dir, n_images=min(3, n_images), device=device)
+
+    print("\n" + "=" * 70)
+    print("PHASE 3C: LAYER CONTRIBUTION (SKIP ABLATION)")
+    print("=" * 70)
+    contrib_results = run_layer_contribution(
+        checkpoints, out_dir, n_images=n_images, device=device
+    )
+
+    return {**cka_results, **contrib_results}
+
+
+# ---------------------------------------------------------------------------
 # Summary report
 # ---------------------------------------------------------------------------
 
@@ -1180,9 +1701,9 @@ def main():
     )
     parser.add_argument(
         "--phase",
-        choices=["weights", "activations", "visualize", "all"],
+        choices=["weights", "activations", "visualize", "deep", "all"],
         default="all",
-        help="Which analysis phase to run",
+        help="Which analysis phase to run (deep = GradCAM + CKA + layer contribution)",
     )
     parser.add_argument(
         "--checkpoints",
@@ -1256,6 +1777,14 @@ def main():
         print("=" * 70)
         run_feature_visualization(
             checkpoints, out_dir, n_images=args.n_viz_images, device=args.device
+        )
+
+    if args.phase in ("deep", "all"):
+        print("\n" + "=" * 70)
+        print("PHASE 3: DEEP INTERPRETABILITY")
+        print("=" * 70)
+        run_deep_interpretability(
+            checkpoints, out_dir, n_images=args.n_images, device=args.device
         )
 
     # Write summary
