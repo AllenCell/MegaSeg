@@ -1,0 +1,61 @@
+Feature Space Analysis Summary
+==================================================
+
+Models analyzed:
+  MegaSeg pretrained              Dice=0.298
+  FT 100% converged               Dice=0.958
+  Scratch 100% converged          Dice=0.935
+  FT 10% 10ep                     Dice=0.699
+
+
+Weight Stats: MegaSeg pretrained
+----------------------------------------
+  input_block           std=0.245543  pnz=0.0%
+  downsamples.0         std=0.068384  pnz=0.0%
+  downsamples.1         std=0.026148  pnz=0.0%
+  downsamples.2         std=0.000926  pnz=9.5%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030823  pnz=68.3%
+  upsamples.1           std=0.031240  pnz=13.6%
+  upsamples.2           std=0.033486  pnz=0.0%
+  upsamples.3           std=0.122804  pnz=0.0%
+  output_block          std=0.625799  pnz=0.0%
+
+Weight Stats: FT 100% converged
+----------------------------------------
+  input_block           std=0.233731  pnz=0.0%
+  downsamples.0         std=0.067547  pnz=0.0%
+  downsamples.1         std=0.025542  pnz=0.0%
+  downsamples.2         std=0.001450  pnz=11.3%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030430  pnz=69.7%
+  upsamples.1           std=0.031635  pnz=13.7%
+  upsamples.2           std=0.033533  pnz=0.0%
+  upsamples.3           std=0.121305  pnz=0.0%
+  output_block          std=0.627263  pnz=0.0%
+
+Weight Stats: Scratch 100% converged
+----------------------------------------
+  input_block           std=0.491724  pnz=0.0%
+  downsamples.0         std=0.097679  pnz=0.0%
+  downsamples.1         std=0.057301  pnz=0.0%
+  downsamples.2         std=0.027955  pnz=0.0%
+  bottleneck            std=0.013686  pnz=0.3%
+  upsamples.0           std=0.002120  pnz=0.1%
+  upsamples.1           std=0.009189  pnz=0.0%
+  upsamples.2           std=0.022708  pnz=0.0%
+  upsamples.3           std=0.045912  pnz=0.0%
+  output_block          std=0.270898  pnz=0.0%
+
+Weight Stats: FT 10% 10ep
+----------------------------------------
+  input_block           std=0.245503  pnz=0.0%
+  downsamples.0         std=0.068382  pnz=0.0%
+  downsamples.1         std=0.026149  pnz=0.0%
+  downsamples.2         std=0.000945  pnz=7.9%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030829  pnz=67.1%
+  upsamples.1           std=0.031238  pnz=13.3%
+  upsamples.2           std=0.033477  pnz=0.0%
+  upsamples.3           std=0.122816  pnz=0.0%
+  output_block          std=0.625609  pnz=0.0%
