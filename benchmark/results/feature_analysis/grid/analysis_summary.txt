@@ -1,0 +1,863 @@
+Feature Space Analysis Summary
+==================================================
+
+Models analyzed:
+  MegaSeg pretrained              Dice=0.298
+  FT 10% 10ep                     Dice=0.699
+  Scratch 10% 10ep                Dice=0.103
+  FT 10% 50ep                     Dice=0.895
+  Scratch 10% 50ep                Dice=0.469
+  FT 10% 100ep                    Dice=0.914
+  Scratch 10% 100ep               Dice=0.694
+  FT 10% conv                     Dice=0.942
+  Scratch 10% conv                Dice=0.805
+  FT 20% 10ep                     Dice=0.703
+  Scratch 20% 10ep                Dice=0.097
+  FT 20% 50ep                     Dice=0.900
+  Scratch 20% 50ep                Dice=0.474
+  FT 20% 100ep                    Dice=0.921
+  Scratch 20% 100ep               Dice=0.699
+  FT 20% conv                     Dice=0.945
+  Scratch 20% conv                Dice=0.832
+  FT 50% 10ep                     Dice=0.879
+  Scratch 50% 10ep                Dice=0.264
+  FT 50% 50ep                     Dice=0.932
+  Scratch 50% 50ep                Dice=0.787
+  FT 50% 100ep                    Dice=0.945
+  Scratch 50% 100ep               Dice=0.854
+  FT 50% conv                     Dice=0.952
+  Scratch 50% conv                Dice=0.902
+  FT 100% 10ep                    Dice=0.908
+  Scratch 100% 10ep               Dice=0.535
+  FT 100% 50ep                    Dice=0.945
+  Scratch 100% 50ep               Dice=0.839
+  FT 100% 100ep                   Dice=0.949
+  Scratch 100% 100ep              Dice=0.895
+  FT 100% conv                    Dice=0.958
+  Scratch 100% conv               Dice=0.935
+
+
+Weight Stats: MegaSeg pretrained
+----------------------------------------
+  input_block           std=0.245543  pnz=0.0%
+  downsamples.0         std=0.068384  pnz=0.0%
+  downsamples.1         std=0.026148  pnz=0.0%
+  downsamples.2         std=0.000926  pnz=9.5%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030823  pnz=68.3%
+  upsamples.1           std=0.031240  pnz=13.6%
+  upsamples.2           std=0.033486  pnz=0.0%
+  upsamples.3           std=0.122804  pnz=0.0%
+  output_block          std=0.625799  pnz=0.0%
+
+Weight Stats: FT 10% 10ep
+----------------------------------------
+  input_block           std=0.245503  pnz=0.0%
+  downsamples.0         std=0.068382  pnz=0.0%
+  downsamples.1         std=0.026149  pnz=0.0%
+  downsamples.2         std=0.000945  pnz=7.9%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030829  pnz=67.1%
+  upsamples.1           std=0.031238  pnz=13.3%
+  upsamples.2           std=0.033477  pnz=0.0%
+  upsamples.3           std=0.122816  pnz=0.0%
+  output_block          std=0.625609  pnz=0.0%
+
+Weight Stats: Scratch 10% 10ep
+----------------------------------------
+  input_block           std=0.518425  pnz=0.0%
+  downsamples.0         std=0.112467  pnz=0.0%
+  downsamples.1         std=0.078598  pnz=0.0%
+  downsamples.2         std=0.054798  pnz=0.0%
+  bottleneck            std=0.039398  pnz=0.0%
+  upsamples.0           std=0.011701  pnz=0.0%
+  upsamples.1           std=0.016945  pnz=0.0%
+  upsamples.2           std=0.024314  pnz=0.0%
+  upsamples.3           std=0.034456  pnz=0.0%
+  output_block          std=0.238308  pnz=0.0%
+
+Weight Stats: FT 10% 50ep
+----------------------------------------
+  input_block           std=0.245019  pnz=0.0%
+  downsamples.0         std=0.068380  pnz=0.0%
+  downsamples.1         std=0.026160  pnz=0.0%
+  downsamples.2         std=0.001108  pnz=6.7%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030907  pnz=66.2%
+  upsamples.1           std=0.031316  pnz=13.2%
+  upsamples.2           std=0.033471  pnz=0.0%
+  upsamples.3           std=0.122780  pnz=0.0%
+  output_block          std=0.625042  pnz=0.0%
+
+Weight Stats: Scratch 10% 50ep
+----------------------------------------
+  input_block           std=0.517506  pnz=0.0%
+  downsamples.0         std=0.111927  pnz=0.0%
+  downsamples.1         std=0.076753  pnz=0.0%
+  downsamples.2         std=0.052375  pnz=0.0%
+  bottleneck            std=0.036944  pnz=0.0%
+  upsamples.0           std=0.010371  pnz=0.0%
+  upsamples.1           std=0.016116  pnz=0.0%
+  upsamples.2           std=0.024716  pnz=0.0%
+  upsamples.3           std=0.035299  pnz=0.0%
+  output_block          std=0.238555  pnz=0.0%
+
+Weight Stats: FT 10% 100ep
+----------------------------------------
+  input_block           std=0.244566  pnz=0.0%
+  downsamples.0         std=0.068365  pnz=0.0%
+  downsamples.1         std=0.026150  pnz=0.0%
+  downsamples.2         std=0.001133  pnz=6.5%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030886  pnz=66.2%
+  upsamples.1           std=0.031313  pnz=13.3%
+  upsamples.2           std=0.033466  pnz=0.0%
+  upsamples.3           std=0.122716  pnz=0.0%
+  output_block          std=0.625103  pnz=0.0%
+
+Weight Stats: Scratch 10% 100ep
+----------------------------------------
+  input_block           std=0.516558  pnz=0.0%
+  downsamples.0         std=0.111238  pnz=0.0%
+  downsamples.1         std=0.075112  pnz=0.0%
+  downsamples.2         std=0.050339  pnz=0.0%
+  bottleneck            std=0.034774  pnz=0.0%
+  upsamples.0           std=0.009278  pnz=0.0%
+  upsamples.1           std=0.015408  pnz=0.0%
+  upsamples.2           std=0.024814  pnz=0.0%
+  upsamples.3           std=0.036011  pnz=0.0%
+  output_block          std=0.239174  pnz=0.0%
+
+Weight Stats: FT 10% conv
+----------------------------------------
+  input_block           std=0.242704  pnz=0.0%
+  downsamples.0         std=0.068267  pnz=0.0%
+  downsamples.1         std=0.026085  pnz=0.0%
+  downsamples.2         std=0.001106  pnz=7.9%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030783  pnz=67.4%
+  upsamples.1           std=0.031346  pnz=13.4%
+  upsamples.2           std=0.033456  pnz=0.0%
+  upsamples.3           std=0.122557  pnz=0.0%
+  output_block          std=0.625613  pnz=0.0%
+
+Weight Stats: Scratch 10% conv
+----------------------------------------
+  input_block           std=0.514637  pnz=0.0%
+  downsamples.0         std=0.109841  pnz=0.0%
+  downsamples.1         std=0.072907  pnz=0.0%
+  downsamples.2         std=0.047803  pnz=0.0%
+  bottleneck            std=0.031499  pnz=0.0%
+  upsamples.0           std=0.007972  pnz=0.0%
+  upsamples.1           std=0.014260  pnz=0.0%
+  upsamples.2           std=0.024612  pnz=0.0%
+  upsamples.3           std=0.037138  pnz=0.0%
+  output_block          std=0.241058  pnz=0.0%
+
+Weight Stats: FT 20% 10ep
+----------------------------------------
+  input_block           std=0.245504  pnz=0.0%
+  downsamples.0         std=0.068382  pnz=0.0%
+  downsamples.1         std=0.026150  pnz=0.0%
+  downsamples.2         std=0.000947  pnz=7.9%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030843  pnz=67.0%
+  upsamples.1           std=0.031239  pnz=13.3%
+  upsamples.2           std=0.033479  pnz=0.0%
+  upsamples.3           std=0.122812  pnz=0.0%
+  output_block          std=0.625625  pnz=0.0%
+
+Weight Stats: Scratch 20% 10ep
+----------------------------------------
+  input_block           std=0.518477  pnz=0.0%
+  downsamples.0         std=0.112488  pnz=0.0%
+  downsamples.1         std=0.078675  pnz=0.0%
+  downsamples.2         std=0.054908  pnz=0.0%
+  bottleneck            std=0.039530  pnz=0.0%
+  upsamples.0           std=0.011756  pnz=0.0%
+  upsamples.1           std=0.016974  pnz=0.0%
+  upsamples.2           std=0.024275  pnz=0.0%
+  upsamples.3           std=0.034400  pnz=0.0%
+  output_block          std=0.238304  pnz=0.0%
+
+Weight Stats: FT 20% 50ep
+----------------------------------------
+  input_block           std=0.245022  pnz=0.0%
+  downsamples.0         std=0.068378  pnz=0.0%
+  downsamples.1         std=0.026160  pnz=0.0%
+  downsamples.2         std=0.001121  pnz=6.9%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030918  pnz=66.7%
+  upsamples.1           std=0.031302  pnz=13.3%
+  upsamples.2           std=0.033466  pnz=0.0%
+  upsamples.3           std=0.122785  pnz=0.0%
+  output_block          std=0.625090  pnz=0.0%
+
+Weight Stats: Scratch 20% 50ep
+----------------------------------------
+  input_block           std=0.517502  pnz=0.0%
+  downsamples.0         std=0.111914  pnz=0.0%
+  downsamples.1         std=0.076692  pnz=0.0%
+  downsamples.2         std=0.052306  pnz=0.0%
+  bottleneck            std=0.036922  pnz=0.0%
+  upsamples.0           std=0.010311  pnz=0.0%
+  upsamples.1           std=0.016087  pnz=0.0%
+  upsamples.2           std=0.024721  pnz=0.0%
+  upsamples.3           std=0.035300  pnz=0.0%
+  output_block          std=0.238557  pnz=0.0%
+
+Weight Stats: FT 20% 100ep
+----------------------------------------
+  input_block           std=0.244500  pnz=0.0%
+  downsamples.0         std=0.068359  pnz=0.0%
+  downsamples.1         std=0.026148  pnz=0.0%
+  downsamples.2         std=0.001137  pnz=7.2%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030901  pnz=66.9%
+  upsamples.1           std=0.031308  pnz=13.3%
+  upsamples.2           std=0.033461  pnz=0.0%
+  upsamples.3           std=0.122726  pnz=0.0%
+  output_block          std=0.625182  pnz=0.0%
+
+Weight Stats: Scratch 20% 100ep
+----------------------------------------
+  input_block           std=0.516549  pnz=0.0%
+  downsamples.0         std=0.111187  pnz=0.0%
+  downsamples.1         std=0.074969  pnz=0.0%
+  downsamples.2         std=0.050265  pnz=0.0%
+  bottleneck            std=0.034758  pnz=0.0%
+  upsamples.0           std=0.009219  pnz=0.0%
+  upsamples.1           std=0.015341  pnz=0.0%
+  upsamples.2           std=0.024819  pnz=0.0%
+  upsamples.3           std=0.036002  pnz=0.0%
+  output_block          std=0.239192  pnz=0.0%
+
+Weight Stats: FT 20% conv
+----------------------------------------
+  input_block           std=0.242726  pnz=0.0%
+  downsamples.0         std=0.068248  pnz=0.0%
+  downsamples.1         std=0.026072  pnz=0.0%
+  downsamples.2         std=0.001130  pnz=8.6%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030802  pnz=68.4%
+  upsamples.1           std=0.031367  pnz=13.4%
+  upsamples.2           std=0.033458  pnz=0.0%
+  upsamples.3           std=0.122519  pnz=0.0%
+  output_block          std=0.625906  pnz=0.0%
+
+Weight Stats: Scratch 20% conv
+----------------------------------------
+  input_block           std=0.513660  pnz=0.0%
+  downsamples.0         std=0.109102  pnz=0.0%
+  downsamples.1         std=0.071913  pnz=0.0%
+  downsamples.2         std=0.046602  pnz=0.0%
+  bottleneck            std=0.030092  pnz=0.0%
+  upsamples.0           std=0.007416  pnz=0.0%
+  upsamples.1           std=0.013801  pnz=0.0%
+  upsamples.2           std=0.024412  pnz=0.0%
+  upsamples.3           std=0.037666  pnz=0.0%
+  output_block          std=0.242161  pnz=0.0%
+
+Weight Stats: FT 50% 10ep
+----------------------------------------
+  input_block           std=0.245197  pnz=0.0%
+  downsamples.0         std=0.068382  pnz=0.0%
+  downsamples.1         std=0.026160  pnz=0.0%
+  downsamples.2         std=0.001110  pnz=6.4%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030923  pnz=66.0%
+  upsamples.1           std=0.031286  pnz=13.3%
+  upsamples.2           std=0.033479  pnz=0.0%
+  upsamples.3           std=0.122793  pnz=0.0%
+  output_block          std=0.625123  pnz=0.0%
+
+Weight Stats: Scratch 50% 10ep
+----------------------------------------
+  input_block           std=0.517892  pnz=0.0%
+  downsamples.0         std=0.112170  pnz=0.0%
+  downsamples.1         std=0.077518  pnz=0.0%
+  downsamples.2         std=0.053338  pnz=0.0%
+  bottleneck            std=0.037927  pnz=0.0%
+  upsamples.0           std=0.010886  pnz=0.0%
+  upsamples.1           std=0.016453  pnz=0.0%
+  upsamples.2           std=0.024622  pnz=0.0%
+  upsamples.3           std=0.034956  pnz=0.0%
+  output_block          std=0.238403  pnz=0.0%
+
+Weight Stats: FT 50% 50ep
+----------------------------------------
+  input_block           std=0.243715  pnz=0.0%
+  downsamples.0         std=0.068323  pnz=0.0%
+  downsamples.1         std=0.026126  pnz=0.0%
+  downsamples.2         std=0.001177  pnz=6.8%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030902  pnz=66.8%
+  upsamples.1           std=0.031321  pnz=13.3%
+  upsamples.2           std=0.033473  pnz=0.0%
+  upsamples.3           std=0.122650  pnz=0.0%
+  output_block          std=0.625317  pnz=0.0%
+
+Weight Stats: Scratch 50% 50ep
+----------------------------------------
+  input_block           std=0.515026  pnz=0.0%
+  downsamples.0         std=0.110077  pnz=0.0%
+  downsamples.1         std=0.073022  pnz=0.0%
+  downsamples.2         std=0.047876  pnz=0.0%
+  bottleneck            std=0.031919  pnz=0.0%
+  upsamples.0           std=0.008027  pnz=0.0%
+  upsamples.1           std=0.014419  pnz=0.0%
+  upsamples.2           std=0.024699  pnz=0.0%
+  upsamples.3           std=0.036959  pnz=0.0%
+  output_block          std=0.240582  pnz=0.0%
+
+Weight Stats: FT 50% 100ep
+----------------------------------------
+  input_block           std=0.241965  pnz=0.0%
+  downsamples.0         std=0.068227  pnz=0.0%
+  downsamples.1         std=0.026064  pnz=0.0%
+  downsamples.2         std=0.001235  pnz=7.8%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030872  pnz=67.5%
+  upsamples.1           std=0.031351  pnz=13.4%
+  upsamples.2           std=0.033479  pnz=0.0%
+  upsamples.3           std=0.122471  pnz=0.0%
+  output_block          std=0.625692  pnz=0.0%
+
+Weight Stats: Scratch 50% 100ep
+----------------------------------------
+  input_block           std=0.511962  pnz=0.0%
+  downsamples.0         std=0.107954  pnz=0.0%
+  downsamples.1         std=0.069986  pnz=0.0%
+  downsamples.2         std=0.044239  pnz=0.0%
+  bottleneck            std=0.027629  pnz=0.1%
+  upsamples.0           std=0.006378  pnz=0.0%
+  upsamples.1           std=0.013096  pnz=0.0%
+  upsamples.2           std=0.024179  pnz=0.0%
+  upsamples.3           std=0.038481  pnz=0.0%
+  output_block          std=0.244080  pnz=0.0%
+
+Weight Stats: FT 50% conv
+----------------------------------------
+  input_block           std=0.239018  pnz=0.0%
+  downsamples.0         std=0.068026  pnz=0.0%
+  downsamples.1         std=0.025914  pnz=0.0%
+  downsamples.2         std=0.001355  pnz=8.6%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030746  pnz=68.5%
+  upsamples.1           std=0.031420  pnz=13.5%
+  upsamples.2           std=0.033511  pnz=0.0%
+  upsamples.3           std=0.122138  pnz=0.0%
+  output_block          std=0.626467  pnz=0.0%
+
+Weight Stats: Scratch 50% conv
+----------------------------------------
+  input_block           std=0.505858  pnz=0.0%
+  downsamples.0         std=0.104942  pnz=0.0%
+  downsamples.1         std=0.065789  pnz=0.0%
+  downsamples.2         std=0.038630  pnz=0.0%
+  bottleneck            std=0.021936  pnz=0.1%
+  upsamples.0           std=0.004459  pnz=0.0%
+  upsamples.1           std=0.011368  pnz=0.0%
+  upsamples.2           std=0.023557  pnz=0.0%
+  upsamples.3           std=0.040945  pnz=0.0%
+  output_block          std=0.251704  pnz=0.0%
+
+Weight Stats: FT 100% 10ep
+----------------------------------------
+  input_block           std=0.244869  pnz=0.0%
+  downsamples.0         std=0.068373  pnz=0.0%
+  downsamples.1         std=0.026159  pnz=0.0%
+  downsamples.2         std=0.001119  pnz=6.1%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030950  pnz=65.7%
+  upsamples.1           std=0.031323  pnz=13.2%
+  upsamples.2           std=0.033459  pnz=0.0%
+  upsamples.3           std=0.122768  pnz=0.0%
+  output_block          std=0.625064  pnz=0.0%
+
+Weight Stats: Scratch 100% 10ep
+----------------------------------------
+  input_block           std=0.517356  pnz=0.0%
+  downsamples.0         std=0.111807  pnz=0.0%
+  downsamples.1         std=0.076344  pnz=0.0%
+  downsamples.2         std=0.051930  pnz=0.0%
+  bottleneck            std=0.036557  pnz=0.0%
+  upsamples.0           std=0.010100  pnz=0.0%
+  upsamples.1           std=0.015925  pnz=0.0%
+  upsamples.2           std=0.024749  pnz=0.0%
+  upsamples.3           std=0.035420  pnz=0.0%
+  output_block          std=0.238624  pnz=0.0%
+
+Weight Stats: FT 100% 50ep
+----------------------------------------
+  input_block           std=0.242054  pnz=0.0%
+  downsamples.0         std=0.068226  pnz=0.0%
+  downsamples.1         std=0.026059  pnz=0.0%
+  downsamples.2         std=0.001231  pnz=6.9%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030892  pnz=67.0%
+  upsamples.1           std=0.031418  pnz=13.4%
+  upsamples.2           std=0.033469  pnz=0.0%
+  upsamples.3           std=0.122434  pnz=0.0%
+  output_block          std=0.625737  pnz=0.0%
+
+Weight Stats: Scratch 100% 50ep
+----------------------------------------
+  input_block           std=0.512414  pnz=0.0%
+  downsamples.0         std=0.108312  pnz=0.0%
+  downsamples.1         std=0.070324  pnz=0.0%
+  downsamples.2         std=0.044890  pnz=0.0%
+  bottleneck            std=0.028322  pnz=0.0%
+  upsamples.0           std=0.006638  pnz=0.0%
+  upsamples.1           std=0.013155  pnz=0.0%
+  upsamples.2           std=0.024333  pnz=0.0%
+  upsamples.3           std=0.038273  pnz=0.0%
+  output_block          std=0.243532  pnz=0.0%
+
+Weight Stats: FT 100% 100ep
+----------------------------------------
+  input_block           std=0.240185  pnz=0.0%
+  downsamples.0         std=0.068101  pnz=0.0%
+  downsamples.1         std=0.025965  pnz=0.0%
+  downsamples.2         std=0.001348  pnz=8.1%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030825  pnz=67.6%
+  upsamples.1           std=0.031476  pnz=13.5%
+  upsamples.2           std=0.033482  pnz=0.0%
+  upsamples.3           std=0.122204  pnz=0.0%
+  output_block          std=0.626105  pnz=0.0%
+
+Weight Stats: Scratch 100% 100ep
+----------------------------------------
+  input_block           std=0.507212  pnz=0.0%
+  downsamples.0         std=0.105092  pnz=0.0%
+  downsamples.1         std=0.065814  pnz=0.0%
+  downsamples.2         std=0.039556  pnz=0.0%
+  bottleneck            std=0.022992  pnz=0.1%
+  upsamples.0           std=0.004782  pnz=0.0%
+  upsamples.1           std=0.011576  pnz=0.0%
+  upsamples.2           std=0.023686  pnz=0.0%
+  upsamples.3           std=0.040486  pnz=0.0%
+  output_block          std=0.250092  pnz=0.0%
+
+Weight Stats: FT 100% conv
+----------------------------------------
+  input_block           std=0.233731  pnz=0.0%
+  downsamples.0         std=0.067547  pnz=0.0%
+  downsamples.1         std=0.025542  pnz=0.0%
+  downsamples.2         std=0.001450  pnz=11.3%
+  bottleneck            std=0.000000  pnz=100.0%
+  upsamples.0           std=0.030430  pnz=69.7%
+  upsamples.1           std=0.031635  pnz=13.7%
+  upsamples.2           std=0.033533  pnz=0.0%
+  upsamples.3           std=0.121305  pnz=0.0%
+  output_block          std=0.627263  pnz=0.0%
+
+Weight Stats: Scratch 100% conv
+----------------------------------------
+  input_block           std=0.491724  pnz=0.0%
+  downsamples.0         std=0.097679  pnz=0.0%
+  downsamples.1         std=0.057301  pnz=0.0%
+  downsamples.2         std=0.027955  pnz=0.0%
+  bottleneck            std=0.013686  pnz=0.3%
+  upsamples.0           std=0.002120  pnz=0.1%
+  upsamples.1           std=0.009189  pnz=0.0%
+  upsamples.2           std=0.022708  pnz=0.0%
+  upsamples.3           std=0.045912  pnz=0.0%
+  output_block          std=0.270898  pnz=0.0%
+
+Activation Stats: MegaSeg pretrained
+----------------------------------------
+  input_block           std=0.6321  pnz=0.0%  [OK]
+  downsamples.0         std=0.6610  pnz=0.0%  [OK]
+  downsamples.1         std=0.4815  pnz=0.0%  [OK]
+  downsamples.2         std=0.0439  pnz=10.3%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.1063  pnz=67.0%  [OK]
+  upsamples.1           std=0.3956  pnz=0.0%  [OK]
+  upsamples.2           std=0.5600  pnz=0.0%  [OK]
+  upsamples.3           std=0.8770  pnz=0.0%  [OK]
+
+Activation Stats: FT 10% 10ep
+----------------------------------------
+  input_block           std=0.6334  pnz=0.0%  [OK]
+  downsamples.0         std=0.6658  pnz=0.0%  [OK]
+  downsamples.1         std=0.4792  pnz=0.0%  [OK]
+  downsamples.2         std=0.0446  pnz=9.9%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.1069  pnz=66.5%  [OK]
+  upsamples.1           std=0.3907  pnz=0.0%  [OK]
+  upsamples.2           std=0.5324  pnz=0.0%  [OK]
+  upsamples.3           std=0.8811  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 10% 10ep
+----------------------------------------
+  input_block           std=0.8368  pnz=0.0%  [OK]
+  downsamples.0         std=0.8502  pnz=0.0%  [OK]
+  downsamples.1         std=0.8571  pnz=0.0%  [OK]
+  downsamples.2         std=0.8413  pnz=0.0%  [OK]
+  bottleneck            std=0.8319  pnz=0.0%  [OK]
+  upsamples.0           std=0.6006  pnz=0.0%  [OK]
+  upsamples.1           std=0.6097  pnz=0.0%  [OK]
+  upsamples.2           std=0.6321  pnz=0.0%  [OK]
+  upsamples.3           std=0.5941  pnz=0.0%  [OK]
+
+Activation Stats: FT 10% 50ep
+----------------------------------------
+  input_block           std=0.6384  pnz=0.0%  [OK]
+  downsamples.0         std=0.6824  pnz=0.0%  [OK]
+  downsamples.1         std=0.4741  pnz=0.0%  [OK]
+  downsamples.2         std=0.0454  pnz=8.4%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.0988  pnz=66.1%  [OK]
+  upsamples.1           std=0.3864  pnz=0.0%  [OK]
+  upsamples.2           std=0.5753  pnz=0.0%  [OK]
+  upsamples.3           std=0.8980  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 10% 50ep
+----------------------------------------
+  input_block           std=0.8301  pnz=0.0%  [OK]
+  downsamples.0         std=0.8680  pnz=0.0%  [OK]
+  downsamples.1         std=0.8893  pnz=0.0%  [OK]
+  downsamples.2         std=0.8598  pnz=0.0%  [OK]
+  bottleneck            std=0.8322  pnz=0.0%  [OK]
+  upsamples.0           std=0.6032  pnz=0.0%  [OK]
+  upsamples.1           std=0.6210  pnz=0.0%  [OK]
+  upsamples.2           std=0.7284  pnz=0.0%  [OK]
+  upsamples.3           std=0.6048  pnz=0.0%  [OK]
+
+Activation Stats: FT 10% 100ep
+----------------------------------------
+  input_block           std=0.6391  pnz=0.0%  [OK]
+  downsamples.0         std=0.6803  pnz=0.0%  [OK]
+  downsamples.1         std=0.4739  pnz=0.0%  [OK]
+  downsamples.2         std=0.0458  pnz=9.2%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.1018  pnz=66.5%  [OK]
+  upsamples.1           std=0.3852  pnz=0.0%  [OK]
+  upsamples.2           std=0.5717  pnz=0.0%  [OK]
+  upsamples.3           std=0.9003  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 10% 100ep
+----------------------------------------
+  input_block           std=0.8190  pnz=0.0%  [OK]
+  downsamples.0         std=0.8570  pnz=0.0%  [OK]
+  downsamples.1         std=0.8720  pnz=0.0%  [OK]
+  downsamples.2         std=0.8488  pnz=0.0%  [OK]
+  bottleneck            std=0.8150  pnz=0.0%  [OK]
+  upsamples.0           std=0.6150  pnz=0.0%  [OK]
+  upsamples.1           std=0.6212  pnz=0.0%  [OK]
+  upsamples.2           std=0.7454  pnz=0.0%  [OK]
+  upsamples.3           std=0.5839  pnz=0.0%  [OK]
+
+Activation Stats: FT 10% conv
+----------------------------------------
+  input_block           std=0.6413  pnz=0.0%  [OK]
+  downsamples.0         std=0.6797  pnz=0.0%  [OK]
+  downsamples.1         std=0.4739  pnz=0.0%  [OK]
+  downsamples.2         std=0.0449  pnz=9.2%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.0963  pnz=66.6%  [OK]
+  upsamples.1           std=0.3822  pnz=0.0%  [OK]
+  upsamples.2           std=0.5444  pnz=0.0%  [OK]
+  upsamples.3           std=0.8927  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 10% conv
+----------------------------------------
+  input_block           std=0.7992  pnz=0.0%  [OK]
+  downsamples.0         std=0.8501  pnz=0.0%  [OK]
+  downsamples.1         std=0.8475  pnz=0.0%  [OK]
+  downsamples.2         std=0.8205  pnz=0.0%  [OK]
+  bottleneck            std=0.8240  pnz=0.0%  [OK]
+  upsamples.0           std=0.6355  pnz=0.0%  [OK]
+  upsamples.1           std=0.6597  pnz=0.0%  [OK]
+  upsamples.2           std=0.8115  pnz=0.0%  [OK]
+  upsamples.3           std=0.5332  pnz=0.0%  [OK]
+
+Activation Stats: FT 20% 10ep
+----------------------------------------
+  input_block           std=0.6336  pnz=0.0%  [OK]
+  downsamples.0         std=0.6655  pnz=0.0%  [OK]
+  downsamples.1         std=0.4794  pnz=0.0%  [OK]
+  downsamples.2         std=0.0444  pnz=10.6%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.1089  pnz=66.5%  [OK]
+  upsamples.1           std=0.3936  pnz=0.0%  [OK]
+  upsamples.2           std=0.5397  pnz=0.0%  [OK]
+  upsamples.3           std=0.8754  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 20% 10ep
+----------------------------------------
+  input_block           std=0.8361  pnz=0.0%  [OK]
+  downsamples.0         std=0.8480  pnz=0.0%  [OK]
+  downsamples.1         std=0.8541  pnz=0.0%  [OK]
+  downsamples.2         std=0.8403  pnz=0.0%  [OK]
+  bottleneck            std=0.8311  pnz=0.0%  [OK]
+  upsamples.0           std=0.6056  pnz=0.0%  [OK]
+  upsamples.1           std=0.6076  pnz=0.0%  [OK]
+  upsamples.2           std=0.6216  pnz=0.0%  [OK]
+  upsamples.3           std=0.5925  pnz=0.0%  [OK]
+
+Activation Stats: FT 20% 50ep
+----------------------------------------
+  input_block           std=0.6382  pnz=0.0%  [OK]
+  downsamples.0         std=0.6778  pnz=0.0%  [OK]
+  downsamples.1         std=0.4764  pnz=0.0%  [OK]
+  downsamples.2         std=0.0454  pnz=8.4%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.1016  pnz=66.5%  [OK]
+  upsamples.1           std=0.3889  pnz=0.0%  [OK]
+  upsamples.2           std=0.5751  pnz=0.0%  [OK]
+  upsamples.3           std=0.8779  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 20% 50ep
+----------------------------------------
+  input_block           std=0.8297  pnz=0.0%  [OK]
+  downsamples.0         std=0.8679  pnz=0.0%  [OK]
+  downsamples.1         std=0.8910  pnz=0.0%  [OK]
+  downsamples.2         std=0.8636  pnz=0.0%  [OK]
+  bottleneck            std=0.8302  pnz=0.0%  [OK]
+  upsamples.0           std=0.6056  pnz=0.0%  [OK]
+  upsamples.1           std=0.6169  pnz=0.0%  [OK]
+  upsamples.2           std=0.7303  pnz=0.0%  [OK]
+  upsamples.3           std=0.6054  pnz=0.0%  [OK]
+
+Activation Stats: FT 20% 100ep
+----------------------------------------
+  input_block           std=0.6393  pnz=0.0%  [OK]
+  downsamples.0         std=0.6760  pnz=0.0%  [OK]
+  downsamples.1         std=0.4767  pnz=0.0%  [OK]
+  downsamples.2         std=0.0448  pnz=8.4%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.0975  pnz=66.4%  [OK]
+  upsamples.1           std=0.3863  pnz=0.0%  [OK]
+  upsamples.2           std=0.5695  pnz=0.0%  [OK]
+  upsamples.3           std=0.8755  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 20% 100ep
+----------------------------------------
+  input_block           std=0.8186  pnz=0.0%  [OK]
+  downsamples.0         std=0.8557  pnz=0.0%  [OK]
+  downsamples.1         std=0.8667  pnz=0.0%  [OK]
+  downsamples.2         std=0.8534  pnz=0.0%  [OK]
+  bottleneck            std=0.8108  pnz=0.0%  [OK]
+  upsamples.0           std=0.6410  pnz=0.0%  [OK]
+  upsamples.1           std=0.6540  pnz=0.0%  [OK]
+  upsamples.2           std=0.7884  pnz=0.0%  [OK]
+  upsamples.3           std=0.5864  pnz=0.0%  [OK]
+
+Activation Stats: FT 20% conv
+----------------------------------------
+  input_block           std=0.6431  pnz=0.0%  [OK]
+  downsamples.0         std=0.6704  pnz=0.0%  [OK]
+  downsamples.1         std=0.4797  pnz=0.0%  [OK]
+  downsamples.2         std=0.0428  pnz=9.1%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.0955  pnz=66.6%  [OK]
+  upsamples.1           std=0.3806  pnz=0.0%  [OK]
+  upsamples.2           std=0.5422  pnz=0.0%  [OK]
+  upsamples.3           std=0.8819  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 20% conv
+----------------------------------------
+  input_block           std=0.7931  pnz=0.0%  [OK]
+  downsamples.0         std=0.8483  pnz=0.0%  [OK]
+  downsamples.1         std=0.8425  pnz=0.0%  [OK]
+  downsamples.2         std=0.8321  pnz=0.0%  [OK]
+  bottleneck            std=0.8528  pnz=0.0%  [OK]
+  upsamples.0           std=0.6929  pnz=0.0%  [OK]
+  upsamples.1           std=0.6666  pnz=0.0%  [OK]
+  upsamples.2           std=0.8168  pnz=0.0%  [OK]
+  upsamples.3           std=0.5064  pnz=0.0%  [OK]
+
+Activation Stats: FT 50% 10ep
+----------------------------------------
+  input_block           std=0.6380  pnz=0.0%  [OK]
+  downsamples.0         std=0.6755  pnz=0.0%  [OK]
+  downsamples.1         std=0.4764  pnz=0.0%  [OK]
+  downsamples.2         std=0.0434  pnz=8.4%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.1002  pnz=66.5%  [OK]
+  upsamples.1           std=0.3896  pnz=0.0%  [OK]
+  upsamples.2           std=0.5831  pnz=0.0%  [OK]
+  upsamples.3           std=0.8711  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 50% 10ep
+----------------------------------------
+  input_block           std=0.8356  pnz=0.0%  [OK]
+  downsamples.0         std=0.8656  pnz=0.0%  [OK]
+  downsamples.1         std=0.8922  pnz=0.0%  [OK]
+  downsamples.2         std=0.8608  pnz=0.0%  [OK]
+  bottleneck            std=0.8340  pnz=0.0%  [OK]
+  upsamples.0           std=0.6143  pnz=0.0%  [OK]
+  upsamples.1           std=0.6376  pnz=0.0%  [OK]
+  upsamples.2           std=0.7074  pnz=0.0%  [OK]
+  upsamples.3           std=0.6029  pnz=0.0%  [OK]
+
+Activation Stats: FT 50% 50ep
+----------------------------------------
+  input_block           std=0.6397  pnz=0.0%  [OK]
+  downsamples.0         std=0.6751  pnz=0.0%  [OK]
+  downsamples.1         std=0.4764  pnz=0.0%  [OK]
+  downsamples.2         std=0.0448  pnz=9.2%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.1021  pnz=66.6%  [OK]
+  upsamples.1           std=0.3856  pnz=0.0%  [OK]
+  upsamples.2           std=0.5582  pnz=0.0%  [OK]
+  upsamples.3           std=0.8725  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 50% 50ep
+----------------------------------------
+  input_block           std=0.8019  pnz=0.0%  [OK]
+  downsamples.0         std=0.8520  pnz=0.0%  [OK]
+  downsamples.1         std=0.8660  pnz=0.0%  [OK]
+  downsamples.2         std=0.8410  pnz=0.0%  [OK]
+  bottleneck            std=0.8173  pnz=0.0%  [OK]
+  upsamples.0           std=0.6775  pnz=0.0%  [OK]
+  upsamples.1           std=0.6957  pnz=0.0%  [OK]
+  upsamples.2           std=0.8251  pnz=0.0%  [OK]
+  upsamples.3           std=0.5482  pnz=0.0%  [OK]
+
+Activation Stats: FT 50% 100ep
+----------------------------------------
+  input_block           std=0.6421  pnz=0.0%  [OK]
+  downsamples.0         std=0.6699  pnz=0.0%  [OK]
+  downsamples.1         std=0.4758  pnz=0.0%  [OK]
+  downsamples.2         std=0.0439  pnz=8.7%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.0981  pnz=67.0%  [OK]
+  upsamples.1           std=0.3769  pnz=0.0%  [OK]
+  upsamples.2           std=0.5411  pnz=0.0%  [OK]
+  upsamples.3           std=0.8683  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 50% 100ep
+----------------------------------------
+  input_block           std=0.7851  pnz=0.0%  [OK]
+  downsamples.0         std=0.8459  pnz=0.0%  [OK]
+  downsamples.1         std=0.8491  pnz=0.0%  [OK]
+  downsamples.2         std=0.8173  pnz=0.0%  [OK]
+  bottleneck            std=0.8831  pnz=0.0%  [OK]
+  upsamples.0           std=0.6929  pnz=0.0%  [OK]
+  upsamples.1           std=0.6761  pnz=0.0%  [OK]
+  upsamples.2           std=0.8204  pnz=0.0%  [OK]
+  upsamples.3           std=0.4864  pnz=0.0%  [OK]
+
+Activation Stats: FT 50% conv
+----------------------------------------
+  input_block           std=0.6449  pnz=0.0%  [OK]
+  downsamples.0         std=0.6629  pnz=0.0%  [OK]
+  downsamples.1         std=0.4786  pnz=0.0%  [OK]
+  downsamples.2         std=0.0431  pnz=8.7%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.0930  pnz=67.2%  [OK]
+  upsamples.1           std=0.3714  pnz=0.0%  [OK]
+  upsamples.2           std=0.5193  pnz=0.0%  [OK]
+  upsamples.3           std=0.8757  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 50% conv
+----------------------------------------
+  input_block           std=0.7723  pnz=0.0%  [OK]
+  downsamples.0         std=0.8335  pnz=0.0%  [OK]
+  downsamples.1         std=0.8063  pnz=0.0%  [OK]
+  downsamples.2         std=0.8067  pnz=0.0%  [OK]
+  bottleneck            std=0.9147  pnz=0.0%  [OK]
+  upsamples.0           std=0.7126  pnz=0.0%  [OK]
+  upsamples.1           std=0.6160  pnz=0.0%  [OK]
+  upsamples.2           std=0.7902  pnz=0.0%  [OK]
+  upsamples.3           std=0.4204  pnz=0.0%  [OK]
+
+Activation Stats: FT 100% 10ep
+----------------------------------------
+  input_block           std=0.6387  pnz=0.0%  [OK]
+  downsamples.0         std=0.6793  pnz=0.0%  [OK]
+  downsamples.1         std=0.4762  pnz=0.0%  [OK]
+  downsamples.2         std=0.0445  pnz=8.8%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.0981  pnz=66.5%  [OK]
+  upsamples.1           std=0.3877  pnz=0.0%  [OK]
+  upsamples.2           std=0.5810  pnz=0.0%  [OK]
+  upsamples.3           std=0.8863  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 100% 10ep
+----------------------------------------
+  input_block           std=0.8285  pnz=0.0%  [OK]
+  downsamples.0         std=0.8687  pnz=0.0%  [OK]
+  downsamples.1         std=0.8944  pnz=0.0%  [OK]
+  downsamples.2         std=0.8669  pnz=0.0%  [OK]
+  bottleneck            std=0.8306  pnz=0.0%  [OK]
+  upsamples.0           std=0.6024  pnz=0.0%  [OK]
+  upsamples.1           std=0.6229  pnz=0.0%  [OK]
+  upsamples.2           std=0.7301  pnz=0.0%  [OK]
+  upsamples.3           std=0.6032  pnz=0.0%  [OK]
+
+Activation Stats: FT 100% 50ep
+----------------------------------------
+  input_block           std=0.6431  pnz=0.0%  [OK]
+  downsamples.0         std=0.6704  pnz=0.0%  [OK]
+  downsamples.1         std=0.4772  pnz=0.0%  [OK]
+  downsamples.2         std=0.0432  pnz=8.3%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.0964  pnz=66.5%  [OK]
+  upsamples.1           std=0.3793  pnz=0.0%  [OK]
+  upsamples.2           std=0.5467  pnz=0.0%  [OK]
+  upsamples.3           std=0.8732  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 100% 50ep
+----------------------------------------
+  input_block           std=0.7907  pnz=0.0%  [OK]
+  downsamples.0         std=0.8432  pnz=0.0%  [OK]
+  downsamples.1         std=0.8427  pnz=0.0%  [OK]
+  downsamples.2         std=0.8251  pnz=0.0%  [OK]
+  bottleneck            std=0.8822  pnz=0.0%  [OK]
+  upsamples.0           std=0.7136  pnz=0.0%  [OK]
+  upsamples.1           std=0.6988  pnz=0.0%  [OK]
+  upsamples.2           std=0.8212  pnz=0.0%  [OK]
+  upsamples.3           std=0.4990  pnz=0.0%  [OK]
+
+Activation Stats: FT 100% 100ep
+----------------------------------------
+  input_block           std=0.6445  pnz=0.0%  [OK]
+  downsamples.0         std=0.6665  pnz=0.0%  [OK]
+  downsamples.1         std=0.4793  pnz=0.0%  [OK]
+  downsamples.2         std=0.0419  pnz=9.1%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.0943  pnz=66.5%  [OK]
+  upsamples.1           std=0.3775  pnz=0.0%  [OK]
+  upsamples.2           std=0.5404  pnz=0.0%  [OK]
+  upsamples.3           std=0.8752  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 100% 100ep
+----------------------------------------
+  input_block           std=0.7743  pnz=0.0%  [OK]
+  downsamples.0         std=0.8302  pnz=0.0%  [OK]
+  downsamples.1         std=0.8066  pnz=0.0%  [OK]
+  downsamples.2         std=0.7826  pnz=0.0%  [OK]
+  bottleneck            std=0.9112  pnz=0.0%  [OK]
+  upsamples.0           std=0.7089  pnz=0.0%  [OK]
+  upsamples.1           std=0.6542  pnz=0.0%  [OK]
+  upsamples.2           std=0.7956  pnz=0.0%  [OK]
+  upsamples.3           std=0.4318  pnz=0.0%  [OK]
+
+Activation Stats: FT 100% conv
+----------------------------------------
+  input_block           std=0.6502  pnz=0.0%  [OK]
+  downsamples.0         std=0.6538  pnz=0.0%  [OK]
+  downsamples.1         std=0.4808  pnz=0.0%  [OK]
+  downsamples.2         std=0.0393  pnz=10.6%  [OK]
+  bottleneck            std=0.0000  pnz=100.0%  [DEAD]
+  upsamples.0           std=0.0876  pnz=66.9%  [OK]
+  upsamples.1           std=0.3720  pnz=0.0%  [OK]
+  upsamples.2           std=0.5151  pnz=0.0%  [OK]
+  upsamples.3           std=0.8754  pnz=0.0%  [OK]
+
+Activation Stats: Scratch 100% conv
+----------------------------------------
+  input_block           std=0.7429  pnz=0.0%  [OK]
+  downsamples.0         std=0.8003  pnz=0.0%  [OK]
+  downsamples.1         std=0.7516  pnz=0.0%  [OK]
+  downsamples.2         std=0.7368  pnz=0.0%  [OK]
+  bottleneck            std=0.8289  pnz=0.0%  [OK]
+  upsamples.0           std=0.6377  pnz=0.0%  [OK]
+  upsamples.1           std=0.5909  pnz=0.0%  [OK]
+  upsamples.2           std=0.7435  pnz=0.0%  [OK]
+  upsamples.3           std=0.4236  pnz=0.0%  [OK]

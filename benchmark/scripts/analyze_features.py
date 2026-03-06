@@ -1118,62 +1118,75 @@ def _plot_activation_comparison(
     print(f"\nSaved: {fig_dir / 'activation_stats_heatmap.png'}")
 
     # --- Figure: Per-channel activity profile per model ---
-    # For bottleneck and encoder layers, show channel std distribution
-    focus_layers = ["downsamples.1", "downsamples.2", "bottleneck", "upsamples.0"]
-    focus_short = ["enc1", "enc2", "bottleneck", "dec0"]
+    # Skip for grid mode (>10 models) - subplot grid would be impractical
+    if len(ckpt_keys) > 10:
+        print("  Skipping per-channel bar charts (>10 models in grid mode)")
+    else:
+        focus_layers = ["downsamples.1", "downsamples.2", "bottleneck", "upsamples.0"]
+        focus_short = ["enc1", "enc2", "bottleneck", "dec0"]
 
-    fig, axes = plt.subplots(
-        len(focus_layers),
-        len(ckpt_keys),
-        figsize=(5 * len(ckpt_keys), 4 * len(focus_layers)),
-    )
-    if len(focus_layers) == 1:
-        axes = axes[np.newaxis, :]
+        # Auto-assign colors when 'color' key is absent (grid-discovered checkpoints)
+        palette = plt.cm.tab10.colors
+        for i, ck in enumerate(ckpt_keys):
+            if "color" not in checkpoints[ck]:
+                checkpoints[ck]["color"] = palette[i % len(palette)]
 
-    for j_layer, (layer, short) in enumerate(zip(focus_layers, focus_short)):
-        for i_model, ck in enumerate(ckpt_keys):
-            ax = axes[j_layer, i_model]
-            ch_stats = all_act_stats[ck][
-                (all_act_stats[ck]["stat_type"] == "channel")
-                & (all_act_stats[ck]["layer"] == layer)
-            ]
-            if ch_stats.empty:
-                ax.set_visible(False)
-                continue
+        fig, axes = plt.subplots(
+            len(focus_layers),
+            len(ckpt_keys),
+            figsize=(5 * len(ckpt_keys), 4 * len(focus_layers)),
+        )
+        if len(focus_layers) == 1:
+            axes = axes[np.newaxis, :]
 
-            # Average std across images per channel
-            avg_ch = ch_stats.groupby("channel")["std"].mean().sort_index()
-            colors_arr = [
-                "#e74c3c" if v < 1e-4 else checkpoints[ck]["color"]
-                for v in avg_ch.values
-            ]
-            ax.bar(avg_ch.index, avg_ch.values, color=colors_arr, width=1.0, alpha=0.8)
-            ax.set_xlabel("Channel")
-            ax.set_ylabel("Activation Std")
-            ax.set_title(f"{short} - {checkpoints[ck]['label']}", fontsize=10)
-            # Mark dead channels
-            n_dead = (avg_ch.values < 1e-4).sum()
-            if n_dead > 0:
-                ax.text(
-                    0.02,
-                    0.95,
-                    f"{n_dead} dead ch",
-                    transform=ax.transAxes,
-                    fontsize=9,
-                    color="red",
-                    va="top",
+        for j_layer, (layer, short) in enumerate(zip(focus_layers, focus_short)):
+            for i_model, ck in enumerate(ckpt_keys):
+                ax = axes[j_layer, i_model]
+                ch_stats = all_act_stats[ck][
+                    (all_act_stats[ck]["stat_type"] == "channel")
+                    & (all_act_stats[ck]["layer"] == layer)
+                ]
+                if ch_stats.empty:
+                    ax.set_visible(False)
+                    continue
+
+                # Average std across images per channel
+                avg_ch = ch_stats.groupby("channel")["std"].mean().sort_index()
+                colors_arr = [
+                    "#e74c3c" if v < 1e-4 else checkpoints[ck]["color"]
+                    for v in avg_ch.values
+                ]
+                ax.bar(
+                    avg_ch.index, avg_ch.values, color=colors_arr, width=1.0, alpha=0.8
                 )
+                ax.set_xlabel("Channel")
+                ax.set_ylabel("Activation Std")
+                ax.set_title(f"{short} - {checkpoints[ck]['label']}", fontsize=10)
+                # Mark dead channels
+                n_dead = (avg_ch.values < 1e-4).sum()
+                if n_dead > 0:
+                    ax.text(
+                        0.02,
+                        0.95,
+                        f"{n_dead} dead ch",
+                        transform=ax.transAxes,
+                        fontsize=9,
+                        color="red",
+                        va="top",
+                    )
 
-    plt.suptitle(
-        "Per-Channel Activation Std (red = dead)",
-        fontsize=14,
-        fontweight="bold",
-        y=1.01,
-    )
-    plt.tight_layout()
-    fig.savefig(fig_dir / "channel_activity_profiles.png", dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"Saved: {fig_dir / 'channel_activity_profiles.png'}")
+        plt.suptitle(
+            "Per-Channel Activation Std (red = dead)",
+            fontsize=14,
+            fontweight="bold",
+            y=1.01,
+        )
+        plt.tight_layout()
+        fig.savefig(
+            fig_dir / "channel_activity_profiles.png", dpi=150, bbox_inches="tight"
+        )
+        plt.close(fig)
+        print(f"Saved: {fig_dir / 'channel_activity_profiles.png'}")
 
 
 # ---------------------------------------------------------------------------
@@ -1882,7 +1895,7 @@ def run_layer_contribution(
     contrib_df.to_csv(out_dir / "layer_contributions.csv", index=False)
     print(f"\nSaved: {out_dir / 'layer_contributions.csv'}")
 
-    # --- Figure: Layer contribution bar chart ---
+    # --- Figure: Layer contribution ---
     fig_dir = out_dir / "figures"
     fig_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1891,43 +1904,76 @@ def run_layer_contribution(
         contrib_df.groupby(["model", "ablated_skip"])["rel_change"].mean().reset_index()
     )
 
-    fig, ax = plt.subplots(figsize=(12, 6))
     ckpt_keys = list(checkpoints.keys())
     skip_names = encoder_source
-    x = np.arange(len(skip_names))
-    bar_width = 0.2
 
-    for i, ck in enumerate(ckpt_keys):
-        model_label = checkpoints[ck]["label"]
-        vals = []
-        for skip in skip_names:
-            row = avg_contrib[
-                (avg_contrib["model"] == model_label)
-                & (avg_contrib["ablated_skip"] == skip)
-            ]
-            vals.append(row["rel_change"].values[0] if not row.empty else 0)
-
-        ax.bar(
-            x + i * bar_width,
-            vals,
-            bar_width,
-            label=model_label,
-            color=checkpoints[ck]["color"],
-            alpha=0.85,
+    if len(ckpt_keys) > 10:
+        # Grid mode: use heatmap instead of grouped bar chart
+        pivot = avg_contrib.pivot(
+            index="model", columns="ablated_skip", values="rel_change"
         )
+        # Reorder columns to match skip order
+        pivot = pivot.reindex(columns=skip_names)
+        fig, ax = plt.subplots(figsize=(10, max(8, len(ckpt_keys) * 0.4)))
+        sns.heatmap(
+            pivot,
+            ax=ax,
+            annot=True,
+            fmt=".4f",
+            cmap="YlOrRd",
+            linewidths=0.5,
+        )
+        ax.set_title(
+            "Skip Connection Contribution: Relative Output Change When Zeroed",
+            fontweight="bold",
+        )
+        plt.tight_layout()
+        fig.savefig(fig_dir / "layer_contributions.png", dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Saved: {fig_dir / 'layer_contributions.png'}")
+    else:
+        # Small model set: grouped bar chart
+        # Auto-assign colors when absent
+        palette = plt.cm.tab10.colors
+        for i, ck in enumerate(ckpt_keys):
+            if "color" not in checkpoints[ck]:
+                checkpoints[ck]["color"] = palette[i % len(palette)]
 
-    ax.set_xticks(x + bar_width * (len(ckpt_keys) - 1) / 2)
-    ax.set_xticklabels(skip_names, rotation=15)
-    ax.set_ylabel("Relative Output Change (L2)")
-    ax.set_title(
-        "Skip Connection Contribution: Output Change When Zeroed",
-        fontweight="bold",
-    )
-    ax.legend()
-    plt.tight_layout()
-    fig.savefig(fig_dir / "layer_contributions.png", dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"Saved: {fig_dir / 'layer_contributions.png'}")
+        fig, ax = plt.subplots(figsize=(12, 6))
+        x = np.arange(len(skip_names))
+        bar_width = 0.8 / max(len(ckpt_keys), 1)
+
+        for i, ck in enumerate(ckpt_keys):
+            model_label = checkpoints[ck]["label"]
+            vals = []
+            for skip in skip_names:
+                row = avg_contrib[
+                    (avg_contrib["model"] == model_label)
+                    & (avg_contrib["ablated_skip"] == skip)
+                ]
+                vals.append(row["rel_change"].values[0] if not row.empty else 0)
+
+            ax.bar(
+                x + i * bar_width,
+                vals,
+                bar_width,
+                label=model_label,
+                color=checkpoints[ck]["color"],
+                alpha=0.85,
+            )
+
+        ax.set_xticks(x + bar_width * (len(ckpt_keys) - 1) / 2)
+        ax.set_xticklabels(skip_names, rotation=15)
+        ax.set_ylabel("Relative Output Change (L2)")
+        ax.set_title(
+            "Skip Connection Contribution: Output Change When Zeroed",
+            fontweight="bold",
+        )
+        ax.legend()
+        plt.tight_layout()
+        fig.savefig(fig_dir / "layer_contributions.png", dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Saved: {fig_dir / 'layer_contributions.png'}")
 
     # Print summary table
     print("\nLayer Contribution Summary (avg rel. output change when skip zeroed):")
@@ -2037,9 +2083,9 @@ def main():
     )
     parser.add_argument(
         "--phase",
-        choices=["weights", "activations", "visualize", "deep", "all"],
+        choices=["weights", "activations", "visualize", "deep", "skip-ablation", "all"],
         default="all",
-        help="Which analysis phase to run (deep = GradCAM + CKA + layer contribution)",
+        help="Which analysis phase to run (deep = GradCAM + CKA + layer contribution, skip-ablation = layer contribution only)",
     )
     parser.add_argument(
         "--grid",
@@ -2158,6 +2204,14 @@ def main():
         print("PHASE 3: DEEP INTERPRETABILITY")
         print("=" * 70)
         run_deep_interpretability(
+            checkpoints, out_dir, n_images=args.n_images, device=args.device
+        )
+
+    if args.phase == "skip-ablation":
+        print("\n" + "=" * 70)
+        print("PHASE 3C: LAYER CONTRIBUTION (SKIP ABLATION)")
+        print("=" * 70)
+        run_layer_contribution(
             checkpoints, out_dir, n_images=args.n_images, device=args.device
         )
 
