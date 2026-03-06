@@ -728,14 +728,32 @@ def _plot_weight_comparison(
     plt.close(fig)
     print(f"\nSaved: {fig_dir / 'weight_stats_heatmap.png'}")
 
-    # --- Figure 2: Per-layer weight distribution (violin/box) ---
+    # Build a color palette for all models (use explicit color if available,
+    # otherwise auto-assign from a colormap)
+    _cmap = plt.cm.get_cmap("tab20", max(len(ckpt_keys), 20))
+    model_colors = []
+    for i, ck in enumerate(ckpt_keys):
+        c = checkpoints[ck].get("color")
+        model_colors.append(c if c else _cmap(i % 20))
+
+    # Skip per-layer bar charts and dead-channel grouped bars when there are
+    # too many models (>10) - the heatmap is more informative in that case.
+    if len(ckpt_keys) > 10:
+        print(
+            f"  Skipping per-layer bar charts for {len(ckpt_keys)} models "
+            "(heatmap already generated)."
+        )
+        return
+
+    # --- Figure 2: Per-layer weight distribution (bar per model) ---
     fig, axes = plt.subplots(2, 5, figsize=(22, 8))
     axes = axes.flatten()
 
     for j, (layer, short) in enumerate(zip(LAYER_NAMES, LAYER_SHORT)):
         ax = axes[j]
         plot_data = []
-        for ck in ckpt_keys:
+        bar_colors = []
+        for ci, ck in enumerate(ckpt_keys):
             stats_df = all_stats[ck]
             lp = stats_df[
                 (stats_df["layer"] == layer)
@@ -750,11 +768,11 @@ def _plot_weight_comparison(
                         "abs_mean": lp["abs_mean"].mean(),
                     }
                 )
+                bar_colors.append(model_colors[ci])
 
         if plot_data:
             pdf = pd.DataFrame(plot_data)
-            colors = [checkpoints[ck]["color"] for ck in ckpt_keys[: len(pdf)]]
-            ax.bar(range(len(pdf)), pdf["std"], color=colors, alpha=0.8)
+            ax.bar(range(len(pdf)), pdf["std"], color=bar_colors, alpha=0.8)
             ax.set_xticks(range(len(pdf)))
             ax.set_xticklabels(
                 [p["model"] for p in plot_data], rotation=45, ha="right", fontsize=7
@@ -775,7 +793,7 @@ def _plot_weight_comparison(
 
     # --- Figure 3: Dead channel comparison bar chart ---
     fig, ax = plt.subplots(figsize=(14, 5))
-    bar_width = 0.2
+    bar_width = 0.8 / len(ckpt_keys)
     x = np.arange(len(LAYER_NAMES))
 
     for i, ck in enumerate(ckpt_keys):
@@ -784,7 +802,7 @@ def _plot_weight_comparison(
             data_dead_pct[i],
             bar_width,
             label=checkpoints[ck]["label"],
-            color=checkpoints[ck]["color"],
+            color=model_colors[i],
             alpha=0.85,
         )
 
@@ -792,7 +810,7 @@ def _plot_weight_comparison(
     ax.set_xticklabels(LAYER_SHORT)
     ax.set_ylabel("% Dead Channels")
     ax.set_title("Dead Channels per Layer Across Models", fontweight="bold")
-    ax.legend()
+    ax.legend(fontsize=7)
     ax.set_ylim(0, max(data_dead_pct.max() * 1.2, 5))
 
     plt.tight_layout()
