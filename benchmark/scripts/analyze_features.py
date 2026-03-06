@@ -21,6 +21,12 @@ Usage:
 
     # Custom checkpoint set
     uv run python scripts/analyze_features.py --phase all --checkpoints custom.json
+
+    # Grid mode: auto-discover all 36 training runs (20 FT + 16 scratch)
+    uv run python scripts/analyze_features.py --grid --phase weights
+
+    # Grid mode with all phases (requires GPU)
+    uv run python scripts/analyze_features.py --grid --phase all
 """
 
 import os
@@ -157,6 +163,318 @@ TEST_CSV = (
     "/allen/aics/rep_learn/MegaSeg/data/variance-100x/"
     "LMNB1/local_renamed/test/test_lmnb1_local_cytodl.csv"
 )
+
+# Grid dimensions for 36-model analysis
+DATA_FRACTIONS = ["10", "20", "50", "100"]
+EPOCH_BUDGETS = ["10epochs", "50epochs", "100epochs", "converged"]
+EPOCH_SHORT = {
+    "10epochs": "10ep",
+    "50epochs": "50ep",
+    "100epochs": "100ep",
+    "converged": "conv",
+}
+
+
+# ---------------------------------------------------------------------------
+# Grid checkpoint discovery
+# ---------------------------------------------------------------------------
+
+
+def _find_best_checkpoint(run_dir: Path) -> Optional[str]:
+    """Find the best-epoch checkpoint in a run directory (not last.ckpt)."""
+    ckpt_dirs = list(run_dir.rglob("checkpoints"))
+    for ckpt_dir in ckpt_dirs:
+        ckpts = [
+            f
+            for f in ckpt_dir.iterdir()
+            if f.suffix == ".ckpt" and f.name != "last.ckpt"
+        ]
+        if ckpts:
+            return str(ckpts[0])
+    return None
+
+
+def _load_eval_results() -> Dict[str, float]:
+    """Load Dice scores from evaluation result CSVs.
+
+    Returns dict mapping experiment key to mean Dice score.
+    Keys: 'data{pct}_{epochs}' for FT, 'scratch_data{pct}_{epochs}' for scratch.
+    """
+    dice_map: Dict[str, float] = {}
+    for kind, prefix in [("finetune", ""), ("scratch", "scratch_")]:
+        summary_path = REPO_ROOT / "results" / kind / "lmnb1" / "summary.csv"
+        if not summary_path.exists():
+            print(f"  Warning: eval results not found at {summary_path}")
+            continue
+        df = pd.read_csv(summary_path)
+        for _, row in df.iterrows():
+            exp = row["experiment"]
+            key = f"{prefix}{exp}" if prefix else exp
+            dice_map[key] = row["dice_mean"]
+    return dice_map
+
+
+def discover_grid_checkpoints(
+    include_pretrained: bool = True,
+) -> Dict[str, dict]:
+    """Auto-discover all 36 training run checkpoints (20 FT + 16 scratch).
+
+    Also includes the MegaSeg pretrained base model if include_pretrained=True.
+
+    Returns a checkpoint dict compatible with the existing analysis functions,
+    with additional metadata: data_pct, epochs, is_scratch.
+    """
+    runs_dir = REPO_ROOT / "outputs" / "train" / "runs"
+    dice_map = _load_eval_results()
+    checkpoints: Dict[str, dict] = OrderedDict()
+
+    if include_pretrained:
+        checkpoints["megaseg_pretrained"] = DEFAULT_CHECKPOINTS[
+            "megaseg_pretrained"
+        ].copy()
+        checkpoints["megaseg_pretrained"].update(
+            {
+                "data_pct": "0",
+                "epochs": "pretrained",
+                "is_scratch": False,
+            }
+        )
+
+    found = 0
+    missing = 0
+    for data_pct in DATA_FRACTIONS:
+        for epoch_budget in EPOCH_BUDGETS:
+            ep_short = EPOCH_SHORT[epoch_budget]
+
+            # Fine-tuned model
+            ft_run_name = f"lmnb1_data{data_pct}_{epoch_budget}"
+            ft_run_dir = runs_dir / ft_run_name
+            if ft_run_dir.exists():
+                ckpt_path = _find_best_checkpoint(ft_run_dir)
+                if ckpt_path:
+                    key = f"ft_d{data_pct}_{ep_short}"
+                    eval_key = f"data{data_pct}_{epoch_budget}"
+                    checkpoints[key] = {
+                        "path": ckpt_path,
+                        "label": f"FT {data_pct}% {ep_short}",
+                        "dice": dice_map.get(eval_key, -1.0),
+                        "data_pct": data_pct,
+                        "epochs": epoch_budget,
+                        "is_scratch": False,
+                    }
+                    found += 1
+                else:
+                    print(f"  Warning: no checkpoint in {ft_run_dir}")
+                    missing += 1
+            else:
+                print(f"  Warning: run dir not found: {ft_run_dir}")
+                missing += 1
+
+            # Scratch model
+            sc_run_name = f"lmnb1_scratch_data{data_pct}_{epoch_budget}"
+            sc_run_dir = runs_dir / sc_run_name
+            if sc_run_dir.exists():
+                ckpt_path = _find_best_checkpoint(sc_run_dir)
+                if ckpt_path:
+                    key = f"sc_d{data_pct}_{ep_short}"
+                    eval_key = f"scratch_data{data_pct}_{epoch_budget}"
+                    checkpoints[key] = {
+                        "path": ckpt_path,
+                        "label": f"Scratch {data_pct}% {ep_short}",
+                        "dice": dice_map.get(eval_key, -1.0),
+                        "data_pct": data_pct,
+                        "epochs": epoch_budget,
+                        "is_scratch": True,
+                    }
+                    found += 1
+                else:
+                    print(f"  Warning: no checkpoint in {sc_run_dir}")
+                    missing += 1
+            else:
+                print(f"  Warning: run dir not found: {sc_run_dir}")
+                missing += 1
+
+    print(f"\nGrid discovery: {found} checkpoints found, {missing} missing")
+    print(f"Total checkpoints (with pretrained): {len(checkpoints)}")
+    return checkpoints
+
+
+def _plot_grid_summary(
+    all_stats: Dict,
+    all_channel_health: Dict,
+    checkpoints: Dict,
+    out_dir: Path,
+):
+    """Generate grid-specific summary figures.
+
+    Creates heatmaps with data_pct (rows) x epoch_budget (cols) axes for
+    FT and Scratch models separately, plus combined comparison plots.
+    """
+    fig_dir = out_dir / "figures"
+    fig_dir.mkdir(parents=True, exist_ok=True)
+
+    ep_labels = [EPOCH_SHORT[e] for e in EPOCH_BUDGETS]
+    pct_labels = [f"{p}%" for p in DATA_FRACTIONS]
+
+    for kind, is_scratch in [("finetune", False), ("scratch", True)]:
+        dead_pct_matrix = np.full((len(DATA_FRACTIONS), len(EPOCH_BUDGETS)), np.nan)
+        weight_std_matrix = np.full((len(DATA_FRACTIONS), len(EPOCH_BUDGETS)), np.nan)
+        dice_matrix = np.full((len(DATA_FRACTIONS), len(EPOCH_BUDGETS)), np.nan)
+
+        for ck, info in checkpoints.items():
+            if info.get("is_scratch") != is_scratch:
+                continue
+            if info.get("data_pct") in ("0", None):
+                continue
+            if info.get("epochs") == "pretrained":
+                continue
+
+            try:
+                row_idx = DATA_FRACTIONS.index(info["data_pct"])
+                col_idx = EPOCH_BUDGETS.index(info["epochs"])
+            except ValueError:
+                continue
+
+            if ck in all_channel_health:
+                ch_df = all_channel_health[ck]
+                bn_ch = ch_df[ch_df["layer"] == "bottleneck"]
+                if not bn_ch.empty:
+                    dead_pct_matrix[row_idx, col_idx] = (
+                        100.0 * bn_ch["is_dead"].sum() / len(bn_ch)
+                    )
+
+            if ck in all_stats:
+                stats_df = all_stats[ck]
+                bn_conv = stats_df[
+                    (stats_df["layer"] == "bottleneck")
+                    & (stats_df["param"].str.contains("conv"))
+                    & (stats_df["param"].str.contains("weight"))
+                ]
+                if not bn_conv.empty:
+                    weight_std_matrix[row_idx, col_idx] = bn_conv["std"].mean()
+
+            if info.get("dice", -1) >= 0:
+                dice_matrix[row_idx, col_idx] = info["dice"]
+
+        fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+        title = "Scratch" if is_scratch else "Fine-tuned"
+        fig.suptitle(f"{title} Models - Grid Summary", fontsize=14, fontweight="bold")
+
+        for ax, data, subtitle, cmap, fmt in [
+            (axes[0], dead_pct_matrix, "Bottleneck Dead %", "Reds", ".1f"),
+            (axes[1], weight_std_matrix, "Bottleneck Wt Std", "YlOrRd", ".4f"),
+            (axes[2], dice_matrix, "Dice Score", "Greens", ".3f"),
+        ]:
+            sns.heatmap(
+                data,
+                ax=ax,
+                xticklabels=ep_labels,
+                yticklabels=pct_labels,
+                annot=True,
+                fmt=fmt,
+                cmap=cmap,
+                linewidths=0.5,
+                mask=np.isnan(data),
+            )
+            ax.set_title(subtitle)
+            ax.set_xlabel("Epoch Budget")
+            ax.set_ylabel("Data Fraction")
+
+        plt.tight_layout()
+        fig.savefig(fig_dir / f"grid_summary_{kind}.png", dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        print(f"  Saved grid_summary_{kind}.png")
+
+    # Combined bottleneck dead % comparison: FT vs Scratch side by side
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5), sharey=True)
+    fig.suptitle(
+        "Bottleneck Dead Channels: Fine-tuned vs Scratch",
+        fontsize=14,
+        fontweight="bold",
+    )
+
+    for ax_idx, (label, is_scratch) in enumerate(
+        [("Fine-tuned", False), ("Scratch", True)]
+    ):
+        dead_pct = np.full((len(DATA_FRACTIONS), len(EPOCH_BUDGETS)), np.nan)
+        for ck, info in checkpoints.items():
+            if info.get("is_scratch") != is_scratch:
+                continue
+            if info.get("data_pct") in ("0", None):
+                continue
+            if info.get("epochs") == "pretrained":
+                continue
+            try:
+                ri = DATA_FRACTIONS.index(info["data_pct"])
+                ci = EPOCH_BUDGETS.index(info["epochs"])
+            except ValueError:
+                continue
+            if ck in all_channel_health:
+                ch_df = all_channel_health[ck]
+                bn_ch = ch_df[ch_df["layer"] == "bottleneck"]
+                if not bn_ch.empty:
+                    dead_pct[ri, ci] = 100.0 * bn_ch["is_dead"].sum() / len(bn_ch)
+
+        sns.heatmap(
+            dead_pct,
+            ax=axes[ax_idx],
+            xticklabels=ep_labels,
+            yticklabels=pct_labels,
+            annot=True,
+            fmt=".1f",
+            cmap="Reds",
+            vmin=0,
+            vmax=100,
+            linewidths=0.5,
+            mask=np.isnan(dead_pct),
+        )
+        axes[ax_idx].set_title(label)
+        axes[ax_idx].set_xlabel("Epoch Budget")
+        if ax_idx == 0:
+            axes[ax_idx].set_ylabel("Data Fraction")
+
+    plt.tight_layout()
+    fig.savefig(
+        fig_dir / "grid_bottleneck_comparison.png", dpi=150, bbox_inches="tight"
+    )
+    plt.close(fig)
+    print("  Saved grid_bottleneck_comparison.png")
+
+    # All-layer dead channel heatmap (all models x all layers)
+    ck_keys = [k for k in checkpoints if k in all_channel_health]
+    if ck_keys:
+        dead_matrix = np.zeros((len(ck_keys), len(LAYER_NAMES)))
+        ck_labels = []
+        for i, ck in enumerate(ck_keys):
+            ch_df = all_channel_health[ck]
+            ck_labels.append(checkpoints[ck]["label"])
+            for j, layer in enumerate(LAYER_NAMES):
+                lc = ch_df[ch_df["layer"] == layer]
+                if not lc.empty:
+                    dead_matrix[i, j] = 100.0 * lc["is_dead"].sum() / len(lc)
+
+        fig, ax = plt.subplots(figsize=(14, max(8, len(ck_keys) * 0.4)))
+        sns.heatmap(
+            dead_matrix,
+            ax=ax,
+            xticklabels=LAYER_SHORT,
+            yticklabels=ck_labels,
+            annot=True,
+            fmt=".0f",
+            cmap="Reds",
+            vmin=0,
+            vmax=100,
+            linewidths=0.3,
+        )
+        ax.set_title("Dead Channel % by Layer - All Models", fontsize=14)
+        plt.tight_layout()
+        fig.savefig(
+            fig_dir / "grid_all_dead_channels.png",
+            dpi=150,
+            bbox_inches="tight",
+        )
+        plt.close(fig)
+        print("  Saved grid_all_dead_channels.png")
 
 
 @dataclass
@@ -1706,6 +2024,15 @@ def main():
         help="Which analysis phase to run (deep = GradCAM + CKA + layer contribution)",
     )
     parser.add_argument(
+        "--grid",
+        action="store_true",
+        help=(
+            "Grid mode: auto-discover all 36 training runs "
+            "(20 FT + 16 scratch + pretrained base). "
+            "Output goes to results/feature_analysis/grid/ by default."
+        ),
+    )
+    parser.add_argument(
         "--checkpoints",
         type=str,
         default=None,
@@ -1741,27 +2068,56 @@ def main():
     if args.checkpoints:
         with open(args.checkpoints) as f:
             checkpoints = json.load(f)
+    elif args.grid:
+        print("Grid mode: auto-discovering all training run checkpoints...")
+        checkpoints = discover_grid_checkpoints(include_pretrained=True)
     else:
         checkpoints = DEFAULT_CHECKPOINTS
 
-    out_dir = Path(args.output_dir) if args.output_dir else RESULTS_DIR
+    # Resolve output directory
+    if args.output_dir:
+        out_dir = Path(args.output_dir)
+    elif args.grid:
+        out_dir = RESULTS_DIR / "grid"
+    else:
+        out_dir = RESULTS_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # Validate checkpoint paths
     print("Validating checkpoint paths...")
-    for ck, info in checkpoints.items():
+    valid = 0
+    for ck, info in list(checkpoints.items()):
         p = Path(info["path"])
         if not p.exists():
-            print(f"  ERROR: checkpoint not found: {p}")
-            sys.exit(1)
-        print(f"  OK: {info['label']}")
+            print(f"  SKIP: checkpoint not found: {p}")
+            del checkpoints[ck]
+        else:
+            print(f"  OK: {info['label']}")
+            valid += 1
+
+    if valid == 0:
+        print("ERROR: no valid checkpoints found")
+        sys.exit(1)
+
+    print(f"\nAnalyzing {valid} checkpoints...")
 
     # Run phases
+    weight_results = None
     if args.phase in ("weights", "all"):
         print("\n" + "=" * 70)
         print("PHASE 1A: WEIGHT STATISTICS")
         print("=" * 70)
-        run_weight_analysis(checkpoints, out_dir)
+        weight_results = run_weight_analysis(checkpoints, out_dir)
+
+        # Generate grid-specific plots if in grid mode
+        if args.grid and weight_results:
+            print("\n  Generating grid summary plots...")
+            _plot_grid_summary(
+                weight_results["weight_stats"],
+                weight_results["channel_health"],
+                checkpoints,
+                out_dir,
+            )
 
     if args.phase in ("activations", "all"):
         print("\n" + "=" * 70)
