@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-"""Classic aicssegmentation cross-eval: run 10 workflows on 14 test structures.
+"""Classic aicssegmentation cross-eval: run 14 workflows on 14 test structures.
 
-Runs each of the 10 classic workflows (those overlapping with the 14 test
-structures) on every structure's test set (67 images each), producing:
+Runs each of the 14 classic workflows on every structure's test set
+(67 images each), producing:
   - Prediction TIFFs in {output_dir}/{WORKFLOW}/tested_on_{TEST_STRUCT}/
   - Per-sample metrics CSV (same schema as per_sample_metrics.csv)
-  - 10x14 heatmap CSV (rows=workflow, cols=test_struct, values=mean Dice)
+  - 14x14 heatmap CSV (rows=workflow, cols=test_struct, values=mean Dice)
 
 Supports --skip-existing to resume interrupted runs and --metrics-only to
 recompute metrics from saved TIFFs without re-running workflows.
@@ -101,10 +101,14 @@ def compute_metrics(gt: np.ndarray, pred: np.ndarray) -> dict:
 # Constants
 # ---------------------------------------------------------------------------
 
-# The 10 classic workflows that overlap with the 14 test structures.
+# All 14 classic workflows - the 10 with local scripts in ms_classic/ plus
+# 4 imported from the installed aicssegmentation package (ATP2A2, DSP, GJA1, TJP1).
 WORKFLOWS = [
     "ACTN1",
+    "ATP2A2",
     "CTNNB1",
+    "DSP",
+    "GJA1",
     "MYH10",
     "NPM1",
     "NUP153",
@@ -112,6 +116,7 @@ WORKFLOWS = [
     "SEC61B",
     "SON",
     "ST6GAL1",
+    "TJP1",
     "TOMM20",
 ]
 
@@ -372,7 +377,7 @@ def write_metrics_csv(results: list[dict], csv_path: Path) -> None:
 
 
 def write_heatmap_csv(results: list[dict], csv_path: Path) -> None:
-    """Write 10x14 heatmap CSV (mean Dice per workflow x test_struct)."""
+    """Write NxM heatmap CSV (mean Dice per workflow x test_struct)."""
     df = pd.DataFrame(results)
     if df.empty:
         print("  WARNING: No results to write heatmap")
@@ -415,7 +420,7 @@ def write_heatmap_csv(results: list[dict], csv_path: Path) -> None:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Classic aicssegmentation cross-eval (10 workflows x 14 structures)",
+        description="Classic aicssegmentation cross-eval (14 workflows x 14 structures)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
