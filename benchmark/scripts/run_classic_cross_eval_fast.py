@@ -45,7 +45,7 @@ from typing import Callable, Optional
 import numpy as np
 import pandas as pd
 import tifffile
-from aicsimageio import AICSImage
+# tifffile is used directly for reading (faster, lower memory than AICSImage)
 
 
 # ===================================================================
@@ -95,8 +95,7 @@ STRUCTURES = {
 
 def load_image_3d(path: str) -> np.ndarray:
     """Load a TIFF and squeeze to 3D (Z, Y, X)."""
-    img = AICSImage(path)
-    return np.squeeze(img.data)
+    return np.squeeze(tifffile.imread(path))
 
 
 def patch_script_source(script_path: Path, broken_reason: str) -> str:
