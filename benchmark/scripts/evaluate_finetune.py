@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-"""Evaluate fine-tuning experiment results.
+"""Evaluate fine-tuning and scratch experiment results.
 
-Computes per-image Dice and IoU metrics for each of the 7 LMNB1
-fine-tuning experiments (L-shaped design) and generates summary
-tables and plots.
+Computes per-image segmentation metrics (Dice, IoU, precision, recall,
+Hausdorff-95, surface Dice) for all 17 LMNB1 fine-tuning experiments
+(base_megaseg + 4x4 grid) and 16 scratch experiments.
 
 Usage:
-    uv run python scripts/evaluate_finetune.py compute --workers 8
-    uv run python scripts/evaluate_finetune.py report
-    uv run python scripts/evaluate_finetune.py plot
+    python scripts/evaluate_finetune.py compute --mode ft --workers 8
+    python scripts/evaluate_finetune.py compute --mode scratch --workers 8
+    python scripts/evaluate_finetune.py report --mode ft
+    python scripts/evaluate_finetune.py plot --mode ft
 """
 
 import argparse
@@ -35,19 +36,58 @@ log = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DATA_ROOT = PROJECT_ROOT.parent / "data"
 
-# L-shaped experiment design:
-# - Vary epochs with 100% data: converged, 10, 50, 100 epochs
-# - Vary data fraction with convergence: 10%, 20%, 50%, 100%
-ALL_EXPERIMENTS = [
-    "data100_converged",
+# Full 4x4 grid: 4 data fractions x 4 epoch configs = 16 experiments
+FT_EXPERIMENTS = [
+    "base_megaseg",
+    # 100% data
     "data100_10epochs",
     "data100_50epochs",
     "data100_100epochs",
-    "data10_converged",
-    "data20_converged",
+    "data100_converged",
+    # 50% data
+    "data50_10epochs",
+    "data50_50epochs",
+    "data50_100epochs",
     "data50_converged",
+    # 20% data
+    "data20_10epochs",
+    "data20_50epochs",
+    "data20_100epochs",
+    "data20_converged",
+    # 10% data
+    "data10_10epochs",
+    "data10_50epochs",
+    "data10_100epochs",
+    "data10_converged",
 ]
+
+SCRATCH_EXPERIMENTS = [
+    # 100% data
+    "data100_10epochs",
+    "data100_50epochs",
+    "data100_100epochs",
+    "data100_converged",
+    # 50% data
+    "data50_10epochs",
+    "data50_50epochs",
+    "data50_100epochs",
+    "data50_converged",
+    # 20% data
+    "data20_10epochs",
+    "data20_50epochs",
+    "data20_100epochs",
+    "data20_converged",
+    # 10% data
+    "data10_10epochs",
+    "data10_50epochs",
+    "data10_100epochs",
+    "data10_converged",
+]
+
+# Legacy alias for backward compat
+ALL_EXPERIMENTS = FT_EXPERIMENTS
 
 METRIC_COLS = ["dice", "iou", "precision", "recall", "hausdorff_95", "surface_dice"]
 
@@ -157,14 +197,22 @@ def binarize_gt(gt: np.ndarray) -> np.ndarray:
 # ---------------------------------------------------------------------------
 # Path helpers
 # ---------------------------------------------------------------------------
-def resolve_pred_dir(experiment: str) -> Path:
-    """Resolve the prediction directory for an experiment."""
-    return PROJECT_ROOT / "outputs" / "finetune" / "lmnb1" / experiment / "seg"
+def resolve_pred_dir(experiment: str, mode: str = "ft") -> Path:
+    """Resolve the prediction directory for an experiment.
+
+    Args:
+        experiment: Experiment label (e.g. 'data100_converged').
+        mode: 'ft' for fine-tuning or 'scratch' for scratch training.
+    """
+    subdir = "finetune" if mode == "ft" else "scratch"
+    return PROJECT_ROOT / "outputs" / "eval" / subdir / "lmnb1" / experiment / "seg"
 
 
 def get_test_csv() -> Path:
-    """Get the LMNB1 test CSV path."""
-    return PROJECT_ROOT / "data" / "lmnb1" / "test_lmnb1.csv"
+    """Get the LMNB1 test CSV path (variance-100x local data)."""
+    return (
+        DATA_ROOT / "variance-100x" / "LMNB1" / "local" / "test_lmnb1_local_cytodl.csv"
+    )
 
 
 def derive_prediction_path(raw_filename: str, pred_dir: Path) -> Path:
@@ -237,6 +285,8 @@ def _evaluate_sample(args: tuple) -> dict:
 # ---------------------------------------------------------------------------
 def parse_experiment_label(exp: str) -> dict:
     """Parse experiment label into data_pct and epoch_cfg."""
+    if exp == "base_megaseg":
+        return {"data_pct": 0, "epoch_cfg": "pretrained"}
     if "_converged" in exp:
         data_pct_str = exp.replace("_converged", "").replace("data", "")
         return {"data_pct": int(data_pct_str), "epoch_cfg": "converged"}
@@ -250,16 +300,24 @@ def parse_experiment_label(exp: str) -> dict:
 # ---------------------------------------------------------------------------
 # Compute phase
 # ---------------------------------------------------------------------------
-def compute_all(workers: int, experiments: list[str] | None = None) -> None:
-    """Compute metrics for all experiments."""
-    results_dir = PROJECT_ROOT / "results" / "finetune"
+def compute_all(
+    workers: int, mode: str = "ft", experiments: list[str] | None = None
+) -> None:
+    """Compute metrics for all experiments.
+
+    Args:
+        workers: Number of parallel workers.
+        mode: 'ft' for fine-tuning or 'scratch' for scratch training.
+        experiments: Optional list of experiment labels to evaluate.
+    """
+    subdir = "finetune" if mode == "ft" else "scratch"
+    results_dir = PROJECT_ROOT / "results" / subdir / "lmnb1"
     results_dir.mkdir(parents=True, exist_ok=True)
     csv_path = results_dir / "per_sample_metrics.csv"
 
     test_csv = get_test_csv()
     if not test_csv.is_file():
         print(f"ERROR: Test CSV not found: {test_csv}", file=sys.stderr)
-        print("Run: uv run python scripts/generate_lmnb1_data.py", file=sys.stderr)
         sys.exit(1)
 
     test_df = pd.read_csv(test_csv)
@@ -268,13 +326,14 @@ def compute_all(workers: int, experiments: list[str] | None = None) -> None:
         print(f"Found columns: {list(test_df.columns)}", file=sys.stderr)
         sys.exit(1)
 
-    exp_list = experiments or ALL_EXPERIMENTS
+    default_exps = FT_EXPERIMENTS if mode == "ft" else SCRATCH_EXPERIMENTS
+    exp_list = experiments or default_exps
 
     # Build work items
     all_items = []
     skipped = []
     for exp in exp_list:
-        pred_dir = resolve_pred_dir(exp)
+        pred_dir = resolve_pred_dir(exp, mode=mode)
         if not pred_dir.is_dir():
             skipped.append(exp)
             continue
@@ -328,13 +387,14 @@ def compute_all(workers: int, experiments: list[str] | None = None) -> None:
 # ---------------------------------------------------------------------------
 # Report phase
 # ---------------------------------------------------------------------------
-def report() -> None:
+def report(mode: str = "ft") -> None:
     """Generate summary tables from per-sample metrics."""
-    csv_path = PROJECT_ROOT / "results" / "finetune" / "per_sample_metrics.csv"
+    subdir = "finetune" if mode == "ft" else "scratch"
+    csv_path = PROJECT_ROOT / "results" / subdir / "lmnb1" / "per_sample_metrics.csv"
     if not csv_path.is_file():
         print(f"ERROR: Metrics not found: {csv_path}", file=sys.stderr)
         print(
-            "Run: uv run python scripts/evaluate_finetune.py compute",
+            f"Run: python scripts/evaluate_finetune.py compute --mode {mode}",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -371,9 +431,10 @@ def report() -> None:
 # ---------------------------------------------------------------------------
 # Plot phase
 # ---------------------------------------------------------------------------
-def plot() -> None:
+def plot(mode: str = "ft") -> None:
     """Generate visualizations from per-sample metrics."""
-    csv_path = PROJECT_ROOT / "results" / "finetune" / "per_sample_metrics.csv"
+    subdir = "finetune" if mode == "ft" else "scratch"
+    csv_path = PROJECT_ROOT / "results" / subdir / "lmnb1" / "per_sample_metrics.csv"
     if not csv_path.is_file():
         print("ERROR: Metrics not found. Run compute first.", file=sys.stderr)
         sys.exit(1)
@@ -706,7 +767,16 @@ def plot() -> None:
 # CLI
 # ---------------------------------------------------------------------------
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Evaluate fine-tuning experiments.")
+    parser = argparse.ArgumentParser(
+        description="Evaluate fine-tuning and scratch experiments."
+    )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        choices=["ft", "scratch"],
+        default="ft",
+        help="Evaluation mode: 'ft' (fine-tuning) or 'scratch' (default: ft)",
+    )
     subparsers = parser.add_subparsers(dest="phase", required=True)
 
     p_compute = subparsers.add_parser("compute", help="Compute metrics")
@@ -729,11 +799,11 @@ def main() -> None:
         exp_filter = None
         if args.experiments:
             exp_filter = [e.strip() for e in args.experiments.split(",")]
-        compute_all(workers=args.workers, experiments=exp_filter)
+        compute_all(workers=args.workers, mode=args.mode, experiments=exp_filter)
     elif args.phase == "report":
-        report()
+        report(mode=args.mode)
     elif args.phase == "plot":
-        plot()
+        plot(mode=args.mode)
 
 
 if __name__ == "__main__":
