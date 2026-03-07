@@ -7,7 +7,7 @@ Workflows are from aicssegmentation with structure-specific parameters.
 Usage:
     uv run python scripts/run_classic_drug_perturbation.py [--structures ACTB NUP153 ...]
 
-No TJP1 classic workflow exists — TJP1 is skipped.
+Covers ACTB, NUP153, ST6GAL1, TJP1, TOMM20, TUBA1B.
 """
 
 import argparse
@@ -176,10 +176,41 @@ def workflow_tuba1b(struct_img: np.ndarray) -> np.ndarray:
     return seg
 
 
+def workflow_tjp1(struct_img: np.ndarray) -> np.ndarray:
+    """Classic segmentation for TJP1 (tight junctions).
+
+    Ported from aicssegmentation.structure_wrapper.seg_tjp1.Workflow_tjp1.
+    """
+    intensity_norm_param = [3, 17]
+    gaussian_smoothing_sigma = 1
+    gaussian_smoothing_truncate_range = 3.0
+    vesselness_sigma = [1.5]
+    vesselness_cutoff = 0.2
+    minArea = 15
+
+    struct_img = intensity_normalization(struct_img, scaling_param=intensity_norm_param)
+    structure_img_smooth = image_smoothing_gaussian_3d(
+        struct_img,
+        sigma=gaussian_smoothing_sigma,
+        truncate_range=gaussian_smoothing_truncate_range,
+    )
+
+    response = vesselness3D(
+        structure_img_smooth, sigmas=vesselness_sigma, tau=1, whiteonblack=True
+    )
+    bw = response > vesselness_cutoff
+
+    seg = remove_small_objects(bw > 0, min_size=minArea, connectivity=1)
+    seg = seg.astype(np.uint8)
+    seg[seg > 0] = 255
+    return seg
+
+
 WORKFLOWS = {
     "ACTB": workflow_actb,
     "NUP153": workflow_nup153,
     "ST6GAL1": workflow_st6gal1,
+    "TJP1": workflow_tjp1,
     "TOMM20": workflow_tomm20,
     "TUBA1B": workflow_tuba1b,
 }
