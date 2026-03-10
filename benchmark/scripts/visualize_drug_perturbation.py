@@ -55,8 +55,8 @@ ALL_STRUCTURES = ["ACTB", "NUP153", "ST6GAL1", "TJP1", "TOMM20", "TUBA1B"]
 
 # Structures with individual model checkpoints
 INDIVIDUAL_STRUCTURES = {"NUP153", "ST6GAL1", "TJP1", "TOMM20"}
-# Structures with classic workflows (no TJP1)
-CLASSIC_STRUCTURES = {"ACTB", "NUP153", "ST6GAL1", "TOMM20", "TUBA1B"}
+# Structures with classic workflows
+CLASSIC_STRUCTURES = {"ACTB", "NUP153", "ST6GAL1", "TJP1", "TOMM20", "TUBA1B"}
 
 
 def simplify_drug(solution: str) -> str:
