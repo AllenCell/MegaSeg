@@ -1,0 +1,49 @@
+# @package _global_
+defaults:
+  - override /data: local/multidim.yaml
+  - override /model: local/segmentation_ms25_uint8.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: gpu.yaml
+  - override /logger: csv.yaml
+
+tags: ["megaseg_eval", "uint8", "timelapse"]
+seed: 12345
+
+checkpoint:
+  ckpt_path: ${paths.checkpoint_dir}/megaseg/dynunet.ckpt
+
+train: False
+test: False
+predict: True
+
+experiment_name: megaseg_eval_dynunet_timelapse_NPM1
+run_name: dynunet_megaseg_timelapse_NPM1
+source_col: raw
+target_col: seg
+
+spatial_dims: 3
+raw_im_channels: 1
+
+trainer:
+  max_epochs: 1000
+  devices: [0]
+
+model:
+  save_dir: ${paths.log_dir}/eval/uint8/megaseg/dynunet/timelapse/NPM1
+
+paths:
+  output_dir: ${paths.log_dir}/eval/uint8/megaseg/dynunet/timelapse/NPM1
+
+data:
+  batch_size: 1
+  num_workers: 1
+  _aux:
+    csv_path: /allen/aics/rep_learn/MegaSeg-worktrees/main/benchmark/data/multidim/ip_manifest_npm1_multidim.csv
+    patch_shape: [32, 128, 128]
+
+callbacks:
+  rich_progress_bar: null
+  saving:
+    _target_: cyto_dl.callbacks.ImageSaver
+    save_dir: ${paths.log_dir}/eval/uint8/megaseg/dynunet/timelapse/NPM1
+    stages: ["predict"]
