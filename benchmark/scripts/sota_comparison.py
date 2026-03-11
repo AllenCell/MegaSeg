@@ -194,8 +194,9 @@ def run_statistical_tests(df: pd.DataFrame, out_dir: Path) -> pd.DataFrame:
     """Paired Wilcoxon signed-rank test: MegaSeg vs each other method.
 
     For each comparison method, we pair samples by (structure, sample_id).
-    The classic workflow method only covers 10 structures, so its comparison
-    is restricted to those 670 paired samples.
+    For each comparison method, we pair samples by (structure, sample_id).
+    If a method covers fewer structures, its comparison is restricted to
+    the paired samples available.
 
     Returns a DataFrame with test results and saves to CSV.
     """
@@ -351,7 +352,7 @@ def plot_overall_bar(summary: pd.DataFrame, df: pd.DataFrame, out_dir: Path) -> 
     ax.set_ylim(0, 1.05)
     ax.set_title(
         "SOTA Segmentation Comparison: Overall Dice\n"
-        "(14 structures, 67 test samples each = 938 total; Classic covers 10 structures = 670)",
+        "(14 structures, 67 test samples each = 938 total)",
         fontsize=12,
         fontweight="bold",
     )
