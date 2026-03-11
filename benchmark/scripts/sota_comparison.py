@@ -11,10 +11,16 @@ overall, then generates:
   5. Statistical tests: paired Wilcoxon signed-rank (MegaSeg vs. each method)
   6. Combined summary CSV
 
+Supports a --filtered mode that removes the bottom-10 samples per structure
+(identified by MegaSeg DynUNet Dice in PR #16) and regenerates all outputs
+into results/uint8/filtered/.
+
 Usage:
-    uv run python scripts/sota_comparison.py
+    uv run python scripts/sota_comparison.py              # full (n=938)
+    uv run python scripts/sota_comparison.py --filtered   # filtered (n=798)
 """
 
+import argparse
 from pathlib import Path
 
 import matplotlib
@@ -305,10 +311,18 @@ def run_statistical_tests(df: pd.DataFrame, out_dir: Path) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 
 
-def plot_overall_bar(summary: pd.DataFrame, df: pd.DataFrame, out_dir: Path) -> None:
+def plot_overall_bar(
+    summary: pd.DataFrame,
+    df: pd.DataFrame,
+    out_dir: Path,
+    subtitle: str = "(14 structures, 67 test samples each = 938 total)",
+) -> None:
     methods = _active_methods(df)
     overall = summary[summary["structure"] == "OVERALL"].copy()
     overall = overall.set_index("method").loc[[m for m, _, _ in methods]]
+
+    # Determine expected n from the data (for annotation threshold)
+    expected_n = int(overall["n"].mode().iloc[0]) if len(overall) else 938
 
     fig, ax = plt.subplots(figsize=(10, 5))
     labels = [label for _, label, _ in methods]
@@ -334,8 +348,8 @@ def plot_overall_bar(summary: pd.DataFrame, df: pd.DataFrame, out_dir: Path) -> 
             fontsize=10,
             fontweight="bold",
         )
-        # Show sample count below the bar label if different from 938
-        if n != 938:
+        # Show sample count below the bar label if different from expected
+        if n != expected_n:
             ax.text(
                 bar.get_x() + bar.get_width() / 2,
                 -0.04,
@@ -351,8 +365,7 @@ def plot_overall_bar(summary: pd.DataFrame, df: pd.DataFrame, out_dir: Path) -> 
     ax.set_ylabel("Mean Dice Score", fontsize=12)
     ax.set_ylim(0, 1.05)
     ax.set_title(
-        "SOTA Segmentation Comparison: Overall Dice\n"
-        "(14 structures, 67 test samples each = 938 total)",
+        f"SOTA Segmentation Comparison: Overall Dice\n{subtitle}",
         fontsize=12,
         fontweight="bold",
     )
@@ -372,7 +385,10 @@ def plot_overall_bar(summary: pd.DataFrame, df: pd.DataFrame, out_dir: Path) -> 
 
 
 def plot_per_structure_grouped(
-    summary: pd.DataFrame, df: pd.DataFrame, out_dir: Path
+    summary: pd.DataFrame,
+    df: pd.DataFrame,
+    out_dir: Path,
+    subtitle: str = "(14 structures, 67 test samples each = 938 total)",
 ) -> None:
     methods = _active_methods(df)
     struct_df = summary[summary["structure"] != "OVERALL"]
@@ -404,7 +420,7 @@ def plot_per_structure_grouped(
     ax.set_ylabel("Mean Dice Score", fontsize=12)
     ax.set_ylim(0, 1.05)
     ax.set_title(
-        "SOTA Comparison: Per-Structure Dice (67 test samples each)",
+        f"SOTA Comparison: Per-Structure Dice\n{subtitle}",
         fontsize=13,
         fontweight="bold",
     )
@@ -737,11 +753,40 @@ def plot_structure_rankings(
 # ---------------------------------------------------------------------------
 
 
-def main():
-    FIG_DIR.mkdir(parents=True, exist_ok=True)
+def filter_excluded_samples(df: pd.DataFrame, excluded_csv: Path) -> pd.DataFrame:
+    """Remove samples listed in *excluded_csv* from *df*.
 
-    print("Loading per-sample results...")
-    df = load_all()
+    The excluded CSV has columns ``test_struct, sample_id, dice``.
+    We match on ``(structure, sample_id)`` in the combined DataFrame.
+    """
+    excluded = pd.read_csv(excluded_csv)
+    excluded = excluded.rename(columns={"test_struct": "structure"})
+    exclude_keys = set(zip(excluded["structure"], excluded["sample_id"]))
+
+    before = len(df)
+    mask = df.apply(
+        lambda r: (r["structure"], r["sample_id"]) not in exclude_keys, axis=1
+    )
+    df_filtered = df[mask].copy()
+    after = len(df_filtered)
+
+    n_structs = excluded["structure"].nunique()
+    n_per = len(excluded) // n_structs
+    print(
+        f"  Filtered: {before} -> {after} rows "
+        f"(removed {before - after} across {len(df['method'].unique())} methods, "
+        f"bottom {n_per} per structure)"
+    )
+    return df_filtered
+
+
+def _run_pipeline(
+    df: pd.DataFrame,
+    out_dir: Path,
+    fig_dir: Path,
+    subtitle: str,
+) -> None:
+    """Run the full aggregation, stats, and figure pipeline on *df*."""
     methods = _active_methods(df)
     print(f"  Total rows: {len(df)}")
     for method, label, _ in methods:
@@ -752,20 +797,21 @@ def main():
     print("\nAggregating...")
     summary = aggregate(df)
 
-    out_csv = RES / "sota_comparison_all_methods.csv"
+    out_csv = out_dir / "sota_comparison_all_methods.csv"
     summary.to_csv(out_csv, index=False)
     print(f"  Saved {out_csv}")
 
     print("\nRunning statistical tests...")
-    run_statistical_tests(df, RES)
+    run_statistical_tests(df, out_dir)
 
     print("\nGenerating figures...")
-    plot_overall_bar(summary, df, FIG_DIR)
-    plot_per_structure_grouped(summary, df, FIG_DIR)
-    plot_heatmap(summary, df, FIG_DIR)
-    plot_violin(df, FIG_DIR)
-    plot_per_structure_violin(df, FIG_DIR)
-    plot_structure_rankings(summary, df, FIG_DIR)
+    fig_dir.mkdir(parents=True, exist_ok=True)
+    plot_overall_bar(summary, df, fig_dir, subtitle=subtitle)
+    plot_per_structure_grouped(summary, df, fig_dir, subtitle=subtitle)
+    plot_heatmap(summary, df, fig_dir)
+    plot_violin(df, fig_dir)
+    plot_per_structure_violin(df, fig_dir)
+    plot_structure_rankings(summary, df, fig_dir)
 
     print("\nOverall Dice summary:")
     overall = summary[summary["structure"] == "OVERALL"].set_index("method")
@@ -773,6 +819,54 @@ def main():
         row = overall.loc[method]
         print(
             f"  {label:30s}: {row['dice_mean']:.4f} +/- {row['dice_std']:.4f}  (n={int(row['n'])})"
+        )
+
+
+def main():
+    parser = argparse.ArgumentParser(description="SOTA segmentation comparison")
+    parser.add_argument(
+        "--filtered",
+        action="store_true",
+        help="Also generate filtered results (bottom-10 per structure removed)",
+    )
+    args = parser.parse_args()
+
+    print("Loading per-sample results...")
+    df = load_all()
+
+    # --- Full results (n=938) ---
+    print("\n=== Full results (all samples) ===")
+    FIG_DIR.mkdir(parents=True, exist_ok=True)
+    _run_pipeline(
+        df,
+        out_dir=RES,
+        fig_dir=FIG_DIR,
+        subtitle="(14 structures, 67 test samples each = 938 total)",
+    )
+
+    # --- Filtered results (n=798) ---
+    if args.filtered:
+        excluded_csv = RES / "filtered" / "excluded_samples.csv"
+        if not excluded_csv.exists():
+            print(
+                f"\nERROR: {excluded_csv} not found. Run evaluate_benchmark.py filter first."
+            )
+            return
+
+        print("\n=== Filtered results (bottom-10 removed per structure) ===")
+        print(f"Loading exclusion list from {excluded_csv} ...")
+        df_filtered = filter_excluded_samples(df, excluded_csv)
+
+        filt_out = RES / "filtered"
+        filt_fig = filt_out / "figures"
+        filt_out.mkdir(parents=True, exist_ok=True)
+        filt_fig.mkdir(parents=True, exist_ok=True)
+
+        _run_pipeline(
+            df_filtered,
+            out_dir=filt_out,
+            fig_dir=filt_fig,
+            subtitle="(14 structures, 57 test samples each = 798 total, bottom-10 removed)",
         )
 
     print("\nDone.")
