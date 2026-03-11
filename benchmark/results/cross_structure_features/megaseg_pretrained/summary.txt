@@ -1,0 +1,12 @@
+Cross-Structure Feature Similarity Analysis
+Model: megaseg_pretrained
+Checkpoint: /allen/aics/assay-dev/users/Suraj/megaSeg/Amil/cyto-dl/logs/train/runs/megaseg_b64_deep_new_13-STRUCTS/dynUNet_st6_base_cytodl/2024-07-15_00-39-47/checkpoints/epoch_650.ckpt
+Structures: ['AAVS1', 'ACTN1', 'ATP2A2', 'CTNNB1', 'DSP', 'GJA1', 'LMNB1', 'MYH10', 'NPM1', 'NUP153', 'RAB5A', 'SEC61B', 'SON', 'ST6GAL1', 'TJP1', 'TOMM20']
+Samples per structure: 10
+
+input_block: CKA mean=0.147 std=0.137 | Cosine mean=0.977 std=0.022
+downsamples.0: CKA mean=0.208 std=0.137 | Cosine mean=0.965 std=0.019
+downsamples.1: CKA mean=0.268 std=0.137 | Cosine mean=0.969 std=0.013
+downsamples.2: CKA mean=0.309 std=0.133 | Cosine mean=0.992 std=0.003
+upsamples.2: CKA mean=0.305 std=0.121 | Cosine mean=0.990 std=0.005
+upsamples.1: CKA mean=0.408 std=0.115 | Cosine mean=0.996 std=0.002
