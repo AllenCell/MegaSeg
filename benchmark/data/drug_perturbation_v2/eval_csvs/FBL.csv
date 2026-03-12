@@ -1,0 +1,9 @@
+file_path,split
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/FBL/actinomycin/3500002761_100X_20190218_2hr-Scene-113-P113-F06._ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/FBL/actinomycin/3500002761_100X_20190218_2hr-Scene-114-P114-F06._ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/FBL/actinomycin/3500002761_100X_20190218_4hr-Scene-113-P113-F06._ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/FBL/actinomycin/3500002761_100X_20190218_4hr-Scene-114-P114-F06._ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/FBL/control/3500002761_100X_20190218_2hr-Scene-233-P233-F11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/FBL/control/3500002761_100X_20190218_2hr-Scene-234-P234-F11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/FBL/control/3500002761_100X_20190218_4hr-Scene-233-P233-F11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/FBL/control/3500002761_100X_20190218_4hr-Scene-234-P234-F11_ch1.tiff,predict
