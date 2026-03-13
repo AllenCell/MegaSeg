@@ -84,7 +84,11 @@ ABLATION_CHECKPOINTS = {
         "ablation_7_structs/dynunet_7structs_scratch/2026-03-06_00-14-12/"
         "checkpoints/epoch_683.ckpt"
     ),
-    "14_structs": None,  # Will be set when training completes
+    "14_structs": (
+        "/allen/aics/rep_learn/MegaSeg/benchmark/outputs/train/runs/"
+        "ablation_14_structs/dynunet_14structs_scratch/2026-03-06_00-14-14/"
+        "checkpoints/epoch_400.ckpt"
+    ),  # Partial training - epoch 400 of 700
 }
 
 # MegaSeg pretrained (13-struct) for comparison
