@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """Evaluate ablation diversity models across all structures.
 
-Tests each ablation model (4-struct, 7-struct, 14-struct) on all 14 individual
-structure test sets, computing Dice/HD95 per structure. Also checks bottleneck
-activation health. Distinguishes "seen" (training) vs "held-out" structures.
+Tests each ablation model (4-struct, 7-struct) on all 14 individual structure
+test sets, computing Dice/HD95 per structure. Also checks bottleneck activation
+health. Distinguishes "seen" (training) vs "held-out" structures.
 
 Usage:
     python scripts/evaluate_ablation.py --ablation 4
@@ -69,7 +69,23 @@ ALL_STRUCTURES = [
 ABLATION_TRAINING_STRUCTS = {
     "4_structs": {"ACTN1", "ATP2A2", "CTNNB1", "MYH10"},
     "7_structs": {"ACTN1", "ATP2A2", "CTNNB1", "MYH10", "RAB5A", "ST6GAL1", "TOMM20"},
-    "14_structs": set(ALL_STRUCTURES),
+}
+
+# MegaSeg pretrained was trained on 13 structures (all except AAVS1, LMNB1, NPM1)
+MEGASEG_TRAINING_STRUCTS = {
+    "ACTN1",
+    "ATP2A2",
+    "CTNNB1",
+    "DSP",
+    "GJA1",
+    "MYH10",
+    "NUP153",
+    "RAB5A",
+    "SEC61B",
+    "SON",
+    "ST6GAL1",
+    "TJP1",
+    "TOMM20",
 }
 
 # Checkpoint paths
@@ -84,11 +100,6 @@ ABLATION_CHECKPOINTS = {
         "ablation_7_structs/dynunet_7structs_scratch/2026-03-06_00-14-12/"
         "checkpoints/epoch_683.ckpt"
     ),
-    "14_structs": (
-        "/allen/aics/rep_learn/MegaSeg/benchmark/outputs/train/runs/"
-        "ablation_14_structs/dynunet_14structs_scratch/2026-03-06_00-14-14/"
-        "checkpoints/epoch_400.ckpt"
-    ),  # Partial training - epoch 400 of 700
 }
 
 # MegaSeg pretrained (13-struct) for comparison
@@ -682,8 +693,8 @@ def main():
     parser.add_argument(
         "--ablation",
         nargs="+",
-        choices=["4", "7", "14"],
-        help="Ablation(s) to evaluate (4, 7, 14)",
+        choices=["4", "7"],
+        help="Ablation(s) to evaluate (4, 7)",
     )
     parser.add_argument(
         "--all", action="store_true", help="Evaluate all available ablations"
@@ -749,11 +760,11 @@ def main():
     if args.megaseg and not args.health_only:
         log.info("=" * 60)
         log.info("Evaluating MegaSeg pretrained (13-struct)")
-        # Temporarily set as an ablation with all structures as "seen"
-        # (it was trained on 13 structures, but we treat it similarly)
+        # Temporarily set as an ablation with correct 13 training structures
+        # (MegaSeg-13 was trained on 13 structures, excluding AAVS1, LMNB1, NPM1)
         old_ckpts = ABLATION_CHECKPOINTS.copy()
         ABLATION_CHECKPOINTS["megaseg_pretrained"] = MEGASEG_CKPT
-        ABLATION_TRAINING_STRUCTS["megaseg_pretrained"] = set(ALL_STRUCTURES)
+        ABLATION_TRAINING_STRUCTS["megaseg_pretrained"] = MEGASEG_TRAINING_STRUCTS
 
         result = evaluate_ablation(
             "megaseg_pretrained",

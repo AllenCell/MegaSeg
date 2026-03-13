@@ -2,7 +2,7 @@
 """Generate comparison figures for ablation diversity analysis.
 
 Creates:
-1. Bar chart: Dice by structure, grouped by model (4/7/14/MegaSeg)
+1. Bar chart: Dice by structure, grouped by model (4/7/MegaSeg-13)
 2. Seen vs held-out scatter/bar
 3. Bottleneck health comparison
 4. Overall Dice vs number of training structures
@@ -27,24 +27,7 @@ FIGURES_DIR.mkdir(exist_ok=True)
 TRAINING_STRUCTS = {
     "4_structs": {"ACTN1", "ATP2A2", "CTNNB1", "MYH10"},
     "7_structs": {"ACTN1", "ATP2A2", "CTNNB1", "MYH10", "RAB5A", "ST6GAL1", "TOMM20"},
-    "14_structs": {
-        "AAVS1",
-        "ACTN1",
-        "ATP2A2",
-        "CTNNB1",
-        "DSP",
-        "GJA1",
-        "MYH10",
-        "NUP153",
-        "RAB5A",
-        "SEC61B",
-        "SON",
-        "ST6GAL1",
-        "TJP1",
-        "TOMM20",
-    },
     "megaseg_pretrained": {
-        "AAVS1",
         "ACTN1",
         "ATP2A2",
         "CTNNB1",
@@ -64,21 +47,18 @@ TRAINING_STRUCTS = {
 MODEL_LABELS = {
     "4_structs": "4-struct (scratch)",
     "7_structs": "7-struct (scratch)",
-    "14_structs": "14-struct (scratch, ep400)",
     "megaseg_pretrained": "MegaSeg-13 (pretrained)",
 }
 
 MODEL_COLORS = {
     "4_structs": "#4C72B0",
     "7_structs": "#DD8452",
-    "14_structs": "#55A868",
     "megaseg_pretrained": "#C44E52",
 }
 
 N_TRAIN_STRUCTS = {
     "4_structs": 4,
     "7_structs": 7,
-    "14_structs": 14,
     "megaseg_pretrained": 13,
 }
 
@@ -188,7 +168,9 @@ def plot_dice_by_structure(frames):
 
 def plot_seen_vs_heldout(frames):
     """Bar chart comparing seen vs held-out Dice for each model."""
-    models = [k for k in ["4_structs", "7_structs"] if k in frames]
+    models = [
+        k for k in ["4_structs", "7_structs", "megaseg_pretrained"] if k in frames
+    ]
     if not models:
         return
 
@@ -407,8 +389,10 @@ def plot_bottleneck_health(health_frames):
 
 def plot_heldout_heatmap(frames):
     """Heatmap: held-out Dice for structures not seen during training."""
-    # Only show 4-struct and 7-struct (they have held-out structures)
-    models_with_heldout = [k for k in ["4_structs", "7_structs"] if k in frames]
+    # Show models that have held-out structures
+    models_with_heldout = [
+        k for k in ["4_structs", "7_structs", "megaseg_pretrained"] if k in frames
+    ]
     if not models_with_heldout:
         return
 
@@ -466,7 +450,7 @@ def print_summary_table(frames):
     print("ABLATION DIVERSITY SUMMARY")
     print("=" * 80)
 
-    for model_key in ["4_structs", "7_structs", "14_structs", "megaseg_pretrained"]:
+    for model_key in ["4_structs", "7_structs", "megaseg_pretrained"]:
         if model_key not in frames:
             continue
         df = frames[model_key]

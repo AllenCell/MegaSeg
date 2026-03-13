@@ -2,7 +2,6 @@
   "ablation": "megaseg_pretrained",
   "checkpoint": "/allen/aics/assay-dev/users/Suraj/megaSeg/Amil/cyto-dl/logs/train/runs/megaseg_b64_deep_new_13-STRUCTS/dynUNet_st6_base_cytodl/2024-07-15_00-39-47/checkpoints/epoch_650.ckpt",
   "training_structures": [
-    "AAVS1",
     "ACTN1",
     "ATP2A2",
     "CTNNB1",
@@ -180,7 +179,7 @@
           "seen": true
         }
       ],
-      "seen": true
+      "seen": false
     },
     {
       "structure": "ACTN1",
@@ -1242,70 +1241,70 @@
       "structure": "AAVS1",
       "dice": 0.24274333912050905,
       "hausdorff_95": 13.341664064126334,
-      "seen": true
+      "seen": false
     },
     {
       "sample_id": "AAVS1_10256",
       "structure": "AAVS1",
       "dice": 0.25217162944816285,
       "hausdorff_95": 13.038404810405298,
-      "seen": true
+      "seen": false
     },
     {
       "sample_id": "AAVS1_10260",
       "structure": "AAVS1",
       "dice": 0.2532260141196403,
       "hausdorff_95": 11.704699910719626,
-      "seen": true
+      "seen": false
     },
     {
       "sample_id": "AAVS1_10272",
       "structure": "AAVS1",
       "dice": 0.24607952942598837,
       "hausdorff_95": 13.0,
-      "seen": true
+      "seen": false
     },
     {
       "sample_id": "AAVS1_10310",
       "structure": "AAVS1",
       "dice": 0.21431390376589957,
       "hausdorff_95": 14.89966442575134,
-      "seen": true
+      "seen": false
     },
     {
       "sample_id": "AAVS1_10312",
       "structure": "AAVS1",
       "dice": 0.2046540201990661,
       "hausdorff_95": 12.84523257866513,
-      "seen": true
+      "seen": false
     },
     {
       "sample_id": "AAVS1_10334",
       "structure": "AAVS1",
       "dice": 0.21151241682271388,
       "hausdorff_95": 13.96424004376894,
-      "seen": true
+      "seen": false
     },
     {
       "sample_id": "AAVS1_10354",
       "structure": "AAVS1",
       "dice": 0.26485022100249267,
       "hausdorff_95": 13.564659966250536,
-      "seen": true
+      "seen": false
     },
     {
       "sample_id": "AAVS1_10389",
       "structure": "AAVS1",
       "dice": 0.27718307528416436,
       "hausdorff_95": 11.445523142259598,
-      "seen": true
+      "seen": false
     },
     {
       "sample_id": "AAVS1_10616",
       "structure": "AAVS1",
       "dice": 0.2586355443521453,
       "hausdorff_95": 12.206555615733702,
-      "seen": true
+      "seen": false
     },
     {
       "sample_id": "ACTN1_11347",
@@ -2225,12 +2224,20 @@
     "hd95_std": 14.319111655702853
   },
   "seen_summary": {
-    "dice_mean": 0.8465093784769737,
-    "dice_std": 0.1888256202661332,
-    "hd95_mean": 2.88946702131891,
-    "hd95_std": 14.319111655702853,
-    "n_structures": 14,
-    "n_samples": 140
+    "dice_mean": 0.8929687945633503,
+    "dice_std": 0.0890196802378142,
+    "hd95_mean": 2.1116518340535917,
+    "hd95_std": 14.571215239612512,
+    "n_structures": 13,
+    "n_samples": 130
   },
-  "eval_time_sec": 2190.444388151169
+  "eval_time_sec": 2190.444388151169,
+  "heldout_summary": {
+    "dice_mean": 0.2425369693540782,
+    "dice_std": 0.024429614936093427,
+    "hd95_mean": 13.00106445576805,
+    "hd95_std": 1.0394031497635827,
+    "n_structures": 1,
+    "n_samples": 10
+  }
 }
