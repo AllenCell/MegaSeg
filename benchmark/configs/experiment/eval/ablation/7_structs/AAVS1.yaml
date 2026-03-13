@@ -13,7 +13,7 @@ seed: 12345
 channel_name: "C:0"
 
 checkpoint:
-  ckpt_path: CHECKPOINT_PATH_PLACEHOLDER
+  ckpt_path: /allen/aics/rep_learn/MegaSeg/benchmark/outputs/train/runs/ablation_7_structs/dynunet_7structs_scratch/2026-03-06_00-14-12/checkpoints/epoch_683.ckpt
   weights_only: true
   strict: true
 
