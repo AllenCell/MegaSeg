@@ -18,6 +18,9 @@ from model_recommender import (
     concatenate_layers,
     compare_layer_configs,
     analyze_unseen_structures,
+    plot_retrieval_confusion_matrix,
+    plot_layer_comparison,
+    plot_per_structure_accuracy,
     MEGASEG13_SEEN,
     MEGASEG13_UNSEEN,
 )
@@ -352,3 +355,43 @@ class TestUnseenAnalysis:
         assert len(MEGASEG13_UNSEEN) == 3
         assert "LMNB1" in MEGASEG13_UNSEEN
         assert "TOMM20" in MEGASEG13_SEEN
+
+
+# ===================================================================
+# Group 6 — Visualization smoke tests
+# ===================================================================
+
+
+class TestPlots:
+    """Smoke tests for visualization functions."""
+
+    def test_plot_retrieval_confusion_matrix_creates_file(self):
+        cm = np.array([[8, 1, 1], [0, 9, 1], [2, 0, 8]])
+        structs = ["A", "B", "C"]
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "cm.png"
+            plot_retrieval_confusion_matrix(cm, structs, p)
+            assert p.exists()
+            assert p.stat().st_size > 0
+
+    def test_plot_layer_comparison_creates_file(self):
+        results = {
+            "config_a": {"top1_accuracy": 0.85, "top3_accuracy": 0.95},
+            "config_b": {"top1_accuracy": 0.70, "top3_accuracy": 0.90},
+        }
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "layer_cmp.png"
+            plot_layer_comparison(results, p)
+            assert p.exists()
+            assert p.stat().st_size > 0
+
+    def test_plot_per_structure_accuracy_creates_file(self):
+        per_struct = {
+            "A": {"top1": 0.9, "top3": 1.0},
+            "B": {"top1": 0.7, "top3": 0.85},
+        }
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "per_struct.png"
+            plot_per_structure_accuracy(per_struct, p)
+            assert p.exists()
+            assert p.stat().st_size > 0
