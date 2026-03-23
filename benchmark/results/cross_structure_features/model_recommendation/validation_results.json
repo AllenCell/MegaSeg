@@ -1,0 +1,188 @@
+{
+  "all_16": {
+    "top1": 0.856359649122807,
+    "top3": 0.9758771929824561,
+    "per_structure": {
+      "AAVS1": {
+        "top1": 0.8771929824561403,
+        "top3": 1.0,
+        "nearest_wrong": "SEC61B",
+        "n_samples": 57
+      },
+      "ACTN1": {
+        "top1": 0.8596491228070176,
+        "top3": 1.0,
+        "nearest_wrong": "MYH10",
+        "n_samples": 57
+      },
+      "ATP2A2": {
+        "top1": 0.9473684210526315,
+        "top3": 0.9824561403508771,
+        "nearest_wrong": "AAVS1",
+        "n_samples": 57
+      },
+      "CTNNB1": {
+        "top1": 0.8771929824561403,
+        "top3": 0.9473684210526315,
+        "nearest_wrong": "AAVS1",
+        "n_samples": 57
+      },
+      "DSP": {
+        "top1": 0.7543859649122807,
+        "top3": 1.0,
+        "nearest_wrong": "GJA1",
+        "n_samples": 57
+      },
+      "GJA1": {
+        "top1": 0.9122807017543859,
+        "top3": 0.9824561403508771,
+        "nearest_wrong": "TJP1",
+        "n_samples": 57
+      },
+      "LMNB1": {
+        "top1": 0.8596491228070176,
+        "top3": 0.9824561403508771,
+        "nearest_wrong": "CTNNB1",
+        "n_samples": 57
+      },
+      "MYH10": {
+        "top1": 0.7192982456140351,
+        "top3": 0.9473684210526315,
+        "nearest_wrong": "ACTN1",
+        "n_samples": 57
+      },
+      "NPM1": {
+        "top1": 0.9298245614035088,
+        "top3": 0.9824561403508771,
+        "nearest_wrong": "MYH10",
+        "n_samples": 57
+      },
+      "NUP153": {
+        "top1": 0.8421052631578947,
+        "top3": 0.9298245614035088,
+        "nearest_wrong": "RAB5A",
+        "n_samples": 57
+      },
+      "RAB5A": {
+        "top1": 0.9824561403508771,
+        "top3": 1.0,
+        "nearest_wrong": "ST6GAL1",
+        "n_samples": 57
+      },
+      "SEC61B": {
+        "top1": 0.8596491228070176,
+        "top3": 0.9298245614035088,
+        "nearest_wrong": "ATP2A2",
+        "n_samples": 57
+      },
+      "SON": {
+        "top1": 0.8947368421052632,
+        "top3": 0.9824561403508771,
+        "nearest_wrong": "TJP1",
+        "n_samples": 57
+      },
+      "ST6GAL1": {
+        "top1": 0.9298245614035088,
+        "top3": 0.9649122807017544,
+        "nearest_wrong": "DSP",
+        "n_samples": 57
+      },
+      "TJP1": {
+        "top1": 0.45614035087719296,
+        "top3": 0.9824561403508771,
+        "nearest_wrong": "SON",
+        "n_samples": 57
+      },
+      "TOMM20": {
+        "top1": 1.0,
+        "top3": 1.0,
+        "nearest_wrong": null,
+        "n_samples": 57
+      }
+    }
+  },
+  "seen_13": {
+    "top1": 0.854251012145749,
+    "top3": 0.979757085020243,
+    "per_structure": {
+      "ACTN1": {
+        "top1": 0.8596491228070176,
+        "top3": 1.0,
+        "nearest_wrong": "MYH10",
+        "n_samples": 57
+      },
+      "ATP2A2": {
+        "top1": 0.9649122807017544,
+        "top3": 1.0,
+        "nearest_wrong": "SEC61B",
+        "n_samples": 57
+      },
+      "CTNNB1": {
+        "top1": 0.8947368421052632,
+        "top3": 0.9649122807017544,
+        "nearest_wrong": "ATP2A2",
+        "n_samples": 57
+      },
+      "DSP": {
+        "top1": 0.7543859649122807,
+        "top3": 1.0,
+        "nearest_wrong": "GJA1",
+        "n_samples": 57
+      },
+      "GJA1": {
+        "top1": 0.9122807017543859,
+        "top3": 0.9824561403508771,
+        "nearest_wrong": "TJP1",
+        "n_samples": 57
+      },
+      "MYH10": {
+        "top1": 0.7192982456140351,
+        "top3": 0.9824561403508771,
+        "nearest_wrong": "ACTN1",
+        "n_samples": 57
+      },
+      "NUP153": {
+        "top1": 0.8421052631578947,
+        "top3": 0.9298245614035088,
+        "nearest_wrong": "RAB5A",
+        "n_samples": 57
+      },
+      "RAB5A": {
+        "top1": 0.9824561403508771,
+        "top3": 1.0,
+        "nearest_wrong": "ST6GAL1",
+        "n_samples": 57
+      },
+      "SEC61B": {
+        "top1": 0.8947368421052632,
+        "top3": 0.9473684210526315,
+        "nearest_wrong": "ATP2A2",
+        "n_samples": 57
+      },
+      "SON": {
+        "top1": 0.8947368421052632,
+        "top3": 0.9824561403508771,
+        "nearest_wrong": "TJP1",
+        "n_samples": 57
+      },
+      "ST6GAL1": {
+        "top1": 0.9298245614035088,
+        "top3": 0.9649122807017544,
+        "nearest_wrong": "DSP",
+        "n_samples": 57
+      },
+      "TJP1": {
+        "top1": 0.45614035087719296,
+        "top3": 0.9824561403508771,
+        "nearest_wrong": "SON",
+        "n_samples": 57
+      },
+      "TOMM20": {
+        "top1": 1.0,
+        "top3": 1.0,
+        "nearest_wrong": null,
+        "n_samples": 57
+      }
+    }
+  }
+}
