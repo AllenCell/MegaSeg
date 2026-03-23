@@ -4,9 +4,9 @@ Checkpoint: /allen/aics/assay-dev/users/Suraj/megaSeg/Amil/cyto-dl/logs/train/ru
 Structures: ['AAVS1', 'ACTN1', 'ATP2A2', 'CTNNB1', 'DSP', 'GJA1', 'LMNB1', 'MYH10', 'NPM1', 'NUP153', 'RAB5A', 'SEC61B', 'SON', 'ST6GAL1', 'TJP1', 'TOMM20']
 Samples per structure: 10
 
-input_block: CKA mean=0.147 std=0.137 | Cosine mean=0.977 std=0.022
-downsamples.0: CKA mean=0.208 std=0.137 | Cosine mean=0.965 std=0.019
-downsamples.1: CKA mean=0.268 std=0.137 | Cosine mean=0.969 std=0.013
-downsamples.2: CKA mean=0.309 std=0.133 | Cosine mean=0.992 std=0.003
-upsamples.2: CKA mean=0.305 std=0.121 | Cosine mean=0.990 std=0.005
-upsamples.1: CKA mean=0.408 std=0.115 | Cosine mean=0.996 std=0.002
+input_block: CKA mean=0.147 std=0.137 | Cosine mean=0.977 std=0.022 | Probing acc=78.1% (+/- 7.1%)
+downsamples.0: CKA mean=0.208 std=0.137 | Cosine mean=0.965 std=0.019 | Probing acc=88.1% (+/- 3.6%)
+downsamples.1: CKA mean=0.268 std=0.137 | Cosine mean=0.969 std=0.013 | Probing acc=93.8% (+/- 4.4%)
+downsamples.2: CKA mean=0.309 std=0.133 | Cosine mean=0.992 std=0.003 | Probing acc=71.2% (+/- 6.1%)
+upsamples.2: CKA mean=0.306 std=0.121 | Cosine mean=0.990 std=0.005 | Probing acc=91.2% (+/- 8.5%)
+upsamples.1: CKA mean=0.408 std=0.115 | Cosine mean=0.996 std=0.002 | Probing acc=90.6% (+/- 5.2%)

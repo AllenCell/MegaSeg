@@ -4,10 +4,12 @@
 Extracts intermediate layer activations from a general (multi-structure) model
 for multiple organelle structures, then computes:
   1. CKA similarity matrices (structure x structure, per layer)
-  2. Global-average-pooled embeddings with t-SNE / PCA projections
+  2. Global-average-pooled embeddings with t-SNE / PCA / UMAP projections
   3. Cosine similarity heatmaps (structure x structure, per layer)
   4. Hierarchical clustering dendrograms per layer
   5. RSA: correlation of structure similarity matrices across layers
+  6. Probing classifiers: logistic regression predicting structure identity
+     from intermediate features (stratified k-fold CV)
 
 Usage:
     python cross_structure_features.py [--n-samples 10] [--device cuda]
@@ -444,6 +446,139 @@ def run_pca(
     return coords, labels, pca.explained_variance_ratio_
 
 
+def run_umap(
+    embeddings: Dict[str, Dict[str, np.ndarray]],
+    layer: str,
+    structures: List[str],
+    n_neighbors: int = 15,
+    min_dist: float = 0.1,
+) -> Tuple[np.ndarray, List[str]]:
+    """Run UMAP on concatenated embeddings from all structures."""
+    import umap
+
+    all_feats = []
+    labels = []
+    for struct in structures:
+        feats = embeddings[struct][layer]
+        all_feats.append(feats)
+        labels.extend([struct] * feats.shape[0])
+
+    X = np.vstack(all_feats)
+    n_neighbors_eff = min(n_neighbors, X.shape[0] - 1)
+    reducer = umap.UMAP(
+        n_components=2,
+        n_neighbors=n_neighbors_eff,
+        min_dist=min_dist,
+        random_state=42,
+        metric="cosine",
+    )
+    coords = reducer.fit_transform(X)
+    return coords, labels
+
+
+def run_probing_classifier(
+    embeddings: Dict[str, Dict[str, np.ndarray]],
+    layer: str,
+    structures: List[str],
+    n_folds: int = 5,
+) -> Dict:
+    """Train a probing classifier (logistic regression) to predict structure from embeddings.
+
+    Uses stratified k-fold cross-validation to evaluate how linearly separable
+    structure identity is at each layer.
+
+    Returns:
+        Dict with keys:
+          - 'accuracy_mean': mean CV accuracy
+          - 'accuracy_std': std of CV accuracy
+          - 'per_class_f1': dict of structure -> mean F1 score
+          - 'confusion_matrix': (n_structs, n_structs) confusion matrix (summed over folds)
+          - 'fold_accuracies': list of per-fold accuracies
+          - 'structures': list of structure labels (in order used by classifier)
+    """
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import StratifiedKFold
+    from sklearn.metrics import confusion_matrix, f1_score
+    from sklearn.preprocessing import StandardScaler
+
+    all_feats = []
+    labels = []
+    for struct in structures:
+        feats = embeddings[struct][layer]
+        all_feats.append(feats)
+        labels.extend([struct] * feats.shape[0])
+
+    X = np.vstack(all_feats)
+    y = np.array(labels)
+    unique_labels = sorted(set(labels))
+
+    # Encode labels as integers for sklearn
+    label_to_idx = {s: i for i, s in enumerate(unique_labels)}
+    y_int = np.array([label_to_idx[l] for l in y])
+
+    n_classes = len(unique_labels)
+    n_samples_per_class = min(np.bincount(y_int))
+
+    # Adjust n_folds if too few samples per class
+    effective_folds = min(n_folds, n_samples_per_class)
+    if effective_folds < 2:
+        log.warning(
+            "Only %d samples per class at %s — skipping probing classifier",
+            n_samples_per_class,
+            layer,
+        )
+        return None
+
+    skf = StratifiedKFold(n_splits=effective_folds, shuffle=True, random_state=42)
+    scaler = StandardScaler()
+
+    fold_accuracies = []
+    fold_f1s = {s: [] for s in unique_labels}
+    cm_total = np.zeros((n_classes, n_classes), dtype=int)
+
+    for train_idx, test_idx in skf.split(X, y_int):
+        X_train, X_test = X[train_idx], X[test_idx]
+        y_train, y_test = y_int[train_idx], y_int[test_idx]
+
+        # Scale features
+        X_train_s = scaler.fit_transform(X_train)
+        X_test_s = scaler.transform(X_test)
+
+        clf = LogisticRegression(
+            max_iter=2000,
+            C=1.0,
+            solver="lbfgs",
+            multi_class="multinomial",
+            random_state=42,
+        )
+        clf.fit(X_train_s, y_train)
+        y_pred = clf.predict(X_test_s)
+
+        fold_acc = float(np.mean(y_pred == y_test))
+        fold_accuracies.append(fold_acc)
+
+        # Per-class F1
+        f1s = f1_score(
+            y_test, y_pred, labels=list(range(n_classes)), average=None, zero_division=0
+        )
+        for i, s in enumerate(unique_labels):
+            fold_f1s[s].append(float(f1s[i]))
+
+        # Accumulate confusion matrix
+        cm = confusion_matrix(y_test, y_pred, labels=list(range(n_classes)))
+        cm_total += cm
+
+    return {
+        "accuracy_mean": float(np.mean(fold_accuracies)),
+        "accuracy_std": float(np.std(fold_accuracies)),
+        "per_class_f1": {s: float(np.mean(f1s)) for s, f1s in fold_f1s.items()},
+        "confusion_matrix": cm_total,
+        "fold_accuracies": fold_accuracies,
+        "structures": unique_labels,
+        "n_folds": effective_folds,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Plotting
 # ---------------------------------------------------------------------------
@@ -577,6 +712,195 @@ def plot_pca(
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     log.info("Saved PCA plot: %s", out_path)
+
+
+def plot_umap(
+    coords: np.ndarray,
+    labels: List[str],
+    layer: str,
+    out_path: Path,
+):
+    """Plot UMAP embeddings colored by structure."""
+    fig, ax = plt.subplots(figsize=(12, 10))
+    unique = sorted(set(labels))
+    cmap = matplotlib.colormaps["tab20"].resampled(len(unique))
+    for i, struct in enumerate(unique):
+        mask = np.array([l == struct for l in labels])
+        ax.scatter(
+            coords[mask, 0],
+            coords[mask, 1],
+            color=cmap(i),
+            label=struct,
+            s=40,
+            alpha=0.8,
+            edgecolors="k",
+            linewidth=0.3,
+        )
+    ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=8, ncol=1)
+    ax.set_title(f"UMAP: {layer}", fontsize=14)
+    ax.set_xlabel("UMAP 1")
+    ax.set_ylabel("UMAP 2")
+    plt.tight_layout()
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    log.info("Saved UMAP plot: %s", out_path)
+
+
+def plot_probing_accuracy(
+    results: Dict[str, Dict],
+    layer_names: List[str],
+    out_path: Path,
+):
+    """Bar chart of probing classifier accuracy per layer.
+
+    Args:
+        results: {layer_name: probing result dict from run_probing_classifier}
+        layer_names: ordered list of layer names
+        out_path: save path
+    """
+    layers = [l for l in layer_names if l in results and results[l] is not None]
+    if not layers:
+        return
+
+    means = [results[l]["accuracy_mean"] for l in layers]
+    stds = [results[l]["accuracy_std"] for l in layers]
+    short_names = [
+        l.replace("downsamples.", "enc")
+        .replace("upsamples.", "dec")
+        .replace("input_block", "inp")
+        for l in layers
+    ]
+
+    n_classes = len(results[layers[0]]["structures"])
+    chance = 1.0 / n_classes
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    x = np.arange(len(layers))
+    bars = ax.bar(
+        x, means, yerr=stds, capsize=5, color="steelblue", edgecolor="k", alpha=0.85
+    )
+    ax.axhline(
+        chance, color="red", linestyle="--", linewidth=1, label=f"Chance ({chance:.1%})"
+    )
+    ax.axhline(1.0, color="green", linestyle=":", linewidth=0.8, alpha=0.5)
+    ax.set_xticks(x)
+    ax.set_xticklabels(short_names, rotation=30, ha="right")
+    ax.set_ylabel("Classification Accuracy")
+    ax.set_title(
+        f"Probing Classifier Accuracy by Layer ({n_classes}-class, {results[layers[0]]['n_folds']}-fold CV)",
+        fontsize=13,
+    )
+    ax.set_ylim(0, 1.05)
+    ax.legend()
+
+    # Annotate bars
+    for bar, mean in zip(bars, means):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.02,
+            f"{mean:.1%}",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+        )
+
+    plt.tight_layout()
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    log.info("Saved probing accuracy chart: %s", out_path)
+
+
+def plot_probing_f1(
+    results: Dict[str, Dict],
+    layer_names: List[str],
+    out_path: Path,
+):
+    """Heatmap of per-class F1 score across layers.
+
+    Rows = structures, Columns = layers.
+    """
+    layers = [l for l in layer_names if l in results and results[l] is not None]
+    if not layers:
+        return
+
+    structures = results[layers[0]]["structures"]
+    short_layers = [
+        l.replace("downsamples.", "enc")
+        .replace("upsamples.", "dec")
+        .replace("input_block", "inp")
+        for l in layers
+    ]
+
+    # Build matrix: (n_structs, n_layers)
+    f1_mat = np.zeros((len(structures), len(layers)))
+    for j, layer in enumerate(layers):
+        for i, struct in enumerate(structures):
+            f1_mat[i, j] = results[layer]["per_class_f1"].get(struct, 0.0)
+
+    fig, ax = plt.subplots(
+        figsize=(max(8, len(layers) * 1.5), max(8, len(structures) * 0.5))
+    )
+    sns.heatmap(
+        f1_mat,
+        xticklabels=short_layers,
+        yticklabels=structures,
+        annot=True,
+        fmt=".2f",
+        cmap="YlGnBu",
+        vmin=0,
+        vmax=1,
+        ax=ax,
+        cbar_kws={"shrink": 0.8},
+    )
+    ax.set_title("Probing Classifier: Per-Structure F1 Score by Layer", fontsize=13)
+    ax.set_xlabel("Layer")
+    ax.set_ylabel("Structure")
+    plt.tight_layout()
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    log.info("Saved probing F1 heatmap: %s", out_path)
+
+
+def plot_confusion_matrix(
+    cm: np.ndarray,
+    structures: List[str],
+    layer: str,
+    out_path: Path,
+):
+    """Plot confusion matrix for a probing classifier at a specific layer."""
+    # Normalize by row (true class)
+    cm_norm = cm.astype(float)
+    row_sums = cm_norm.sum(axis=1, keepdims=True)
+    row_sums[row_sums == 0] = 1
+    cm_norm = cm_norm / row_sums
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+    labels = _short_labels(structures)
+    sns.heatmap(
+        cm_norm,
+        xticklabels=labels,
+        yticklabels=labels,
+        annot=True,
+        fmt=".2f",
+        cmap="Blues",
+        vmin=0,
+        vmax=1,
+        ax=ax,
+        square=True,
+        cbar_kws={"shrink": 0.8},
+    )
+    short_layer = (
+        layer.replace("downsamples.", "enc")
+        .replace("upsamples.", "dec")
+        .replace("input_block", "inp")
+    )
+    ax.set_title(f"Confusion Matrix (normalized): {short_layer}", fontsize=14)
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("True")
+    plt.tight_layout()
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    log.info("Saved confusion matrix: %s", out_path)
 
 
 def plot_dendrogram(
@@ -885,6 +1209,13 @@ def main():
         except Exception as e:
             log.warning("PCA failed for %s: %s", layer, e)
 
+        # UMAP
+        try:
+            coords, labels = run_umap(embeddings, layer, valid)
+            plot_umap(coords, labels, layer, fig_dir / f"umap_{safe_name}.png")
+        except Exception as e:
+            log.warning("UMAP failed for %s: %s", layer, e)
+
         # Dendrogram
         try:
             plot_dendrogram(
@@ -903,7 +1234,59 @@ def main():
         fig_dir / "cka_summary_grid.png",
     )
 
-    # ---- 6. Summary report ----
+    # ---- 6. Probing classifiers ----
+    log.info("Running probing classifiers (structure identity from embeddings)...")
+    probing_results = {}
+    for layer in layer_list:
+        valid = [s for s in loaded_structures if layer in embeddings[s]]
+        safe_name = layer.replace(".", "_")
+        try:
+            result = run_probing_classifier(embeddings, layer, valid)
+            if result is not None:
+                probing_results[layer] = result
+                log.info(
+                    "  %s: accuracy=%.1f%% (+/- %.1f%%), %d-fold CV",
+                    layer,
+                    result["accuracy_mean"] * 100,
+                    result["accuracy_std"] * 100,
+                    result["n_folds"],
+                )
+                # Confusion matrix per layer
+                plot_confusion_matrix(
+                    result["confusion_matrix"],
+                    result["structures"],
+                    layer,
+                    fig_dir / f"probing_cm_{safe_name}.png",
+                )
+        except Exception as e:
+            log.warning("Probing classifier failed for %s: %s", layer, e)
+
+    # Summary plots for probing
+    if probing_results:
+        plot_probing_accuracy(
+            probing_results, layer_list, fig_dir / "probing_accuracy.png"
+        )
+        plot_probing_f1(probing_results, layer_list, fig_dir / "probing_f1_heatmap.png")
+
+        # Save probing results as CSV
+        probing_rows = []
+        for layer, res in probing_results.items():
+            row = {
+                "layer": layer,
+                "accuracy_mean": res["accuracy_mean"],
+                "accuracy_std": res["accuracy_std"],
+                "n_folds": res["n_folds"],
+            }
+            for s, f1 in res["per_class_f1"].items():
+                row[f"f1_{s}"] = f1
+            probing_rows.append(row)
+        df_probing = pd.DataFrame(probing_rows)
+        df_probing.to_csv(out_dir / "probing_classifier_results.csv", index=False)
+        log.info(
+            "Saved probing results CSV: %s", out_dir / "probing_classifier_results.csv"
+        )
+
+    # ---- 7. Summary report ----
     log.info("=" * 70)
     log.info("SUMMARY")
     log.info("=" * 70)
@@ -933,9 +1316,14 @@ def main():
         valid = [s for s in loaded_structures if layer in embeddings[s]]
         off_diag = cka_matrices[layer][~np.eye(len(valid), dtype=bool)]
         cos_off = cos_matrices[layer][~np.eye(len(valid), dtype=bool)]
+        probing_str = ""
+        if layer in probing_results:
+            pr = probing_results[layer]
+            probing_str = f" | Probing acc={pr['accuracy_mean']:.1%} (+/- {pr['accuracy_std']:.1%})"
         summary_lines.append(
             f"{layer}: CKA mean={off_diag.mean():.3f} std={off_diag.std():.3f} "
             f"| Cosine mean={cos_off.mean():.3f} std={cos_off.std():.3f}"
+            f"{probing_str}"
         )
 
     (out_dir / "summary.txt").write_text("\n".join(summary_lines))
