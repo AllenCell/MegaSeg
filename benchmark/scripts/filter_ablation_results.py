@@ -5,9 +5,14 @@ Matches PR #16's approach: uses the same excluded samples identified by the
 main benchmark's MegaSeg DynUNet Dice scores. Keeps original results intact
 and saves filtered versions to results/ablation/filtered/.
 
+For AAVS1 (not in PR #16's benchmark): the bottom 10 samples by Dice score
+from the 14-struct model are excluded (the 14-struct model trained on AAVS1,
+making it the appropriate reference, analogous to PR #16's approach).
+
+Final sample counts: 57 samples per structure x 14 structures = 798 per model.
+
 Usage:
     python scripts/filter_ablation_results.py
-    python scripts/filter_ablation_results.py --bottom-n 10
     python scripts/filter_ablation_results.py --dry-run
 """
 
@@ -28,8 +33,20 @@ FILTERED_DIR = RESULTS_DIR / "filtered"
 
 # Excluded samples from PR #16 (bottom 10 by MegaSeg DynUNet Dice per structure).
 # NPM1 is included in the original list but not used in ablation analysis.
-# AAVS1 was not in the original benchmark so has no exclusions.
+# AAVS1: not in PR #16 benchmark; bottom 10 by 14-struct model Dice excluded instead.
 EXCLUDED_SAMPLES = {
+    "AAVS1": [
+        "AAVS1_10627",
+        "AAVS1_17146",
+        "AAVS1_10272",
+        "AAVS1_11161",
+        "AAVS1_10754",
+        "AAVS1_15209",
+        "AAVS1_10854",
+        "AAVS1_10708",
+        "AAVS1_10312",
+        "AAVS1_10753",
+    ],
     "ACTN1": [
         "ACTN1_11101",
         "ACTN1_11115",
