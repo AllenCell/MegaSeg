@@ -25,8 +25,25 @@ FIGURES_DIR.mkdir(exist_ok=True)
 
 # Training structure membership
 TRAINING_STRUCTS = {
+    "2_structs": {"TOMM20", "TJP1"},
     "4_structs": {"ACTN1", "ATP2A2", "CTNNB1", "MYH10"},
     "7_structs": {"ACTN1", "ATP2A2", "CTNNB1", "MYH10", "RAB5A", "ST6GAL1", "TOMM20"},
+    "14_structs": {
+        "AAVS1",
+        "ACTN1",
+        "ATP2A2",
+        "CTNNB1",
+        "DSP",
+        "GJA1",
+        "MYH10",
+        "NUP153",
+        "RAB5A",
+        "SEC61B",
+        "SON",
+        "ST6GAL1",
+        "TJP1",
+        "TOMM20",
+    },
     "megaseg_pretrained": {
         "ACTN1",
         "ATP2A2",
@@ -45,20 +62,26 @@ TRAINING_STRUCTS = {
 }
 
 MODEL_LABELS = {
+    "2_structs": "2-struct (scratch)",
     "4_structs": "4-struct (scratch)",
     "7_structs": "7-struct (scratch)",
+    "14_structs": "14-struct (scratch)",
     "megaseg_pretrained": "MegaSeg-13 (pretrained)",
 }
 
 MODEL_COLORS = {
+    "2_structs": "#55A868",
     "4_structs": "#4C72B0",
     "7_structs": "#DD8452",
+    "14_structs": "#8172B2",
     "megaseg_pretrained": "#C44E52",
 }
 
 N_TRAIN_STRUCTS = {
+    "2_structs": 2,
     "4_structs": 4,
     "7_structs": 7,
+    "14_structs": 14,
     "megaseg_pretrained": 13,
 }
 
@@ -138,26 +161,20 @@ def plot_dice_by_structure(frames):
     ax.axhline(y=0.5, color="gray", linestyle="--", alpha=0.3)
     ax.grid(axis="y", alpha=0.3)
 
-    # Mark held-out structures for 4-struct and 7-struct
+    # Mark held-out structures with * for each model
+    mark_models = [k for k in ["2_structs", "4_structs", "7_structs"] if k in frames]
     for i, s in enumerate(structures):
-        if s not in TRAINING_STRUCTS["4_structs"]:
-            ax.annotate(
-                "*",
-                (i - 0.3, 0.02),
-                fontsize=8,
-                color=MODEL_COLORS["4_structs"],
-                ha="center",
-                fontweight="bold",
-            )
-        if s not in TRAINING_STRUCTS["7_structs"]:
-            ax.annotate(
-                "*",
-                (i - 0.1, 0.02),
-                fontsize=8,
-                color=MODEL_COLORS["7_structs"],
-                ha="center",
-                fontweight="bold",
-            )
+        for j, model in enumerate(mark_models):
+            if s not in TRAINING_STRUCTS[model]:
+                offset_x = (j - len(mark_models) / 2 + 0.5) * 0.2
+                ax.annotate(
+                    "*",
+                    (i + offset_x, 0.02),
+                    fontsize=8,
+                    color=MODEL_COLORS[model],
+                    ha="center",
+                    fontweight="bold",
+                )
 
     fig.tight_layout()
     out = FIGURES_DIR / "dice_by_structure.png"
@@ -169,12 +186,20 @@ def plot_dice_by_structure(frames):
 def plot_seen_vs_heldout(frames):
     """Bar chart comparing seen vs held-out Dice for each model."""
     models = [
-        k for k in ["4_structs", "7_structs", "megaseg_pretrained"] if k in frames
+        k
+        for k in [
+            "2_structs",
+            "4_structs",
+            "7_structs",
+            "14_structs",
+            "megaseg_pretrained",
+        ]
+        if k in frames
     ]
     if not models:
         return
 
-    fig, axes = plt.subplots(1, len(models), figsize=(6 * len(models), 5), sharey=True)
+    fig, axes = plt.subplots(1, len(models), figsize=(5 * len(models), 5), sharey=True)
     if len(models) == 1:
         axes = [axes]
 
@@ -319,7 +344,7 @@ def plot_dice_vs_num_structures(frames):
     ax.set_xlabel("Number of Training Structures", fontsize=12)
     ax.set_ylabel("Mean Dice Score", fontsize=12)
     ax.set_title("Segmentation Quality vs Training Diversity", fontsize=14)
-    ax.set_xlim(2, 16)
+    ax.set_xlim(0, 16)
     ax.set_ylim(0.3, 1.0)
     ax.grid(alpha=0.3)
 
@@ -391,7 +416,15 @@ def plot_heldout_heatmap(frames):
     """Heatmap: held-out Dice for structures not seen during training."""
     # Show models that have held-out structures
     models_with_heldout = [
-        k for k in ["4_structs", "7_structs", "megaseg_pretrained"] if k in frames
+        k
+        for k in [
+            "2_structs",
+            "4_structs",
+            "7_structs",
+            "14_structs",
+            "megaseg_pretrained",
+        ]
+        if k in frames
     ]
     if not models_with_heldout:
         return
@@ -450,7 +483,13 @@ def print_summary_table(frames):
     print("ABLATION DIVERSITY SUMMARY")
     print("=" * 80)
 
-    for model_key in ["4_structs", "7_structs", "megaseg_pretrained"]:
+    for model_key in [
+        "2_structs",
+        "4_structs",
+        "7_structs",
+        "14_structs",
+        "megaseg_pretrained",
+    ]:
         if model_key not in frames:
             continue
         df = frames[model_key]

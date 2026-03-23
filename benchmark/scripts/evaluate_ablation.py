@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 """Evaluate ablation diversity models across all structures.
 
-Tests each ablation model (4-struct, 7-struct) on all 14 individual structure
-test sets, computing Dice/HD95 per structure. Also checks bottleneck activation
-health. Distinguishes "seen" (training) vs "held-out" structures.
+Tests each ablation model (2-struct, 4-struct, 7-struct, 14-struct) on all 14
+individual structure test sets, computing Dice/HD95 per structure. Also checks
+bottleneck activation health. Distinguishes "seen" (training) vs "held-out"
+structures.
 
 Usage:
-    python scripts/evaluate_ablation.py --ablation 4
+    python scripts/evaluate_ablation.py --ablation 2
     python scripts/evaluate_ablation.py --ablation 4 7
+    python scripts/evaluate_ablation.py --ablation 2 4 7 14
     python scripts/evaluate_ablation.py --all
     python scripts/evaluate_ablation.py --all --max-images 10   # Quick pass
     python scripts/evaluate_ablation.py --health-only --all     # Just bottleneck check
@@ -67,8 +69,25 @@ ALL_STRUCTURES = [
 
 # Which structures each ablation was trained on
 ABLATION_TRAINING_STRUCTS = {
+    "2_structs": {"TOMM20", "TJP1"},
     "4_structs": {"ACTN1", "ATP2A2", "CTNNB1", "MYH10"},
     "7_structs": {"ACTN1", "ATP2A2", "CTNNB1", "MYH10", "RAB5A", "ST6GAL1", "TOMM20"},
+    "14_structs": {
+        "ACTN1",
+        "ATP2A2",
+        "CTNNB1",
+        "DSP",
+        "GJA1",
+        "MYH10",
+        "NUP153",
+        "RAB5A",
+        "SEC61B",
+        "SON",
+        "ST6GAL1",
+        "TJP1",
+        "TOMM20",
+        "AAVS1",
+    },
 }
 
 # MegaSeg pretrained was trained on 13 structures (all except AAVS1, LMNB1, NPM1)
@@ -90,6 +109,11 @@ MEGASEG_TRAINING_STRUCTS = {
 
 # Checkpoint paths
 ABLATION_CHECKPOINTS = {
+    "2_structs": (
+        "/allen/aics/rep_learn/MegaSeg/benchmark/outputs/train/runs/"
+        "ablation_2_structs/dynunet_2structs_scratch/2026-03-16_23-11-50/"
+        "checkpoints/epoch_527.ckpt"
+    ),
     "4_structs": (
         "/allen/aics/rep_learn/MegaSeg/benchmark/outputs/train/runs/"
         "ablation_4_structs/dynunet_4structs_scratch/2026-03-06_00-14-10/"
@@ -99,6 +123,11 @@ ABLATION_CHECKPOINTS = {
         "/allen/aics/rep_learn/MegaSeg/benchmark/outputs/train/runs/"
         "ablation_7_structs/dynunet_7structs_scratch/2026-03-06_00-14-12/"
         "checkpoints/epoch_683.ckpt"
+    ),
+    "14_structs": (
+        "/allen/aics/rep_learn/MegaSeg/benchmark/outputs/train/runs/"
+        "ablation_14_structs/dynunet_14structs_scratch/2026-03-06_00-14-14/"
+        "checkpoints/epoch_400.ckpt"
     ),
 }
 
@@ -693,8 +722,8 @@ def main():
     parser.add_argument(
         "--ablation",
         nargs="+",
-        choices=["4", "7"],
-        help="Ablation(s) to evaluate (4, 7)",
+        choices=["2", "4", "7", "14"],
+        help="Ablation(s) to evaluate (2, 4, 7, 14)",
     )
     parser.add_argument(
         "--all", action="store_true", help="Evaluate all available ablations"
@@ -718,8 +747,8 @@ def main():
     parser.add_argument("--output-dir", default=None, help="Output directory")
     args = parser.parse_args()
 
-    if not args.ablation and not args.all:
-        parser.error("Specify --ablation X or --all")
+    if not args.ablation and not args.all and not args.megaseg:
+        parser.error("Specify --ablation X, --all, or --megaseg")
 
     out_dir = (
         Path(args.output_dir)
@@ -734,7 +763,7 @@ def main():
                 ablations_to_eval.append(k)
             else:
                 log.warning("Skipping %s (no checkpoint available)", k)
-    else:
+    elif args.ablation:
         for a in args.ablation:
             key = f"{a}_structs"
             if key in ABLATION_CHECKPOINTS and ABLATION_CHECKPOINTS[key]:
