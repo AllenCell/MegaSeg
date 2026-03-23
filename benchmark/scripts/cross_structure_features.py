@@ -1116,6 +1116,13 @@ def main():
     del model
     torch.cuda.empty_cache()
 
+    # Save embeddings for downstream use (model recommendation)
+    from model_recommender import save_embeddings as _save_emb
+
+    emb_path = out_dir / "embeddings.npz"
+    _save_emb(embeddings, emb_path)
+    log.info("Saved embeddings to %s", emb_path)
+
     log.info("=" * 70)
     log.info("Loaded %d / %d structures", len(loaded_structures), len(structures))
     if len(loaded_structures) < 2:
