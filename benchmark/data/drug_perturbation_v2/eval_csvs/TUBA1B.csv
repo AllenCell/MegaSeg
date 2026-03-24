@@ -1,0 +1,9 @@
+file_path,split
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TUBA1B/control/3500002817_100X_20190319_2hr-Scene-197-P197-C11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TUBA1B/control/3500002817_100X_20190319_2hr-Scene-198-P198-C11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TUBA1B/control/3500002817_100X_20190319_4hr-Scene-197-P197-C11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TUBA1B/control/3500002817_100X_20190319_4hr-Scene-198-P198-C11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TUBA1B/nocodazole/3500002817_100X_20190319_2hr-Scene-053-P53-C04._ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TUBA1B/nocodazole/3500002817_100X_20190319_2hr-Scene-054-P54-C04._ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TUBA1B/nocodazole/3500002817_100X_20190319_4hr-Scene-053-P53-C04._ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TUBA1B/nocodazole/3500002817_100X_20190319_4hr-Scene-054-P54-C04._ch1.tiff,predict

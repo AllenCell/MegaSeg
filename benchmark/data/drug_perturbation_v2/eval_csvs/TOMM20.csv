@@ -1,0 +1,13 @@
+file_path,split
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TOMM20/control/3500002844_100X_20190326_2hr-Scene-145-P145-B11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TOMM20/control/3500002844_100X_20190326_2hr-Scene-146-P146-B11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TOMM20/control/3500002844_100X_20190326_4hr-Scene-145-P145-B11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TOMM20/control/3500002844_100X_20190326_4hr-Scene-146-P146-B11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TOMM20/rotenone_high/3500002844_100X_20190326_2hr-Scene-097-P97-B06._ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TOMM20/rotenone_high/3500002844_100X_20190326_2hr-Scene-098-P98-B06._ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TOMM20/rotenone_high/3500002844_100X_20190326_4hr-Scene-097-P97-B06._ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TOMM20/rotenone_high/3500002844_100X_20190326_4hr-Scene-098-P98-B06._ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TOMM20/rotenone_low/3500002844_100X_20190326_2hr-Scene-121-P121-B07_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TOMM20/rotenone_low/3500002844_100X_20190326_2hr-Scene-122-P122-B07_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TOMM20/rotenone_low/3500002844_100X_20190326_4hr-Scene-121-P121-B07_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/TOMM20/rotenone_low/3500002844_100X_20190326_4hr-Scene-122-P122-B07_ch1.tiff,predict

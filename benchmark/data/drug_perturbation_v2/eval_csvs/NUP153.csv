@@ -1,0 +1,9 @@
+file_path,split
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/NUP153/control/3500002706_100X_20190129-Scene-229-P229-E11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/NUP153/control/3500002706_100X_20190129-Scene-230-P230-E11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/NUP153/control/3500002728_100X_20190205_2hrs-Scene-197-P234-F11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/NUP153/control/3500002728_100X_20190205_2hrs-Scene-198-P235-F11_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/NUP153/thapsigargin/3500002706_100X_20190129-Scene-085-P85-E05_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/NUP153/thapsigargin/3500002706_100X_20190129-Scene-086-P86-E05_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/NUP153/thapsigargin/3500002728_100X_20190205_2hrs-Scene-173-P92-F05_ch1.tiff,predict
+/allen/aics/rep_learn/MegaSeg/data/drug_perturbation/NUP153/thapsigargin/3500002728_100X_20190205_2hrs-Scene-174-P89-F05_ch1.tiff,predict
