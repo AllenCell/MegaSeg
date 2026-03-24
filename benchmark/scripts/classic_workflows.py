@@ -6,6 +6,7 @@ script (verify_classic_gt.py) and the run pipeline (run_classic.py).
 """
 
 import ast
+import importlib
 import importlib.util
 import sys
 import traceback
@@ -66,7 +67,10 @@ STRUCTURES = {
 # Structures that have per-structure CSVs in variance-100x/
 STRUCTURES_WITH_CSVS = {
     "ACTN1",
+    "ATP2A2",
     "CTNNB1",
+    "DSP",
+    "GJA1",
     "MYH10",
     "NPM1",
     "NUP153",
@@ -74,6 +78,7 @@ STRUCTURES_WITH_CSVS = {
     "SEC61B",
     "SON",
     "ST6GAL1",
+    "TJP1",
     "TOMM20",
 }
 
