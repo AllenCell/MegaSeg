@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-"""Evaluate fine-tuning experiment results.
+"""Evaluate fine-tuning and scratch experiment results.
 
-Computes per-image Dice and IoU metrics for each of the 7 LMNB1
-fine-tuning experiments (L-shaped design) and generates summary
-tables and plots.
+Computes per-image segmentation metrics (Dice, IoU, precision, recall,
+Hausdorff-95, surface Dice) for all 17 LMNB1 fine-tuning experiments
+(base_megaseg + 4x4 grid) and 16 scratch experiments.
 
 Usage:
-    uv run python scripts/evaluate_finetune.py compute --workers 8
-    uv run python scripts/evaluate_finetune.py report
-    uv run python scripts/evaluate_finetune.py plot
+    python scripts/evaluate_finetune.py compute --mode ft --workers 8
+    python scripts/evaluate_finetune.py compute --mode scratch --workers 8
+    python scripts/evaluate_finetune.py report --mode ft
+    python scripts/evaluate_finetune.py plot --mode ft
 """
 
 import argparse
@@ -20,6 +21,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import tifffile
+from scipy.ndimage import distance_transform_edt
 from tqdm import tqdm
 
 import matplotlib
@@ -34,28 +36,109 @@ log = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DATA_ROOT = PROJECT_ROOT.parent / "data"
 
-# L-shaped experiment design:
-# - Vary epochs with 100% data: converged, 10, 50, 100 epochs
-# - Vary data fraction with convergence: 10%, 20%, 50%, 100%
-ALL_EXPERIMENTS = [
-    "data100_converged",
+# Full 4x4 grid: 4 data fractions x 4 epoch configs = 16 experiments
+FT_EXPERIMENTS = [
+    "base_megaseg",
+    # 100% data
     "data100_10epochs",
     "data100_50epochs",
     "data100_100epochs",
-    "data10_converged",
-    "data20_converged",
+    "data100_converged",
+    # 50% data
+    "data50_10epochs",
+    "data50_50epochs",
+    "data50_100epochs",
     "data50_converged",
+    # 20% data
+    "data20_10epochs",
+    "data20_50epochs",
+    "data20_100epochs",
+    "data20_converged",
+    # 10% data
+    "data10_10epochs",
+    "data10_50epochs",
+    "data10_100epochs",
+    "data10_converged",
 ]
 
-METRIC_COLS = ["dice", "iou"]
+SCRATCH_EXPERIMENTS = [
+    # 100% data
+    "data100_10epochs",
+    "data100_50epochs",
+    "data100_100epochs",
+    "data100_converged",
+    # 50% data
+    "data50_10epochs",
+    "data50_50epochs",
+    "data50_100epochs",
+    "data50_converged",
+    # 20% data
+    "data20_10epochs",
+    "data20_50epochs",
+    "data20_100epochs",
+    "data20_converged",
+    # 10% data
+    "data10_10epochs",
+    "data10_50epochs",
+    "data10_100epochs",
+    "data10_converged",
+]
+
+# Legacy alias for backward compat
+ALL_EXPERIMENTS = FT_EXPERIMENTS
+
+METRIC_COLS = ["dice", "iou", "precision", "recall", "hausdorff_95", "surface_dice"]
 
 
 # ---------------------------------------------------------------------------
 # Metric computation
 # ---------------------------------------------------------------------------
-def compute_metrics(gt: np.ndarray, pred: np.ndarray) -> dict:
-    """Compute Dice and IoU from two binary masks."""
+def _surface_distances(gt: np.ndarray, pred: np.ndarray) -> np.ndarray:
+    """Compute symmetric surface distances between two binary masks.
+
+    Returns an array of distances from each surface voxel of one mask to
+    the closest surface voxel of the other, concatenated both ways.
+    Returns empty array if either mask is empty.
+    """
+    if not gt.any() or not pred.any():
+        return np.array([])
+
+    # Distance transforms: distance from each background voxel to nearest
+    # foreground voxel
+    gt_dt = distance_transform_edt(~gt)
+    pred_dt = distance_transform_edt(~pred)
+
+    # Surface voxels: foreground voxels adjacent to background
+    # (erode by 1 and XOR with original)
+    from scipy.ndimage import binary_erosion
+
+    gt_surface = gt ^ binary_erosion(gt, iterations=1)
+    pred_surface = pred ^ binary_erosion(pred, iterations=1)
+
+    # Distances from GT surface to nearest pred, and vice versa
+    dist_gt_to_pred = pred_dt[gt_surface]
+    dist_pred_to_gt = gt_dt[pred_surface]
+
+    return np.concatenate([dist_gt_to_pred, dist_pred_to_gt])
+
+
+def compute_metrics(
+    gt: np.ndarray, pred: np.ndarray, surface_tolerance: float = 1.0
+) -> dict:
+    """Compute segmentation metrics from two binary masks.
+
+    Metrics: dice, iou, precision, recall, hausdorff_95, surface_dice.
+
+    Args:
+        gt: Ground truth binary mask.
+        pred: Predicted binary mask.
+        surface_tolerance: Tolerance in voxels for surface Dice (default 1.0).
+
+    Returns:
+        Dict of metric name to value.
+    """
     gt = gt.astype(bool)
     pred = pred.astype(bool)
 
@@ -69,7 +152,34 @@ def compute_metrics(gt: np.ndarray, pred: np.ndarray) -> dict:
     iou_denom = tp + fp + fn
     iou = (tp / iou_denom) if iou_denom > 0 else 1.0
 
-    return {"dice": dice, "iou": iou}
+    prec_denom = tp + fp
+    precision = (tp / prec_denom) if prec_denom > 0 else 1.0
+
+    rec_denom = tp + fn
+    recall = (tp / rec_denom) if rec_denom > 0 else 1.0
+
+    # Surface-based metrics
+    surf_dists = _surface_distances(gt, pred)
+    if surf_dists.size > 0:
+        hausdorff_95 = float(np.percentile(surf_dists, 95))
+        surface_dice = float(np.mean(surf_dists <= surface_tolerance))
+    elif not gt.any() and not pred.any():
+        # Both empty: perfect agreement
+        hausdorff_95 = 0.0
+        surface_dice = 1.0
+    else:
+        # One empty, one not: worst case
+        hausdorff_95 = float("inf")
+        surface_dice = 0.0
+
+    return {
+        "dice": dice,
+        "iou": iou,
+        "precision": precision,
+        "recall": recall,
+        "hausdorff_95": hausdorff_95,
+        "surface_dice": surface_dice,
+    }
 
 
 def binarize_prediction(pred: np.ndarray) -> np.ndarray:
@@ -87,14 +197,22 @@ def binarize_gt(gt: np.ndarray) -> np.ndarray:
 # ---------------------------------------------------------------------------
 # Path helpers
 # ---------------------------------------------------------------------------
-def resolve_pred_dir(experiment: str) -> Path:
-    """Resolve the prediction directory for an experiment."""
-    return PROJECT_ROOT / "outputs" / "finetune" / "lmnb1" / experiment / "seg"
+def resolve_pred_dir(experiment: str, mode: str = "ft") -> Path:
+    """Resolve the prediction directory for an experiment.
+
+    Args:
+        experiment: Experiment label (e.g. 'data100_converged').
+        mode: 'ft' for fine-tuning or 'scratch' for scratch training.
+    """
+    subdir = "finetune" if mode == "ft" else "scratch"
+    return PROJECT_ROOT / "outputs" / "eval" / subdir / "lmnb1" / experiment / "seg"
 
 
 def get_test_csv() -> Path:
-    """Get the LMNB1 test CSV path."""
-    return PROJECT_ROOT / "data" / "lmnb1" / "test_lmnb1.csv"
+    """Get the LMNB1 test CSV path (variance-100x local data)."""
+    return (
+        DATA_ROOT / "variance-100x" / "LMNB1" / "local" / "test_lmnb1_local_cytodl.csv"
+    )
 
 
 def derive_prediction_path(raw_filename: str, pred_dir: Path) -> Path:
@@ -125,7 +243,15 @@ def _evaluate_sample(args: tuple) -> dict:
     pred_path = Path(pred_path_str)
     gt_path = Path(gt_path_str)
 
-    nan_result = {**metadata, "dice": np.nan, "iou": np.nan}
+    nan_result = {
+        **metadata,
+        "dice": np.nan,
+        "iou": np.nan,
+        "precision": np.nan,
+        "recall": np.nan,
+        "hausdorff_95": np.nan,
+        "surface_dice": np.nan,
+    }
 
     try:
         gt_img = tifffile.imread(str(gt_path))
@@ -159,6 +285,8 @@ def _evaluate_sample(args: tuple) -> dict:
 # ---------------------------------------------------------------------------
 def parse_experiment_label(exp: str) -> dict:
     """Parse experiment label into data_pct and epoch_cfg."""
+    if exp == "base_megaseg":
+        return {"data_pct": 0, "epoch_cfg": "pretrained"}
     if "_converged" in exp:
         data_pct_str = exp.replace("_converged", "").replace("data", "")
         return {"data_pct": int(data_pct_str), "epoch_cfg": "converged"}
@@ -172,16 +300,24 @@ def parse_experiment_label(exp: str) -> dict:
 # ---------------------------------------------------------------------------
 # Compute phase
 # ---------------------------------------------------------------------------
-def compute_all(workers: int, experiments: list[str] | None = None) -> None:
-    """Compute metrics for all experiments."""
-    results_dir = PROJECT_ROOT / "results" / "finetune"
+def compute_all(
+    workers: int, mode: str = "ft", experiments: list[str] | None = None
+) -> None:
+    """Compute metrics for all experiments.
+
+    Args:
+        workers: Number of parallel workers.
+        mode: 'ft' for fine-tuning or 'scratch' for scratch training.
+        experiments: Optional list of experiment labels to evaluate.
+    """
+    subdir = "finetune" if mode == "ft" else "scratch"
+    results_dir = PROJECT_ROOT / "results" / subdir / "lmnb1"
     results_dir.mkdir(parents=True, exist_ok=True)
     csv_path = results_dir / "per_sample_metrics.csv"
 
     test_csv = get_test_csv()
     if not test_csv.is_file():
         print(f"ERROR: Test CSV not found: {test_csv}", file=sys.stderr)
-        print("Run: uv run python scripts/generate_lmnb1_data.py", file=sys.stderr)
         sys.exit(1)
 
     test_df = pd.read_csv(test_csv)
@@ -190,13 +326,14 @@ def compute_all(workers: int, experiments: list[str] | None = None) -> None:
         print(f"Found columns: {list(test_df.columns)}", file=sys.stderr)
         sys.exit(1)
 
-    exp_list = experiments or ALL_EXPERIMENTS
+    default_exps = FT_EXPERIMENTS if mode == "ft" else SCRATCH_EXPERIMENTS
+    exp_list = experiments or default_exps
 
     # Build work items
     all_items = []
     skipped = []
     for exp in exp_list:
-        pred_dir = resolve_pred_dir(exp)
+        pred_dir = resolve_pred_dir(exp, mode=mode)
         if not pred_dir.is_dir():
             skipped.append(exp)
             continue
@@ -250,13 +387,14 @@ def compute_all(workers: int, experiments: list[str] | None = None) -> None:
 # ---------------------------------------------------------------------------
 # Report phase
 # ---------------------------------------------------------------------------
-def report() -> None:
+def report(mode: str = "ft") -> None:
     """Generate summary tables from per-sample metrics."""
-    csv_path = PROJECT_ROOT / "results" / "finetune" / "per_sample_metrics.csv"
+    subdir = "finetune" if mode == "ft" else "scratch"
+    csv_path = PROJECT_ROOT / "results" / subdir / "lmnb1" / "per_sample_metrics.csv"
     if not csv_path.is_file():
         print(f"ERROR: Metrics not found: {csv_path}", file=sys.stderr)
         print(
-            "Run: uv run python scripts/evaluate_finetune.py compute",
+            f"Run: python scripts/evaluate_finetune.py compute --mode {mode}",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -293,9 +431,10 @@ def report() -> None:
 # ---------------------------------------------------------------------------
 # Plot phase
 # ---------------------------------------------------------------------------
-def plot() -> None:
+def plot(mode: str = "ft") -> None:
     """Generate visualizations from per-sample metrics."""
-    csv_path = PROJECT_ROOT / "results" / "finetune" / "per_sample_metrics.csv"
+    subdir = "finetune" if mode == "ft" else "scratch"
+    csv_path = PROJECT_ROOT / "results" / subdir / "lmnb1" / "per_sample_metrics.csv"
     if not csv_path.is_file():
         print("ERROR: Metrics not found. Run compute first.", file=sys.stderr)
         sys.exit(1)
@@ -304,10 +443,71 @@ def plot() -> None:
     results_dir = csv_path.parent
 
     sns.set_theme(style="whitegrid", font_scale=1.1)
-
-    # 1. Bar chart: mean Dice by experiment (all 7)
-    fig, ax = plt.subplots(figsize=(12, 6))
     exp_order = [e for e in ALL_EXPERIMENTS if e in df["experiment"].unique()]
+
+    # Metric display config: (col_name, display_name, ylim, higher_is_better)
+    _metric_cfg = [
+        ("dice", "Dice", (0, 1), True),
+        ("iou", "IoU", (0, 1), True),
+        ("precision", "Precision", (0, 1), True),
+        ("recall", "Recall", (0, 1), True),
+        ("hausdorff_95", "Hausdorff-95 (voxels)", None, False),
+        ("surface_dice", "Surface Dice", (0, 1), True),
+    ]
+    # Only plot metrics that exist in the data
+    metric_cfg = [(c, d, y, h) for c, d, y, h in _metric_cfg if c in df.columns]
+
+    # ---------------------------------------------------------------
+    # 1. Multi-metric bar chart (grid of subplots)
+    # ---------------------------------------------------------------
+    n_metrics = len(metric_cfg)
+    ncols = 3
+    nrows = (n_metrics + ncols - 1) // ncols
+    fig, axes = plt.subplots(nrows, ncols, figsize=(6 * ncols, 5 * nrows))
+    axes = np.asarray(axes).flatten()
+
+    for idx, (col, name, ylim, _) in enumerate(metric_cfg):
+        ax = axes[idx]
+        summary = df.groupby("experiment")[col].agg(["mean", "std"]).reindex(exp_order)
+        bars = ax.bar(
+            range(len(summary)),
+            summary["mean"],
+            yerr=summary["std"],
+            capsize=3,
+            color="steelblue",
+            edgecolor="black",
+            alpha=0.8,
+        )
+        ax.set_xticks(range(len(summary)))
+        ax.set_xticklabels(summary.index, rotation=45, ha="right", fontsize=8)
+        ax.set_ylabel(f"Mean {name}")
+        ax.set_title(name)
+        if ylim is not None:
+            ax.set_ylim(*ylim)
+        for bar, val in zip(bars, summary["mean"]):
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height() + 0.01,
+                f"{val:.3f}",
+                ha="center",
+                va="bottom",
+                fontsize=7,
+            )
+
+    # Hide unused axes
+    for idx in range(n_metrics, len(axes)):
+        axes[idx].set_visible(False)
+
+    fig.suptitle("LMNB1 Fine-Tuning: All Metrics by Experiment", fontsize=14, y=1.01)
+    plt.tight_layout()
+    fig.savefig(results_dir / "bar_all_metrics.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved multi-metric bar chart to {results_dir / 'bar_all_metrics.png'}")
+
+    # ---------------------------------------------------------------
+    # 2. Legacy single bar chart (Dice only, backward compatible)
+    # ---------------------------------------------------------------
+    fig, ax = plt.subplots(figsize=(12, 6))
     summary = df.groupby("experiment")["dice"].agg(["mean", "std"]).reindex(exp_order)
     bars = ax.bar(
         range(len(summary)),
@@ -323,7 +523,6 @@ def plot() -> None:
     ax.set_ylabel("Mean Dice Score")
     ax.set_title("LMNB1 Fine-Tuning: Dice by Experiment")
     ax.set_ylim(0, 1)
-    # Add value labels on bars
     for bar, val in zip(bars, summary["mean"]):
         ax.text(
             bar.get_x() + bar.get_width() / 2,
@@ -338,10 +537,34 @@ def plot() -> None:
     plt.close(fig)
     print(f"Saved bar chart to {results_dir / 'bar_dice.png'}")
 
-    # 2. Box plots: Dice distribution per experiment
+    # ---------------------------------------------------------------
+    # 3. Box plots: all metrics (grid)
+    # ---------------------------------------------------------------
+    fig, axes = plt.subplots(nrows, ncols, figsize=(6 * ncols, 5 * nrows))
+    axes = np.asarray(axes).flatten()
+
+    for idx, (col, name, ylim, _) in enumerate(metric_cfg):
+        ax = axes[idx]
+        sns.boxplot(data=df, x="experiment", y=col, order=exp_order, ax=ax)
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", fontsize=8)
+        ax.set_title(f"{name} Distribution")
+        ax.set_ylabel(name)
+        ax.set_xlabel("")
+        if ylim is not None:
+            ax.set_ylim(*ylim)
+
+    for idx in range(n_metrics, len(axes)):
+        axes[idx].set_visible(False)
+
+    fig.suptitle("Metric Distributions by Experiment", fontsize=14, y=1.01)
+    plt.tight_layout()
+    fig.savefig(results_dir / "boxplot_all_metrics.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved multi-metric boxplot to {results_dir / 'boxplot_all_metrics.png'}")
+
+    # Legacy single boxplot (Dice only)
     fig, ax = plt.subplots(figsize=(14, 6))
-    order = [o for o in ALL_EXPERIMENTS if o in df["experiment"].unique()]
-    sns.boxplot(data=df, x="experiment", y="dice", order=order, ax=ax)
+    sns.boxplot(data=df, x="experiment", y="dice", order=exp_order, ax=ax)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
     ax.set_title("Dice Score Distribution by Experiment")
     ax.set_ylabel("Dice Score")
@@ -351,7 +574,9 @@ def plot() -> None:
     plt.close(fig)
     print(f"Saved boxplot to {results_dir / 'boxplot_dice.png'}")
 
-    # 3. Line plot: Epoch effect (100% data)
+    # ---------------------------------------------------------------
+    # 4. Epoch effect (100% data) - all metrics
+    # ---------------------------------------------------------------
     epoch_exps = {
         "data100_10epochs": 10,
         "data100_50epochs": 50,
@@ -361,23 +586,77 @@ def plot() -> None:
     epoch_df = df[df["experiment"].isin(epoch_exps.keys())].copy()
     if not epoch_df.empty:
         epoch_df["epochs"] = epoch_df["experiment"].map(epoch_exps)
-        epoch_summary = (
-            epoch_df.groupby("epochs")["dice"].agg(["mean", "std"]).reset_index()
+
+        # Multi-metric epoch effect grid
+        fig, axes = plt.subplots(nrows, ncols, figsize=(6 * ncols, 5 * nrows))
+        axes = np.asarray(axes).flatten()
+
+        for idx, (col, name, ylim, _) in enumerate(metric_cfg):
+            ax = axes[idx]
+            ep_summary = (
+                epoch_df.groupby("epochs")[col].agg(["mean", "std"]).reset_index()
+            )
+            ax.errorbar(
+                ep_summary["epochs"],
+                ep_summary["mean"],
+                yerr=ep_summary["std"],
+                fmt="o-",
+                linewidth=2,
+                capsize=5,
+                markersize=8,
+                color="steelblue",
+            )
+            conv_row = ep_summary[ep_summary["epochs"] == 1000]
+            if not conv_row.empty:
+                ax.plot(
+                    1000,
+                    conv_row["mean"].values[0],
+                    "*",
+                    markersize=15,
+                    color="red",
+                    zorder=5,
+                    label="converged",
+                )
+                ax.legend(fontsize=8)
+            ax.set_xlabel("Fine-Tuning Epochs")
+            ax.set_ylabel(f"Mean {name}")
+            ax.set_title(f"{name} vs Epochs (100% Data)")
+            ax.set_xscale("log")
+            if ylim is not None:
+                ax.set_ylim(*ylim)
+
+        for idx in range(n_metrics, len(axes)):
+            axes[idx].set_visible(False)
+
+        fig.suptitle("Epoch Effect - All Metrics (100% Data)", fontsize=14, y=1.01)
+        plt.tight_layout()
+        fig.savefig(
+            results_dir / "epoch_effect_all_metrics.png",
+            dpi=150,
+            bbox_inches="tight",
+        )
+        plt.close(fig)
+        print(
+            f"Saved multi-metric epoch effect to "
+            f"{results_dir / 'epoch_effect_all_metrics.png'}"
         )
 
+        # Legacy single Dice epoch plot
+        dice_summary = (
+            epoch_df.groupby("epochs")["dice"].agg(["mean", "std"]).reset_index()
+        )
         fig, ax = plt.subplots(figsize=(8, 6))
         ax.errorbar(
-            epoch_summary["epochs"],
-            epoch_summary["mean"],
-            yerr=epoch_summary["std"],
+            dice_summary["epochs"],
+            dice_summary["mean"],
+            yerr=dice_summary["std"],
             fmt="o-",
             linewidth=2,
             capsize=5,
             markersize=8,
             color="steelblue",
         )
-        # Mark the converged point specially
-        converged_row = epoch_summary[epoch_summary["epochs"] == 1000]
+        converged_row = dice_summary[dice_summary["epochs"] == 1000]
         if not converged_row.empty:
             ax.plot(
                 1000,
@@ -399,7 +678,9 @@ def plot() -> None:
         plt.close(fig)
         print(f"Saved epoch effect plot to {results_dir / 'epoch_effect.png'}")
 
-    # 4. Line plot: Data fraction effect (converged)
+    # ---------------------------------------------------------------
+    # 5. Data fraction effect (converged) - all metrics
+    # ---------------------------------------------------------------
     data_exps = {
         "data10_converged": 10,
         "data20_converged": 20,
@@ -409,15 +690,60 @@ def plot() -> None:
     data_df = df[df["experiment"].isin(data_exps.keys())].copy()
     if not data_df.empty:
         data_df["data_pct"] = data_df["experiment"].map(data_exps)
-        data_summary = (
-            data_df.groupby("data_pct")["dice"].agg(["mean", "std"]).reset_index()
+
+        # Multi-metric data fraction grid
+        fig, axes = plt.subplots(nrows, ncols, figsize=(6 * ncols, 5 * nrows))
+        axes = np.asarray(axes).flatten()
+
+        for idx, (col, name, ylim, _) in enumerate(metric_cfg):
+            ax = axes[idx]
+            d_summary = (
+                data_df.groupby("data_pct")[col].agg(["mean", "std"]).reset_index()
+            )
+            ax.errorbar(
+                d_summary["data_pct"],
+                d_summary["mean"],
+                yerr=d_summary["std"],
+                fmt="s-",
+                linewidth=2,
+                capsize=5,
+                markersize=8,
+                color="darkorange",
+            )
+            ax.set_xlabel("Training Data Fraction (%)")
+            ax.set_ylabel(f"Mean {name}")
+            ax.set_title(f"{name} vs Data Fraction (Converged)")
+            if ylim is not None:
+                ax.set_ylim(*ylim)
+            ax.set_xticks([10, 20, 50, 100])
+
+        for idx in range(n_metrics, len(axes)):
+            axes[idx].set_visible(False)
+
+        fig.suptitle(
+            "Data Fraction Effect - All Metrics (Converged)", fontsize=14, y=1.01
+        )
+        plt.tight_layout()
+        fig.savefig(
+            results_dir / "data_fraction_effect_all_metrics.png",
+            dpi=150,
+            bbox_inches="tight",
+        )
+        plt.close(fig)
+        print(
+            f"Saved multi-metric data fraction plot to "
+            f"{results_dir / 'data_fraction_effect_all_metrics.png'}"
         )
 
+        # Legacy single Dice data-fraction plot
+        dice_summary = (
+            data_df.groupby("data_pct")["dice"].agg(["mean", "std"]).reset_index()
+        )
         fig, ax = plt.subplots(figsize=(8, 6))
         ax.errorbar(
-            data_summary["data_pct"],
-            data_summary["mean"],
-            yerr=data_summary["std"],
+            dice_summary["data_pct"],
+            dice_summary["mean"],
+            yerr=dice_summary["std"],
             fmt="s-",
             linewidth=2,
             capsize=5,
@@ -441,7 +767,16 @@ def plot() -> None:
 # CLI
 # ---------------------------------------------------------------------------
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Evaluate fine-tuning experiments.")
+    parser = argparse.ArgumentParser(
+        description="Evaluate fine-tuning and scratch experiments."
+    )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        choices=["ft", "scratch"],
+        default="ft",
+        help="Evaluation mode: 'ft' (fine-tuning) or 'scratch' (default: ft)",
+    )
     subparsers = parser.add_subparsers(dest="phase", required=True)
 
     p_compute = subparsers.add_parser("compute", help="Compute metrics")
@@ -464,11 +799,11 @@ def main() -> None:
         exp_filter = None
         if args.experiments:
             exp_filter = [e.strip() for e in args.experiments.split(",")]
-        compute_all(workers=args.workers, experiments=exp_filter)
+        compute_all(workers=args.workers, mode=args.mode, experiments=exp_filter)
     elif args.phase == "report":
-        report()
+        report(mode=args.mode)
     elif args.phase == "plot":
-        plot()
+        plot(mode=args.mode)
 
 
 if __name__ == "__main__":

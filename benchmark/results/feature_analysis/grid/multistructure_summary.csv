@@ -1,0 +1,201 @@
+layer,layer_alias,n_channels,avg_std,avg_pnz,dead_channels,pct_dead,model,model_key,structure
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,MegaSeg pretrained,megaseg_pretrained,LMNB1
+downsamples.0,enc0 (64ch),64,0.6502843156146506,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,LMNB1
+downsamples.1,enc1 (128ch),128,0.4732652082263182,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,LMNB1
+downsamples.2,enc2 (256ch),256,0.02605524286348852,100.0,35,13.671875,MegaSeg pretrained,megaseg_pretrained,LMNB1
+input_block,input (32ch),32,0.6049173905824622,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,LMNB1
+output_block,output (1ch),1,1.726510763168335,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,LMNB1
+upsamples.0,dec0 (256ch),256,0.04460395777386295,100.0,170,66.40625,MegaSeg pretrained,megaseg_pretrained,LMNB1
+upsamples.1,dec1 (128ch),128,0.3912235536845401,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,LMNB1
+upsamples.2,dec2 (64ch),64,0.54945801012218,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,LMNB1
+upsamples.3,dec3 (32ch),32,0.5007422550891837,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,LMNB1
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,MegaSeg pretrained,megaseg_pretrained,TOMM20
+downsamples.0,enc0 (64ch),64,0.5982548208752027,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,TOMM20
+downsamples.1,enc1 (128ch),128,0.37314512111091364,99.99996821085612,0,0.0,MegaSeg pretrained,megaseg_pretrained,TOMM20
+downsamples.2,enc2 (256ch),256,0.027323935694526968,100.0,35,13.671875,MegaSeg pretrained,megaseg_pretrained,TOMM20
+input_block,input (32ch),32,0.6664753596608838,99.99999602635701,0,0.0,MegaSeg pretrained,megaseg_pretrained,TOMM20
+output_block,output (1ch),1,6.501929601033528,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,TOMM20
+upsamples.0,dec0 (256ch),256,0.04402038223166158,99.99987284342448,170,66.40625,MegaSeg pretrained,megaseg_pretrained,TOMM20
+upsamples.1,dec1 (128ch),128,0.4000699354801327,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,TOMM20
+upsamples.2,dec2 (64ch),64,0.5390623370185494,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,TOMM20
+upsamples.3,dec3 (32ch),32,0.7690910690774521,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,TOMM20
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,MegaSeg pretrained,megaseg_pretrained,SEC61B
+downsamples.0,enc0 (64ch),64,0.5638423675360779,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,SEC61B
+downsamples.1,enc1 (128ch),128,0.44053771676650894,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,SEC61B
+downsamples.2,enc2 (256ch),256,0.027604307239583827,100.0,34,13.28125,MegaSeg pretrained,megaseg_pretrained,SEC61B
+input_block,input (32ch),32,0.6822538177172343,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,SEC61B
+output_block,output (1ch),1,10.039556503295898,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,SEC61B
+upsamples.0,dec0 (256ch),256,0.044293999730881495,100.0,170,66.40625,MegaSeg pretrained,megaseg_pretrained,SEC61B
+upsamples.1,dec1 (128ch),128,0.42530961505447823,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,SEC61B
+upsamples.2,dec2 (64ch),64,0.4687849051163842,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,SEC61B
+upsamples.3,dec3 (32ch),32,0.7813266236335039,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,SEC61B
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,MegaSeg pretrained,megaseg_pretrained,ACTN1
+downsamples.0,enc0 (64ch),64,0.5580556396550188,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,ACTN1
+downsamples.1,enc1 (128ch),128,0.40942222357261926,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,ACTN1
+downsamples.2,enc2 (256ch),256,0.02683981023704104,100.0,35,13.671875,MegaSeg pretrained,megaseg_pretrained,ACTN1
+input_block,input (32ch),32,0.6782159035404524,99.99999801317851,0,0.0,MegaSeg pretrained,megaseg_pretrained,ACTN1
+output_block,output (1ch),1,5.746591409047444,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,ACTN1
+upsamples.0,dec0 (256ch),256,0.04426602919728861,100.0,170,66.40625,MegaSeg pretrained,megaseg_pretrained,ACTN1
+upsamples.1,dec1 (128ch),128,0.40695670371254283,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,ACTN1
+upsamples.2,dec2 (64ch),64,0.5085676953506967,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,ACTN1
+upsamples.3,dec3 (32ch),32,0.6883345438788334,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,ACTN1
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,MegaSeg pretrained,megaseg_pretrained,NPM1
+downsamples.0,enc0 (64ch),64,0.5454053572999934,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,NPM1
+downsamples.1,enc1 (128ch),128,0.35886418210187304,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,NPM1
+downsamples.2,enc2 (256ch),256,0.02605495240893999,100.0,34,13.28125,MegaSeg pretrained,megaseg_pretrained,NPM1
+input_block,input (32ch),32,0.6615992077471068,99.99999801317851,0,0.0,MegaSeg pretrained,megaseg_pretrained,NPM1
+output_block,output (1ch),1,3.440361261367798,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,NPM1
+upsamples.0,dec0 (256ch),256,0.04488274903601557,100.0,170,66.40625,MegaSeg pretrained,megaseg_pretrained,NPM1
+upsamples.1,dec1 (128ch),128,0.377723041921854,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,NPM1
+upsamples.2,dec2 (64ch),64,0.513744838302955,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,NPM1
+upsamples.3,dec3 (32ch),32,0.6181700867600739,100.0,0,0.0,MegaSeg pretrained,megaseg_pretrained,NPM1
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,FT 100% conv,ft_best,LMNB1
+downsamples.0,enc0 (64ch),64,0.6445886287838221,99.99999205271403,0,0.0,FT 100% conv,ft_best,LMNB1
+downsamples.1,enc1 (128ch),128,0.472694443538785,100.0,0,0.0,FT 100% conv,ft_best,LMNB1
+downsamples.2,enc2 (256ch),256,0.02411136723068305,100.0,39,15.234375,FT 100% conv,ft_best,LMNB1
+input_block,input (32ch),32,0.6213864246383309,100.0,0,0.0,FT 100% conv,ft_best,LMNB1
+output_block,output (1ch),1,4.701384544372559,100.0,0,0.0,FT 100% conv,ft_best,LMNB1
+upsamples.0,dec0 (256ch),256,0.03335587832579142,100.0,176,68.75,FT 100% conv,ft_best,LMNB1
+upsamples.1,dec1 (128ch),128,0.3679898891132325,100.0,0,0.0,FT 100% conv,ft_best,LMNB1
+upsamples.2,dec2 (64ch),64,0.5076365157340964,100.0,0,0.0,FT 100% conv,ft_best,LMNB1
+upsamples.3,dec3 (32ch),32,0.5689012598401556,100.0,0,0.0,FT 100% conv,ft_best,LMNB1
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,FT 100% conv,ft_best,TOMM20
+downsamples.0,enc0 (64ch),64,0.6244571665301919,100.0,0,0.0,FT 100% conv,ft_best,TOMM20
+downsamples.1,enc1 (128ch),128,0.4054750027523066,100.0,0,0.0,FT 100% conv,ft_best,TOMM20
+downsamples.2,enc2 (256ch),256,0.02378704462706588,100.0,40,15.625,FT 100% conv,ft_best,TOMM20
+input_block,input (32ch),32,0.7062835932398835,100.0,0,0.0,FT 100% conv,ft_best,TOMM20
+output_block,output (1ch),1,5.392167250315349,100.0,0,0.0,FT 100% conv,ft_best,TOMM20
+upsamples.0,dec0 (256ch),256,0.033168013652146,100.0,176,68.75,FT 100% conv,ft_best,TOMM20
+upsamples.1,dec1 (128ch),128,0.36422028318823624,100.0,0,0.0,FT 100% conv,ft_best,TOMM20
+upsamples.2,dec2 (64ch),64,0.46411228079038364,100.0,0,0.0,FT 100% conv,ft_best,TOMM20
+upsamples.3,dec3 (32ch),32,0.6998156813594202,100.0,0,0.0,FT 100% conv,ft_best,TOMM20
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,FT 100% conv,ft_best,SEC61B
+downsamples.0,enc0 (64ch),64,0.5726642728162309,100.0,0,0.0,FT 100% conv,ft_best,SEC61B
+downsamples.1,enc1 (128ch),128,0.45915203266001,100.0,0,0.0,FT 100% conv,ft_best,SEC61B
+downsamples.2,enc2 (256ch),256,0.024761888063354016,100.0,39,15.234375,FT 100% conv,ft_best,SEC61B
+input_block,input (32ch),32,0.7022139465746781,100.0,0,0.0,FT 100% conv,ft_best,SEC61B
+output_block,output (1ch),1,9.094614028930664,100.0,0,0.0,FT 100% conv,ft_best,SEC61B
+upsamples.0,dec0 (256ch),256,0.032776653110541315,100.0,176,68.75,FT 100% conv,ft_best,SEC61B
+upsamples.1,dec1 (128ch),128,0.38987116639812786,100.0,0,0.0,FT 100% conv,ft_best,SEC61B
+upsamples.2,dec2 (64ch),64,0.4714770526625216,100.0,0,0.0,FT 100% conv,ft_best,SEC61B
+upsamples.3,dec3 (32ch),32,0.6942150696801642,100.0,0,0.0,FT 100% conv,ft_best,SEC61B
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,FT 100% conv,ft_best,ACTN1
+downsamples.0,enc0 (64ch),64,0.5681973528116941,100.0,0,0.0,FT 100% conv,ft_best,ACTN1
+downsamples.1,enc1 (128ch),128,0.43737464017855626,100.0,0,0.0,FT 100% conv,ft_best,ACTN1
+downsamples.2,enc2 (256ch),256,0.024216451139174845,100.0,39,15.234375,FT 100% conv,ft_best,ACTN1
+input_block,input (32ch),32,0.7018900237356623,99.99999801317851,0,0.0,FT 100% conv,ft_best,ACTN1
+output_block,output (1ch),1,7.623109499613444,100.0,0,0.0,FT 100% conv,ft_best,ACTN1
+upsamples.0,dec0 (256ch),256,0.03245924783082938,100.0,176,68.75,FT 100% conv,ft_best,ACTN1
+upsamples.1,dec1 (128ch),128,0.3812790385757883,100.0,0,0.0,FT 100% conv,ft_best,ACTN1
+upsamples.2,dec2 (64ch),64,0.4706884613260627,100.0,0,0.0,FT 100% conv,ft_best,ACTN1
+upsamples.3,dec3 (32ch),32,0.6912469426169991,100.0,0,0.0,FT 100% conv,ft_best,ACTN1
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,FT 100% conv,ft_best,NPM1
+downsamples.0,enc0 (64ch),64,0.5518125754315406,99.99999205271403,0,0.0,FT 100% conv,ft_best,NPM1
+downsamples.1,enc1 (128ch),128,0.39971839520148933,100.0,0,0.0,FT 100% conv,ft_best,NPM1
+downsamples.2,enc2 (256ch),256,0.022792136994713132,100.0,39,15.234375,FT 100% conv,ft_best,NPM1
+input_block,input (32ch),32,0.6929922639392316,99.99999403953552,0,0.0,FT 100% conv,ft_best,NPM1
+output_block,output (1ch),1,4.467629432678223,100.0,0,0.0,FT 100% conv,ft_best,NPM1
+upsamples.0,dec0 (256ch),256,0.034777421038930494,100.0,176,68.75,FT 100% conv,ft_best,NPM1
+upsamples.1,dec1 (128ch),128,0.3594021463844304,100.0,0,0.0,FT 100% conv,ft_best,NPM1
+upsamples.2,dec2 (64ch),64,0.47660379911152023,100.0,0,0.0,FT 100% conv,ft_best,NPM1
+upsamples.3,dec3 (32ch),32,0.6448033115981767,100.0,0,0.0,FT 100% conv,ft_best,NPM1
+bottleneck,bottleneck (320ch),320,0.822560286646088,100.0,0,0.0,Scratch 100% conv,scratch_best,LMNB1
+downsamples.0,enc0 (64ch),64,0.7964907695228854,100.0,0,0.0,Scratch 100% conv,scratch_best,LMNB1
+downsamples.1,enc1 (128ch),128,0.7486662940743068,100.0,0,0.0,Scratch 100% conv,scratch_best,LMNB1
+downsamples.2,enc2 (256ch),256,0.7331883509177715,100.0,0,0.0,Scratch 100% conv,scratch_best,LMNB1
+input_block,input (32ch),32,0.7177292114744583,100.0,0,0.0,Scratch 100% conv,scratch_best,LMNB1
+output_block,output (1ch),1,0.6927253603935242,100.0,0,0.0,Scratch 100% conv,scratch_best,LMNB1
+upsamples.0,dec0 (256ch),256,0.6315113585830355,100.0,0,0.0,Scratch 100% conv,scratch_best,LMNB1
+upsamples.1,dec1 (128ch),128,0.5859981800895184,100.0,0,0.0,Scratch 100% conv,scratch_best,LMNB1
+upsamples.2,dec2 (64ch),64,0.7205253457650542,100.0,0,0.0,Scratch 100% conv,scratch_best,LMNB1
+upsamples.3,dec3 (32ch),32,0.30572873819619417,100.0,0,0.0,Scratch 100% conv,scratch_best,LMNB1
+bottleneck,bottleneck (320ch),320,0.897446770593524,100.0,0,0.0,Scratch 100% conv,scratch_best,TOMM20
+downsamples.0,enc0 (64ch),64,0.8300873235178491,100.0,0,0.0,Scratch 100% conv,scratch_best,TOMM20
+downsamples.1,enc1 (128ch),128,0.6746900293510407,100.0,0,0.0,Scratch 100% conv,scratch_best,TOMM20
+downsamples.2,enc2 (256ch),256,0.6874251566672077,100.0,0,0.0,Scratch 100% conv,scratch_best,TOMM20
+input_block,input (32ch),32,0.6756003157546123,100.0,0,0.0,Scratch 100% conv,scratch_best,TOMM20
+output_block,output (1ch),1,1.6092681884765625,100.0,0,0.0,Scratch 100% conv,scratch_best,TOMM20
+upsamples.0,dec0 (256ch),256,0.6910222618995855,100.0,0,0.0,Scratch 100% conv,scratch_best,TOMM20
+upsamples.1,dec1 (128ch),128,0.6115971043085059,100.0,0,0.0,Scratch 100% conv,scratch_best,TOMM20
+upsamples.2,dec2 (64ch),64,0.727724884947141,100.0,0,0.0,Scratch 100% conv,scratch_best,TOMM20
+upsamples.3,dec3 (32ch),32,0.42313121538609266,100.0,0,0.0,Scratch 100% conv,scratch_best,TOMM20
+bottleneck,bottleneck (320ch),320,0.8492366986970106,100.0,0,0.0,Scratch 100% conv,scratch_best,SEC61B
+downsamples.0,enc0 (64ch),64,0.7745722654896477,100.0,0,0.0,Scratch 100% conv,scratch_best,SEC61B
+downsamples.1,enc1 (128ch),128,0.7003921077897152,100.0,0,0.0,Scratch 100% conv,scratch_best,SEC61B
+downsamples.2,enc2 (256ch),256,0.6898928229929879,100.0,0,0.0,Scratch 100% conv,scratch_best,SEC61B
+input_block,input (32ch),32,0.7362963681419691,99.99999602635701,0,0.0,Scratch 100% conv,scratch_best,SEC61B
+output_block,output (1ch),1,1.7301807006200154,100.0,0,0.0,Scratch 100% conv,scratch_best,SEC61B
+upsamples.0,dec0 (256ch),256,0.6320214895531535,100.0,0,0.0,Scratch 100% conv,scratch_best,SEC61B
+upsamples.1,dec1 (128ch),128,0.5999358537762115,100.0,0,0.0,Scratch 100% conv,scratch_best,SEC61B
+upsamples.2,dec2 (64ch),64,0.7160265697166324,100.0,0,0.0,Scratch 100% conv,scratch_best,SEC61B
+upsamples.3,dec3 (32ch),32,0.41729884486024577,100.0,0,0.0,Scratch 100% conv,scratch_best,SEC61B
+bottleneck,bottleneck (320ch),320,0.856732152029872,100.0,0,0.0,Scratch 100% conv,scratch_best,ACTN1
+downsamples.0,enc0 (64ch),64,0.7808622765975693,99.99999205271403,0,0.0,Scratch 100% conv,scratch_best,ACTN1
+downsamples.1,enc1 (128ch),128,0.6914736136483649,100.0,0,0.0,Scratch 100% conv,scratch_best,ACTN1
+downsamples.2,enc2 (256ch),256,0.6862472797511145,100.0,0,0.0,Scratch 100% conv,scratch_best,ACTN1
+input_block,input (32ch),32,0.7470194427296519,100.0,0,0.0,Scratch 100% conv,scratch_best,ACTN1
+output_block,output (1ch),1,1.2706867257754009,100.0,0,0.0,Scratch 100% conv,scratch_best,ACTN1
+upsamples.0,dec0 (256ch),256,0.6378775644504154,100.0,0,0.0,Scratch 100% conv,scratch_best,ACTN1
+upsamples.1,dec1 (128ch),128,0.6114916432804117,100.0,0,0.0,Scratch 100% conv,scratch_best,ACTN1
+upsamples.2,dec2 (64ch),64,0.7320945529888073,100.0,0,0.0,Scratch 100% conv,scratch_best,ACTN1
+upsamples.3,dec3 (32ch),32,0.36974282966305816,100.0,0,0.0,Scratch 100% conv,scratch_best,ACTN1
+bottleneck,bottleneck (320ch),320,0.8805495016897718,100.0,0,0.0,Scratch 100% conv,scratch_best,NPM1
+downsamples.0,enc0 (64ch),64,0.7898053821797172,100.0,0,0.0,Scratch 100% conv,scratch_best,NPM1
+downsamples.1,enc1 (128ch),128,0.6301133192221945,100.0,0,0.0,Scratch 100% conv,scratch_best,NPM1
+downsamples.2,enc2 (256ch),256,0.6186187458224595,100.0,0,0.0,Scratch 100% conv,scratch_best,NPM1
+input_block,input (32ch),32,0.6489368197508156,100.0,0,0.0,Scratch 100% conv,scratch_best,NPM1
+output_block,output (1ch),1,1.2416381041208904,100.0,0,0.0,Scratch 100% conv,scratch_best,NPM1
+upsamples.0,dec0 (256ch),256,0.6612919664088016,100.0,0,0.0,Scratch 100% conv,scratch_best,NPM1
+upsamples.1,dec1 (128ch),128,0.6298852052229146,100.0,0,0.0,Scratch 100% conv,scratch_best,NPM1
+upsamples.2,dec2 (64ch),64,0.7194957346655428,100.0,0,0.0,Scratch 100% conv,scratch_best,NPM1
+upsamples.3,dec3 (32ch),32,0.3796943191749354,100.0,0,0.0,Scratch 100% conv,scratch_best,NPM1
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,FT 10% 10ep,ft_minimal,LMNB1
+downsamples.0,enc0 (64ch),64,0.6547896636960407,100.0,0,0.0,FT 10% 10ep,ft_minimal,LMNB1
+downsamples.1,enc1 (128ch),128,0.470994385657832,100.0,0,0.0,FT 10% 10ep,ft_minimal,LMNB1
+downsamples.2,enc2 (256ch),256,0.02688027004360592,100.0,30,11.71875,FT 10% 10ep,ft_minimal,LMNB1
+input_block,input (32ch),32,0.6059908072153727,100.0,0,0.0,FT 10% 10ep,ft_minimal,LMNB1
+output_block,output (1ch),1,3.315674384435018,100.0,0,0.0,FT 10% 10ep,ft_minimal,LMNB1
+upsamples.0,dec0 (256ch),256,0.04466647778209856,100.0,170,66.40625,FT 10% 10ep,ft_minimal,LMNB1
+upsamples.1,dec1 (128ch),128,0.38634990881352377,100.0,0,0.0,FT 10% 10ep,ft_minimal,LMNB1
+upsamples.2,dec2 (64ch),64,0.5238898522220552,100.0,0,0.0,FT 10% 10ep,ft_minimal,LMNB1
+upsamples.3,dec3 (32ch),32,0.5679714013822377,100.0,0,0.0,FT 10% 10ep,ft_minimal,LMNB1
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,FT 10% 10ep,ft_minimal,TOMM20
+downsamples.0,enc0 (64ch),64,0.6171709091092149,100.0,0,0.0,FT 10% 10ep,ft_minimal,TOMM20
+downsamples.1,enc1 (128ch),128,0.38330661683964234,100.0,0,0.0,FT 10% 10ep,ft_minimal,TOMM20
+downsamples.2,enc2 (256ch),256,0.026661715161070312,100.0,30,11.71875,FT 10% 10ep,ft_minimal,TOMM20
+input_block,input (32ch),32,0.6696228069874147,99.99999602635701,0,0.0,FT 10% 10ep,ft_minimal,TOMM20
+output_block,output (1ch),1,7.663835366566976,100.0,0,0.0,FT 10% 10ep,ft_minimal,TOMM20
+upsamples.0,dec0 (256ch),256,0.044304248255754554,100.0,170,66.40625,FT 10% 10ep,ft_minimal,TOMM20
+upsamples.1,dec1 (128ch),128,0.38946578348986804,100.0,0,0.0,FT 10% 10ep,ft_minimal,TOMM20
+upsamples.2,dec2 (64ch),64,0.4869393043530484,100.0,0,0.0,FT 10% 10ep,ft_minimal,TOMM20
+upsamples.3,dec3 (32ch),32,0.7850600726281604,100.0,0,0.0,FT 10% 10ep,ft_minimal,TOMM20
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,FT 10% 10ep,ft_minimal,SEC61B
+downsamples.0,enc0 (64ch),64,0.5775991155921171,99.99999205271403,0,0.0,FT 10% 10ep,ft_minimal,SEC61B
+downsamples.1,enc1 (128ch),128,0.4502291882721086,100.0,0,0.0,FT 10% 10ep,ft_minimal,SEC61B
+downsamples.2,enc2 (256ch),256,0.027361277682019135,100.0,29,11.328125,FT 10% 10ep,ft_minimal,SEC61B
+input_block,input (32ch),32,0.6846899056496719,99.99999602635701,0,0.0,FT 10% 10ep,ft_minimal,SEC61B
+output_block,output (1ch),1,10.490190823872885,100.0,0,0.0,FT 10% 10ep,ft_minimal,SEC61B
+upsamples.0,dec0 (256ch),256,0.04543194131683884,100.0,170,66.40625,FT 10% 10ep,ft_minimal,SEC61B
+upsamples.1,dec1 (128ch),128,0.4162926475207011,100.0,0,0.0,FT 10% 10ep,ft_minimal,SEC61B
+upsamples.2,dec2 (64ch),64,0.4646836283306281,100.0,0,0.0,FT 10% 10ep,ft_minimal,SEC61B
+upsamples.3,dec3 (32ch),32,0.7764492177714905,100.0,0,0.0,FT 10% 10ep,ft_minimal,SEC61B
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,FT 10% 10ep,ft_minimal,ACTN1
+downsamples.0,enc0 (64ch),64,0.5722904646924386,99.99999205271403,0,0.0,FT 10% 10ep,ft_minimal,ACTN1
+downsamples.1,enc1 (128ch),128,0.420361466317748,100.0,0,0.0,FT 10% 10ep,ft_minimal,ACTN1
+downsamples.2,enc2 (256ch),256,0.027027259208008164,100.0,30,11.71875,FT 10% 10ep,ft_minimal,ACTN1
+input_block,input (32ch),32,0.6809384434794387,99.99999602635701,0,0.0,FT 10% 10ep,ft_minimal,ACTN1
+output_block,output (1ch),1,8.137743473052979,100.0,0,0.0,FT 10% 10ep,ft_minimal,ACTN1
+upsamples.0,dec0 (256ch),256,0.04497535719245127,100.0,170,66.40625,FT 10% 10ep,ft_minimal,ACTN1
+upsamples.1,dec1 (128ch),128,0.39739985077176243,100.0,0,0.0,FT 10% 10ep,ft_minimal,ACTN1
+upsamples.2,dec2 (64ch),64,0.48536663440366584,100.0,0,0.0,FT 10% 10ep,ft_minimal,ACTN1
+upsamples.3,dec3 (32ch),32,0.7344141909852624,100.0,0,0.0,FT 10% 10ep,ft_minimal,ACTN1
+bottleneck,bottleneck (320ch),320,0.0,100.0,320,100.0,FT 10% 10ep,ft_minimal,NPM1
+downsamples.0,enc0 (64ch),64,0.5650906142933915,100.0,0,0.0,FT 10% 10ep,ft_minimal,NPM1
+downsamples.1,enc1 (128ch),128,0.376727207932466,100.0,0,0.0,FT 10% 10ep,ft_minimal,NPM1
+downsamples.2,enc2 (256ch),256,0.026246017617185976,100.0,30,11.71875,FT 10% 10ep,ft_minimal,NPM1
+input_block,input (32ch),32,0.6651477981358767,99.99999602635701,0,0.0,FT 10% 10ep,ft_minimal,NPM1
+output_block,output (1ch),1,6.870021343231201,100.0,0,0.0,FT 10% 10ep,ft_minimal,NPM1
+upsamples.0,dec0 (256ch),256,0.04613134016249837,100.0,170,66.40625,FT 10% 10ep,ft_minimal,NPM1
+upsamples.1,dec1 (128ch),128,0.3777730669050167,100.0,0,0.0,FT 10% 10ep,ft_minimal,NPM1
+upsamples.2,dec2 (64ch),64,0.463977586866046,100.0,0,0.0,FT 10% 10ep,ft_minimal,NPM1
+upsamples.3,dec3 (32ch),32,0.7336405053113898,100.0,0,0.0,FT 10% 10ep,ft_minimal,NPM1

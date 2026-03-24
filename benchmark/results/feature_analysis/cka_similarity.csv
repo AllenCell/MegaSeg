@@ -1,0 +1,91 @@
+layer,model_a,model_b,key_a,key_b,cka,n_shared_active
+input_block,MegaSeg pretrained,MegaSeg pretrained,megaseg_pretrained,megaseg_pretrained,1.0,32
+input_block,MegaSeg pretrained,FT 100% converged,megaseg_pretrained,finetune_100pct_converged,0.9999866894254639,32
+input_block,MegaSeg pretrained,Scratch 100% converged,megaseg_pretrained,scratch_100pct_converged,0.9973287076731411,32
+input_block,MegaSeg pretrained,FT 10% 10ep,megaseg_pretrained,finetune_10pct_10ep,0.9999999231648891,32
+input_block,FT 100% converged,FT 100% converged,finetune_100pct_converged,finetune_100pct_converged,1.0,32
+input_block,FT 100% converged,Scratch 100% converged,finetune_100pct_converged,scratch_100pct_converged,0.9976694203341449,32
+input_block,FT 100% converged,FT 10% 10ep,finetune_100pct_converged,finetune_10pct_10ep,0.999987672983958,32
+input_block,Scratch 100% converged,Scratch 100% converged,scratch_100pct_converged,scratch_100pct_converged,1.0,32
+input_block,Scratch 100% converged,FT 10% 10ep,scratch_100pct_converged,finetune_10pct_10ep,0.9973432602963269,32
+input_block,FT 10% 10ep,FT 10% 10ep,finetune_10pct_10ep,finetune_10pct_10ep,1.0,32
+downsamples.0,MegaSeg pretrained,MegaSeg pretrained,megaseg_pretrained,megaseg_pretrained,1.0,64
+downsamples.0,MegaSeg pretrained,FT 100% converged,megaseg_pretrained,finetune_100pct_converged,0.9999643312485109,64
+downsamples.0,MegaSeg pretrained,Scratch 100% converged,megaseg_pretrained,scratch_100pct_converged,0.9999901721623169,64
+downsamples.0,MegaSeg pretrained,FT 10% 10ep,megaseg_pretrained,finetune_10pct_10ep,0.9999969555767034,64
+downsamples.0,FT 100% converged,FT 100% converged,finetune_100pct_converged,finetune_100pct_converged,1.0,64
+downsamples.0,FT 100% converged,Scratch 100% converged,finetune_100pct_converged,scratch_100pct_converged,0.9999691098726158,64
+downsamples.0,FT 100% converged,FT 10% 10ep,finetune_100pct_converged,finetune_10pct_10ep,0.9999697334224735,64
+downsamples.0,Scratch 100% converged,Scratch 100% converged,scratch_100pct_converged,scratch_100pct_converged,1.0,64
+downsamples.0,Scratch 100% converged,FT 10% 10ep,scratch_100pct_converged,finetune_10pct_10ep,0.9999840568319377,64
+downsamples.0,FT 10% 10ep,FT 10% 10ep,finetune_10pct_10ep,finetune_10pct_10ep,1.0,64
+downsamples.1,MegaSeg pretrained,MegaSeg pretrained,megaseg_pretrained,megaseg_pretrained,1.0,128
+downsamples.1,MegaSeg pretrained,FT 100% converged,megaseg_pretrained,finetune_100pct_converged,0.9997003227043318,128
+downsamples.1,MegaSeg pretrained,Scratch 100% converged,megaseg_pretrained,scratch_100pct_converged,0.9998874240619641,128
+downsamples.1,MegaSeg pretrained,FT 10% 10ep,megaseg_pretrained,finetune_10pct_10ep,0.9999720997642915,128
+downsamples.1,FT 100% converged,FT 100% converged,finetune_100pct_converged,finetune_100pct_converged,1.0,128
+downsamples.1,FT 100% converged,Scratch 100% converged,finetune_100pct_converged,scratch_100pct_converged,0.9992548732395604,128
+downsamples.1,FT 100% converged,FT 10% 10ep,finetune_100pct_converged,finetune_10pct_10ep,0.999831175038667,128
+downsamples.1,Scratch 100% converged,Scratch 100% converged,scratch_100pct_converged,scratch_100pct_converged,1.0,128
+downsamples.1,Scratch 100% converged,FT 10% 10ep,scratch_100pct_converged,finetune_10pct_10ep,0.999781100824002,128
+downsamples.1,FT 10% 10ep,FT 10% 10ep,finetune_10pct_10ep,finetune_10pct_10ep,1.0,128
+downsamples.2,MegaSeg pretrained,MegaSeg pretrained,megaseg_pretrained,megaseg_pretrained,1.0,213
+downsamples.2,MegaSeg pretrained,FT 100% converged,megaseg_pretrained,finetune_100pct_converged,0.7435752884848378,203
+downsamples.2,MegaSeg pretrained,Scratch 100% converged,megaseg_pretrained,scratch_100pct_converged,0.6502595145988708,213
+downsamples.2,MegaSeg pretrained,FT 10% 10ep,megaseg_pretrained,finetune_10pct_10ep,0.8946206321639902,213
+downsamples.2,FT 100% converged,FT 100% converged,finetune_100pct_converged,finetune_100pct_converged,1.0,205
+downsamples.2,FT 100% converged,Scratch 100% converged,finetune_100pct_converged,scratch_100pct_converged,0.9890265045761325,205
+downsamples.2,FT 100% converged,FT 10% 10ep,finetune_100pct_converged,finetune_10pct_10ep,0.9075547261140977,203
+downsamples.2,Scratch 100% converged,Scratch 100% converged,scratch_100pct_converged,scratch_100pct_converged,1.0,256
+downsamples.2,Scratch 100% converged,FT 10% 10ep,scratch_100pct_converged,finetune_10pct_10ep,0.8620118739576671,223
+downsamples.2,FT 10% 10ep,FT 10% 10ep,finetune_10pct_10ep,finetune_10pct_10ep,1.0,223
+bottleneck,MegaSeg pretrained,MegaSeg pretrained,megaseg_pretrained,megaseg_pretrained,0.0,0
+bottleneck,MegaSeg pretrained,FT 100% converged,megaseg_pretrained,finetune_100pct_converged,0.0,0
+bottleneck,MegaSeg pretrained,Scratch 100% converged,megaseg_pretrained,scratch_100pct_converged,0.0,0
+bottleneck,MegaSeg pretrained,FT 10% 10ep,megaseg_pretrained,finetune_10pct_10ep,0.0,0
+bottleneck,FT 100% converged,FT 100% converged,finetune_100pct_converged,finetune_100pct_converged,0.0,0
+bottleneck,FT 100% converged,Scratch 100% converged,finetune_100pct_converged,scratch_100pct_converged,0.0,0
+bottleneck,FT 100% converged,FT 10% 10ep,finetune_100pct_converged,finetune_10pct_10ep,0.0,0
+bottleneck,Scratch 100% converged,Scratch 100% converged,scratch_100pct_converged,scratch_100pct_converged,1.0,320
+bottleneck,Scratch 100% converged,FT 10% 10ep,scratch_100pct_converged,finetune_10pct_10ep,0.0,0
+bottleneck,FT 10% 10ep,FT 10% 10ep,finetune_10pct_10ep,finetune_10pct_10ep,0.0,0
+upsamples.0,MegaSeg pretrained,MegaSeg pretrained,megaseg_pretrained,megaseg_pretrained,1.0,83
+upsamples.0,MegaSeg pretrained,FT 100% converged,megaseg_pretrained,finetune_100pct_converged,0.23453395404564317,78
+upsamples.0,MegaSeg pretrained,Scratch 100% converged,megaseg_pretrained,scratch_100pct_converged,0.4064351315948668,83
+upsamples.0,MegaSeg pretrained,FT 10% 10ep,megaseg_pretrained,finetune_10pct_10ep,0.6327251788869506,83
+upsamples.0,FT 100% converged,FT 100% converged,finetune_100pct_converged,finetune_100pct_converged,1.0,78
+upsamples.0,FT 100% converged,Scratch 100% converged,finetune_100pct_converged,scratch_100pct_converged,0.5620960938781507,78
+upsamples.0,FT 100% converged,FT 10% 10ep,finetune_100pct_converged,finetune_10pct_10ep,0.6468389386906209,78
+upsamples.0,Scratch 100% converged,Scratch 100% converged,scratch_100pct_converged,scratch_100pct_converged,1.0,256
+upsamples.0,Scratch 100% converged,FT 10% 10ep,scratch_100pct_converged,finetune_10pct_10ep,0.8045151160008364,85
+upsamples.0,FT 10% 10ep,FT 10% 10ep,finetune_10pct_10ep,finetune_10pct_10ep,1.0,85
+upsamples.1,MegaSeg pretrained,MegaSeg pretrained,megaseg_pretrained,megaseg_pretrained,1.0,128
+upsamples.1,MegaSeg pretrained,FT 100% converged,megaseg_pretrained,finetune_100pct_converged,0.9937025856380245,128
+upsamples.1,MegaSeg pretrained,Scratch 100% converged,megaseg_pretrained,scratch_100pct_converged,0.8167006418959919,128
+upsamples.1,MegaSeg pretrained,FT 10% 10ep,megaseg_pretrained,finetune_10pct_10ep,0.9987308158486566,128
+upsamples.1,FT 100% converged,FT 100% converged,finetune_100pct_converged,finetune_100pct_converged,1.0,128
+upsamples.1,FT 100% converged,Scratch 100% converged,finetune_100pct_converged,scratch_100pct_converged,0.8374317242525309,128
+upsamples.1,FT 100% converged,FT 10% 10ep,finetune_100pct_converged,finetune_10pct_10ep,0.9954546477656672,128
+upsamples.1,Scratch 100% converged,Scratch 100% converged,scratch_100pct_converged,scratch_100pct_converged,1.0,128
+upsamples.1,Scratch 100% converged,FT 10% 10ep,scratch_100pct_converged,finetune_10pct_10ep,0.8296909553860091,128
+upsamples.1,FT 10% 10ep,FT 10% 10ep,finetune_10pct_10ep,finetune_10pct_10ep,1.0,128
+upsamples.2,MegaSeg pretrained,MegaSeg pretrained,megaseg_pretrained,megaseg_pretrained,1.0,64
+upsamples.2,MegaSeg pretrained,FT 100% converged,megaseg_pretrained,finetune_100pct_converged,0.9751423376401468,64
+upsamples.2,MegaSeg pretrained,Scratch 100% converged,megaseg_pretrained,scratch_100pct_converged,0.5848487571207096,64
+upsamples.2,MegaSeg pretrained,FT 10% 10ep,megaseg_pretrained,finetune_10pct_10ep,0.9805685584816174,64
+upsamples.2,FT 100% converged,FT 100% converged,finetune_100pct_converged,finetune_100pct_converged,1.0,64
+upsamples.2,FT 100% converged,Scratch 100% converged,finetune_100pct_converged,scratch_100pct_converged,0.6944860339272869,64
+upsamples.2,FT 100% converged,FT 10% 10ep,finetune_100pct_converged,finetune_10pct_10ep,0.9938208516432502,64
+upsamples.2,Scratch 100% converged,Scratch 100% converged,scratch_100pct_converged,scratch_100pct_converged,1.0,64
+upsamples.2,Scratch 100% converged,FT 10% 10ep,scratch_100pct_converged,finetune_10pct_10ep,0.6660233084809419,64
+upsamples.2,FT 10% 10ep,FT 10% 10ep,finetune_10pct_10ep,finetune_10pct_10ep,1.0,64
+upsamples.3,MegaSeg pretrained,MegaSeg pretrained,megaseg_pretrained,megaseg_pretrained,1.0,32
+upsamples.3,MegaSeg pretrained,FT 100% converged,megaseg_pretrained,finetune_100pct_converged,0.7819321284183857,32
+upsamples.3,MegaSeg pretrained,Scratch 100% converged,megaseg_pretrained,scratch_100pct_converged,0.8666048770913416,32
+upsamples.3,MegaSeg pretrained,FT 10% 10ep,megaseg_pretrained,finetune_10pct_10ep,0.950577651827831,32
+upsamples.3,FT 100% converged,FT 100% converged,finetune_100pct_converged,finetune_100pct_converged,1.0,32
+upsamples.3,FT 100% converged,Scratch 100% converged,finetune_100pct_converged,scratch_100pct_converged,0.7914875133332129,32
+upsamples.3,FT 100% converged,FT 10% 10ep,finetune_100pct_converged,finetune_10pct_10ep,0.8819713436401121,32
+upsamples.3,Scratch 100% converged,Scratch 100% converged,scratch_100pct_converged,scratch_100pct_converged,1.0,32
+upsamples.3,Scratch 100% converged,FT 10% 10ep,scratch_100pct_converged,finetune_10pct_10ep,0.7981160548053192,32
+upsamples.3,FT 10% 10ep,FT 10% 10ep,finetune_10pct_10ep,finetune_10pct_10ep,1.0,32
