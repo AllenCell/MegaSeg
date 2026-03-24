@@ -44,13 +44,13 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 STRUCTURES = [
+    "AAVS1",
     "ACTN1",
     "ATP2A2",
     "CTNNB1",
     "DSP",
     "GJA1",
     "MYH10",
-    "NPM1",
     "NUP153",
     "RAB5A",
     "SEC61B",
@@ -59,6 +59,7 @@ STRUCTURES = [
     "TJP1",
     "TOMM20",
 ]
+# NOTE: NPM1 excluded - not used in training and no test data available.
 
 BACKBONES = ["dynunet", "attention_unet", "swin_unetr", "unet"]
 

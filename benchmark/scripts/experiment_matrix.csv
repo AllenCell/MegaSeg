@@ -5,7 +5,6 @@ float32,ACTN1,CTNNB1,eval/float32/cross_eval/ACTN1_model/cross_eval,outputs/eval
 float32,ACTN1,DSP,eval/float32/cross_eval/ACTN1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ACTN1/tested_on_DSP
 float32,ACTN1,GJA1,eval/float32/cross_eval/ACTN1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ACTN1/tested_on_GJA1
 float32,ACTN1,MYH10,eval/float32/cross_eval/ACTN1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ACTN1/tested_on_MYH10
-float32,ACTN1,NPM1,eval/float32/cross_eval/ACTN1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ACTN1/tested_on_NPM1
 float32,ACTN1,NUP153,eval/float32/cross_eval/ACTN1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ACTN1/tested_on_NUP153
 float32,ACTN1,RAB5A,eval/float32/cross_eval/ACTN1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ACTN1/tested_on_RAB5A
 float32,ACTN1,SEC61B,eval/float32/cross_eval/ACTN1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ACTN1/tested_on_SEC61B
@@ -19,7 +18,6 @@ float32,ATP2A2,CTNNB1,eval/float32/cross_eval/ATP2A2_model/cross_eval,outputs/ev
 float32,ATP2A2,DSP,eval/float32/cross_eval/ATP2A2_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ATP2A2/tested_on_DSP
 float32,ATP2A2,GJA1,eval/float32/cross_eval/ATP2A2_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ATP2A2/tested_on_GJA1
 float32,ATP2A2,MYH10,eval/float32/cross_eval/ATP2A2_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ATP2A2/tested_on_MYH10
-float32,ATP2A2,NPM1,eval/float32/cross_eval/ATP2A2_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ATP2A2/tested_on_NPM1
 float32,ATP2A2,NUP153,eval/float32/cross_eval/ATP2A2_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ATP2A2/tested_on_NUP153
 float32,ATP2A2,RAB5A,eval/float32/cross_eval/ATP2A2_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ATP2A2/tested_on_RAB5A
 float32,ATP2A2,SEC61B,eval/float32/cross_eval/ATP2A2_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ATP2A2/tested_on_SEC61B
@@ -33,7 +31,6 @@ float32,CTNNB1,CTNNB1,eval/float32/cross_eval/CTNNB1_model/cross_eval,outputs/ev
 float32,CTNNB1,DSP,eval/float32/cross_eval/CTNNB1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-CTNNB1/tested_on_DSP
 float32,CTNNB1,GJA1,eval/float32/cross_eval/CTNNB1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-CTNNB1/tested_on_GJA1
 float32,CTNNB1,MYH10,eval/float32/cross_eval/CTNNB1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-CTNNB1/tested_on_MYH10
-float32,CTNNB1,NPM1,eval/float32/cross_eval/CTNNB1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-CTNNB1/tested_on_NPM1
 float32,CTNNB1,NUP153,eval/float32/cross_eval/CTNNB1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-CTNNB1/tested_on_NUP153
 float32,CTNNB1,RAB5A,eval/float32/cross_eval/CTNNB1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-CTNNB1/tested_on_RAB5A
 float32,CTNNB1,SEC61B,eval/float32/cross_eval/CTNNB1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-CTNNB1/tested_on_SEC61B
@@ -47,7 +44,6 @@ float32,DSP,CTNNB1,eval/float32/cross_eval/DSP_model/cross_eval,outputs/eval/flo
 float32,DSP,DSP,eval/float32/cross_eval/DSP_model/cross_eval,outputs/eval/float32/cross_eval/ms13-DSP/tested_on_DSP
 float32,DSP,GJA1,eval/float32/cross_eval/DSP_model/cross_eval,outputs/eval/float32/cross_eval/ms13-DSP/tested_on_GJA1
 float32,DSP,MYH10,eval/float32/cross_eval/DSP_model/cross_eval,outputs/eval/float32/cross_eval/ms13-DSP/tested_on_MYH10
-float32,DSP,NPM1,eval/float32/cross_eval/DSP_model/cross_eval,outputs/eval/float32/cross_eval/ms13-DSP/tested_on_NPM1
 float32,DSP,NUP153,eval/float32/cross_eval/DSP_model/cross_eval,outputs/eval/float32/cross_eval/ms13-DSP/tested_on_NUP153
 float32,DSP,RAB5A,eval/float32/cross_eval/DSP_model/cross_eval,outputs/eval/float32/cross_eval/ms13-DSP/tested_on_RAB5A
 float32,DSP,SEC61B,eval/float32/cross_eval/DSP_model/cross_eval,outputs/eval/float32/cross_eval/ms13-DSP/tested_on_SEC61B
@@ -61,7 +57,6 @@ float32,GJA1,CTNNB1,eval/float32/cross_eval/GJA1_model/cross_eval,outputs/eval/f
 float32,GJA1,DSP,eval/float32/cross_eval/GJA1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-GJA1/tested_on_DSP
 float32,GJA1,GJA1,eval/float32/cross_eval/GJA1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-GJA1/tested_on_GJA1
 float32,GJA1,MYH10,eval/float32/cross_eval/GJA1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-GJA1/tested_on_MYH10
-float32,GJA1,NPM1,eval/float32/cross_eval/GJA1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-GJA1/tested_on_NPM1
 float32,GJA1,NUP153,eval/float32/cross_eval/GJA1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-GJA1/tested_on_NUP153
 float32,GJA1,RAB5A,eval/float32/cross_eval/GJA1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-GJA1/tested_on_RAB5A
 float32,GJA1,SEC61B,eval/float32/cross_eval/GJA1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-GJA1/tested_on_SEC61B
@@ -75,7 +70,6 @@ float32,MYH10,CTNNB1,eval/float32/cross_eval/MYH10_model/cross_eval,outputs/eval
 float32,MYH10,DSP,eval/float32/cross_eval/MYH10_model/cross_eval,outputs/eval/float32/cross_eval/ms13-MYH10/tested_on_DSP
 float32,MYH10,GJA1,eval/float32/cross_eval/MYH10_model/cross_eval,outputs/eval/float32/cross_eval/ms13-MYH10/tested_on_GJA1
 float32,MYH10,MYH10,eval/float32/cross_eval/MYH10_model/cross_eval,outputs/eval/float32/cross_eval/ms13-MYH10/tested_on_MYH10
-float32,MYH10,NPM1,eval/float32/cross_eval/MYH10_model/cross_eval,outputs/eval/float32/cross_eval/ms13-MYH10/tested_on_NPM1
 float32,MYH10,NUP153,eval/float32/cross_eval/MYH10_model/cross_eval,outputs/eval/float32/cross_eval/ms13-MYH10/tested_on_NUP153
 float32,MYH10,RAB5A,eval/float32/cross_eval/MYH10_model/cross_eval,outputs/eval/float32/cross_eval/ms13-MYH10/tested_on_RAB5A
 float32,MYH10,SEC61B,eval/float32/cross_eval/MYH10_model/cross_eval,outputs/eval/float32/cross_eval/ms13-MYH10/tested_on_SEC61B
@@ -83,27 +77,12 @@ float32,MYH10,SON,eval/float32/cross_eval/MYH10_model/cross_eval,outputs/eval/fl
 float32,MYH10,ST6GAL1,eval/float32/cross_eval/MYH10_model/cross_eval,outputs/eval/float32/cross_eval/ms13-MYH10/tested_on_ST6GAL1
 float32,MYH10,TJP1,eval/float32/cross_eval/MYH10_model/cross_eval,outputs/eval/float32/cross_eval/ms13-MYH10/tested_on_TJP1
 float32,MYH10,TOMM20,eval/float32/cross_eval/MYH10_model/cross_eval,outputs/eval/float32/cross_eval/ms13-MYH10/tested_on_TOMM20
-float32,NPM1,ACTN1,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_ACTN1
-float32,NPM1,ATP2A2,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_ATP2A2
-float32,NPM1,CTNNB1,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_CTNNB1
-float32,NPM1,DSP,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_DSP
-float32,NPM1,GJA1,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_GJA1
-float32,NPM1,MYH10,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_MYH10
-float32,NPM1,NPM1,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_NPM1
-float32,NPM1,NUP153,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_NUP153
-float32,NPM1,RAB5A,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_RAB5A
-float32,NPM1,SEC61B,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_SEC61B
-float32,NPM1,SON,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_SON
-float32,NPM1,ST6GAL1,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_ST6GAL1
-float32,NPM1,TJP1,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_TJP1
-float32,NPM1,TOMM20,eval/float32/cross_eval/NPM1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NPM1/tested_on_TOMM20
 float32,NUP153,ACTN1,eval/float32/cross_eval/NUP153_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NUP153/tested_on_ACTN1
 float32,NUP153,ATP2A2,eval/float32/cross_eval/NUP153_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NUP153/tested_on_ATP2A2
 float32,NUP153,CTNNB1,eval/float32/cross_eval/NUP153_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NUP153/tested_on_CTNNB1
 float32,NUP153,DSP,eval/float32/cross_eval/NUP153_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NUP153/tested_on_DSP
 float32,NUP153,GJA1,eval/float32/cross_eval/NUP153_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NUP153/tested_on_GJA1
 float32,NUP153,MYH10,eval/float32/cross_eval/NUP153_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NUP153/tested_on_MYH10
-float32,NUP153,NPM1,eval/float32/cross_eval/NUP153_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NUP153/tested_on_NPM1
 float32,NUP153,NUP153,eval/float32/cross_eval/NUP153_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NUP153/tested_on_NUP153
 float32,NUP153,RAB5A,eval/float32/cross_eval/NUP153_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NUP153/tested_on_RAB5A
 float32,NUP153,SEC61B,eval/float32/cross_eval/NUP153_model/cross_eval,outputs/eval/float32/cross_eval/ms13-NUP153/tested_on_SEC61B
@@ -117,7 +96,6 @@ float32,RAB5A,CTNNB1,eval/float32/cross_eval/RAB5A_model/cross_eval,outputs/eval
 float32,RAB5A,DSP,eval/float32/cross_eval/RAB5A_model/cross_eval,outputs/eval/float32/cross_eval/ms13-RAB5A/tested_on_DSP
 float32,RAB5A,GJA1,eval/float32/cross_eval/RAB5A_model/cross_eval,outputs/eval/float32/cross_eval/ms13-RAB5A/tested_on_GJA1
 float32,RAB5A,MYH10,eval/float32/cross_eval/RAB5A_model/cross_eval,outputs/eval/float32/cross_eval/ms13-RAB5A/tested_on_MYH10
-float32,RAB5A,NPM1,eval/float32/cross_eval/RAB5A_model/cross_eval,outputs/eval/float32/cross_eval/ms13-RAB5A/tested_on_NPM1
 float32,RAB5A,NUP153,eval/float32/cross_eval/RAB5A_model/cross_eval,outputs/eval/float32/cross_eval/ms13-RAB5A/tested_on_NUP153
 float32,RAB5A,RAB5A,eval/float32/cross_eval/RAB5A_model/cross_eval,outputs/eval/float32/cross_eval/ms13-RAB5A/tested_on_RAB5A
 float32,RAB5A,SEC61B,eval/float32/cross_eval/RAB5A_model/cross_eval,outputs/eval/float32/cross_eval/ms13-RAB5A/tested_on_SEC61B
@@ -131,7 +109,6 @@ float32,SEC61B,CTNNB1,eval/float32/cross_eval/SEC61B_model/cross_eval,outputs/ev
 float32,SEC61B,DSP,eval/float32/cross_eval/SEC61B_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SEC61B/tested_on_DSP
 float32,SEC61B,GJA1,eval/float32/cross_eval/SEC61B_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SEC61B/tested_on_GJA1
 float32,SEC61B,MYH10,eval/float32/cross_eval/SEC61B_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SEC61B/tested_on_MYH10
-float32,SEC61B,NPM1,eval/float32/cross_eval/SEC61B_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SEC61B/tested_on_NPM1
 float32,SEC61B,NUP153,eval/float32/cross_eval/SEC61B_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SEC61B/tested_on_NUP153
 float32,SEC61B,RAB5A,eval/float32/cross_eval/SEC61B_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SEC61B/tested_on_RAB5A
 float32,SEC61B,SEC61B,eval/float32/cross_eval/SEC61B_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SEC61B/tested_on_SEC61B
@@ -145,7 +122,6 @@ float32,SON,CTNNB1,eval/float32/cross_eval/SON_model/cross_eval,outputs/eval/flo
 float32,SON,DSP,eval/float32/cross_eval/SON_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SON/tested_on_DSP
 float32,SON,GJA1,eval/float32/cross_eval/SON_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SON/tested_on_GJA1
 float32,SON,MYH10,eval/float32/cross_eval/SON_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SON/tested_on_MYH10
-float32,SON,NPM1,eval/float32/cross_eval/SON_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SON/tested_on_NPM1
 float32,SON,NUP153,eval/float32/cross_eval/SON_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SON/tested_on_NUP153
 float32,SON,RAB5A,eval/float32/cross_eval/SON_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SON/tested_on_RAB5A
 float32,SON,SEC61B,eval/float32/cross_eval/SON_model/cross_eval,outputs/eval/float32/cross_eval/ms13-SON/tested_on_SEC61B
@@ -159,7 +135,6 @@ float32,ST6GAL1,CTNNB1,eval/float32/cross_eval/ST6GAL1_model/cross_eval,outputs/
 float32,ST6GAL1,DSP,eval/float32/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ST6GAL1/tested_on_DSP
 float32,ST6GAL1,GJA1,eval/float32/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ST6GAL1/tested_on_GJA1
 float32,ST6GAL1,MYH10,eval/float32/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ST6GAL1/tested_on_MYH10
-float32,ST6GAL1,NPM1,eval/float32/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ST6GAL1/tested_on_NPM1
 float32,ST6GAL1,NUP153,eval/float32/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ST6GAL1/tested_on_NUP153
 float32,ST6GAL1,RAB5A,eval/float32/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ST6GAL1/tested_on_RAB5A
 float32,ST6GAL1,SEC61B,eval/float32/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-ST6GAL1/tested_on_SEC61B
@@ -173,7 +148,6 @@ float32,TJP1,CTNNB1,eval/float32/cross_eval/TJP1_model/cross_eval,outputs/eval/f
 float32,TJP1,DSP,eval/float32/cross_eval/TJP1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TJP1/tested_on_DSP
 float32,TJP1,GJA1,eval/float32/cross_eval/TJP1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TJP1/tested_on_GJA1
 float32,TJP1,MYH10,eval/float32/cross_eval/TJP1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TJP1/tested_on_MYH10
-float32,TJP1,NPM1,eval/float32/cross_eval/TJP1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TJP1/tested_on_NPM1
 float32,TJP1,NUP153,eval/float32/cross_eval/TJP1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TJP1/tested_on_NUP153
 float32,TJP1,RAB5A,eval/float32/cross_eval/TJP1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TJP1/tested_on_RAB5A
 float32,TJP1,SEC61B,eval/float32/cross_eval/TJP1_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TJP1/tested_on_SEC61B
@@ -187,7 +161,6 @@ float32,TOMM20,CTNNB1,eval/float32/cross_eval/TOMM20_model/cross_eval,outputs/ev
 float32,TOMM20,DSP,eval/float32/cross_eval/TOMM20_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TOMM20/tested_on_DSP
 float32,TOMM20,GJA1,eval/float32/cross_eval/TOMM20_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TOMM20/tested_on_GJA1
 float32,TOMM20,MYH10,eval/float32/cross_eval/TOMM20_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TOMM20/tested_on_MYH10
-float32,TOMM20,NPM1,eval/float32/cross_eval/TOMM20_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TOMM20/tested_on_NPM1
 float32,TOMM20,NUP153,eval/float32/cross_eval/TOMM20_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TOMM20/tested_on_NUP153
 float32,TOMM20,RAB5A,eval/float32/cross_eval/TOMM20_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TOMM20/tested_on_RAB5A
 float32,TOMM20,SEC61B,eval/float32/cross_eval/TOMM20_model/cross_eval,outputs/eval/float32/cross_eval/ms13-TOMM20/tested_on_SEC61B
@@ -201,7 +174,6 @@ uint8,ACTN1,CTNNB1,eval/uint8/cross_eval/ACTN1_model/cross_eval,outputs/eval/uin
 uint8,ACTN1,DSP,eval/uint8/cross_eval/ACTN1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ACTN1/tested_on_DSP
 uint8,ACTN1,GJA1,eval/uint8/cross_eval/ACTN1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ACTN1/tested_on_GJA1
 uint8,ACTN1,MYH10,eval/uint8/cross_eval/ACTN1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ACTN1/tested_on_MYH10
-uint8,ACTN1,NPM1,eval/uint8/cross_eval/ACTN1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ACTN1/tested_on_NPM1
 uint8,ACTN1,NUP153,eval/uint8/cross_eval/ACTN1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ACTN1/tested_on_NUP153
 uint8,ACTN1,RAB5A,eval/uint8/cross_eval/ACTN1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ACTN1/tested_on_RAB5A
 uint8,ACTN1,SEC61B,eval/uint8/cross_eval/ACTN1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ACTN1/tested_on_SEC61B
@@ -215,7 +187,6 @@ uint8,ATP2A2,CTNNB1,eval/uint8/cross_eval/ATP2A2_model/cross_eval,outputs/eval/u
 uint8,ATP2A2,DSP,eval/uint8/cross_eval/ATP2A2_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ATP2A2/tested_on_DSP
 uint8,ATP2A2,GJA1,eval/uint8/cross_eval/ATP2A2_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ATP2A2/tested_on_GJA1
 uint8,ATP2A2,MYH10,eval/uint8/cross_eval/ATP2A2_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ATP2A2/tested_on_MYH10
-uint8,ATP2A2,NPM1,eval/uint8/cross_eval/ATP2A2_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ATP2A2/tested_on_NPM1
 uint8,ATP2A2,NUP153,eval/uint8/cross_eval/ATP2A2_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ATP2A2/tested_on_NUP153
 uint8,ATP2A2,RAB5A,eval/uint8/cross_eval/ATP2A2_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ATP2A2/tested_on_RAB5A
 uint8,ATP2A2,SEC61B,eval/uint8/cross_eval/ATP2A2_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ATP2A2/tested_on_SEC61B
@@ -229,7 +200,6 @@ uint8,CTNNB1,CTNNB1,eval/uint8/cross_eval/CTNNB1_model/cross_eval,outputs/eval/u
 uint8,CTNNB1,DSP,eval/uint8/cross_eval/CTNNB1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-CTNNB1/tested_on_DSP
 uint8,CTNNB1,GJA1,eval/uint8/cross_eval/CTNNB1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-CTNNB1/tested_on_GJA1
 uint8,CTNNB1,MYH10,eval/uint8/cross_eval/CTNNB1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-CTNNB1/tested_on_MYH10
-uint8,CTNNB1,NPM1,eval/uint8/cross_eval/CTNNB1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-CTNNB1/tested_on_NPM1
 uint8,CTNNB1,NUP153,eval/uint8/cross_eval/CTNNB1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-CTNNB1/tested_on_NUP153
 uint8,CTNNB1,RAB5A,eval/uint8/cross_eval/CTNNB1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-CTNNB1/tested_on_RAB5A
 uint8,CTNNB1,SEC61B,eval/uint8/cross_eval/CTNNB1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-CTNNB1/tested_on_SEC61B
@@ -243,7 +213,6 @@ uint8,DSP,CTNNB1,eval/uint8/cross_eval/DSP_model/cross_eval,outputs/eval/uint8/c
 uint8,DSP,DSP,eval/uint8/cross_eval/DSP_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-DSP/tested_on_DSP
 uint8,DSP,GJA1,eval/uint8/cross_eval/DSP_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-DSP/tested_on_GJA1
 uint8,DSP,MYH10,eval/uint8/cross_eval/DSP_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-DSP/tested_on_MYH10
-uint8,DSP,NPM1,eval/uint8/cross_eval/DSP_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-DSP/tested_on_NPM1
 uint8,DSP,NUP153,eval/uint8/cross_eval/DSP_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-DSP/tested_on_NUP153
 uint8,DSP,RAB5A,eval/uint8/cross_eval/DSP_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-DSP/tested_on_RAB5A
 uint8,DSP,SEC61B,eval/uint8/cross_eval/DSP_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-DSP/tested_on_SEC61B
@@ -257,7 +226,6 @@ uint8,GJA1,CTNNB1,eval/uint8/cross_eval/GJA1_model/cross_eval,outputs/eval/uint8
 uint8,GJA1,DSP,eval/uint8/cross_eval/GJA1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-GJA1/tested_on_DSP
 uint8,GJA1,GJA1,eval/uint8/cross_eval/GJA1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-GJA1/tested_on_GJA1
 uint8,GJA1,MYH10,eval/uint8/cross_eval/GJA1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-GJA1/tested_on_MYH10
-uint8,GJA1,NPM1,eval/uint8/cross_eval/GJA1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-GJA1/tested_on_NPM1
 uint8,GJA1,NUP153,eval/uint8/cross_eval/GJA1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-GJA1/tested_on_NUP153
 uint8,GJA1,RAB5A,eval/uint8/cross_eval/GJA1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-GJA1/tested_on_RAB5A
 uint8,GJA1,SEC61B,eval/uint8/cross_eval/GJA1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-GJA1/tested_on_SEC61B
@@ -271,7 +239,6 @@ uint8,MYH10,CTNNB1,eval/uint8/cross_eval/MYH10_model/cross_eval,outputs/eval/uin
 uint8,MYH10,DSP,eval/uint8/cross_eval/MYH10_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-MYH10/tested_on_DSP
 uint8,MYH10,GJA1,eval/uint8/cross_eval/MYH10_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-MYH10/tested_on_GJA1
 uint8,MYH10,MYH10,eval/uint8/cross_eval/MYH10_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-MYH10/tested_on_MYH10
-uint8,MYH10,NPM1,eval/uint8/cross_eval/MYH10_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-MYH10/tested_on_NPM1
 uint8,MYH10,NUP153,eval/uint8/cross_eval/MYH10_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-MYH10/tested_on_NUP153
 uint8,MYH10,RAB5A,eval/uint8/cross_eval/MYH10_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-MYH10/tested_on_RAB5A
 uint8,MYH10,SEC61B,eval/uint8/cross_eval/MYH10_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-MYH10/tested_on_SEC61B
@@ -279,27 +246,12 @@ uint8,MYH10,SON,eval/uint8/cross_eval/MYH10_model/cross_eval,outputs/eval/uint8/
 uint8,MYH10,ST6GAL1,eval/uint8/cross_eval/MYH10_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-MYH10/tested_on_ST6GAL1
 uint8,MYH10,TJP1,eval/uint8/cross_eval/MYH10_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-MYH10/tested_on_TJP1
 uint8,MYH10,TOMM20,eval/uint8/cross_eval/MYH10_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-MYH10/tested_on_TOMM20
-uint8,NPM1,ACTN1,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_ACTN1
-uint8,NPM1,ATP2A2,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_ATP2A2
-uint8,NPM1,CTNNB1,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_CTNNB1
-uint8,NPM1,DSP,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_DSP
-uint8,NPM1,GJA1,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_GJA1
-uint8,NPM1,MYH10,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_MYH10
-uint8,NPM1,NPM1,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_NPM1
-uint8,NPM1,NUP153,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_NUP153
-uint8,NPM1,RAB5A,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_RAB5A
-uint8,NPM1,SEC61B,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_SEC61B
-uint8,NPM1,SON,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_SON
-uint8,NPM1,ST6GAL1,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_ST6GAL1
-uint8,NPM1,TJP1,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_TJP1
-uint8,NPM1,TOMM20,eval/uint8/cross_eval/NPM1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NPM1/tested_on_TOMM20
 uint8,NUP153,ACTN1,eval/uint8/cross_eval/NUP153_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NUP153/tested_on_ACTN1
 uint8,NUP153,ATP2A2,eval/uint8/cross_eval/NUP153_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NUP153/tested_on_ATP2A2
 uint8,NUP153,CTNNB1,eval/uint8/cross_eval/NUP153_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NUP153/tested_on_CTNNB1
 uint8,NUP153,DSP,eval/uint8/cross_eval/NUP153_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NUP153/tested_on_DSP
 uint8,NUP153,GJA1,eval/uint8/cross_eval/NUP153_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NUP153/tested_on_GJA1
 uint8,NUP153,MYH10,eval/uint8/cross_eval/NUP153_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NUP153/tested_on_MYH10
-uint8,NUP153,NPM1,eval/uint8/cross_eval/NUP153_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NUP153/tested_on_NPM1
 uint8,NUP153,NUP153,eval/uint8/cross_eval/NUP153_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NUP153/tested_on_NUP153
 uint8,NUP153,RAB5A,eval/uint8/cross_eval/NUP153_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NUP153/tested_on_RAB5A
 uint8,NUP153,SEC61B,eval/uint8/cross_eval/NUP153_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-NUP153/tested_on_SEC61B
@@ -313,7 +265,6 @@ uint8,RAB5A,CTNNB1,eval/uint8/cross_eval/RAB5A_model/cross_eval,outputs/eval/uin
 uint8,RAB5A,DSP,eval/uint8/cross_eval/RAB5A_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-RAB5A/tested_on_DSP
 uint8,RAB5A,GJA1,eval/uint8/cross_eval/RAB5A_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-RAB5A/tested_on_GJA1
 uint8,RAB5A,MYH10,eval/uint8/cross_eval/RAB5A_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-RAB5A/tested_on_MYH10
-uint8,RAB5A,NPM1,eval/uint8/cross_eval/RAB5A_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-RAB5A/tested_on_NPM1
 uint8,RAB5A,NUP153,eval/uint8/cross_eval/RAB5A_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-RAB5A/tested_on_NUP153
 uint8,RAB5A,RAB5A,eval/uint8/cross_eval/RAB5A_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-RAB5A/tested_on_RAB5A
 uint8,RAB5A,SEC61B,eval/uint8/cross_eval/RAB5A_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-RAB5A/tested_on_SEC61B
@@ -327,7 +278,6 @@ uint8,SEC61B,CTNNB1,eval/uint8/cross_eval/SEC61B_model/cross_eval,outputs/eval/u
 uint8,SEC61B,DSP,eval/uint8/cross_eval/SEC61B_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SEC61B/tested_on_DSP
 uint8,SEC61B,GJA1,eval/uint8/cross_eval/SEC61B_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SEC61B/tested_on_GJA1
 uint8,SEC61B,MYH10,eval/uint8/cross_eval/SEC61B_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SEC61B/tested_on_MYH10
-uint8,SEC61B,NPM1,eval/uint8/cross_eval/SEC61B_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SEC61B/tested_on_NPM1
 uint8,SEC61B,NUP153,eval/uint8/cross_eval/SEC61B_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SEC61B/tested_on_NUP153
 uint8,SEC61B,RAB5A,eval/uint8/cross_eval/SEC61B_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SEC61B/tested_on_RAB5A
 uint8,SEC61B,SEC61B,eval/uint8/cross_eval/SEC61B_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SEC61B/tested_on_SEC61B
@@ -341,7 +291,6 @@ uint8,SON,CTNNB1,eval/uint8/cross_eval/SON_model/cross_eval,outputs/eval/uint8/c
 uint8,SON,DSP,eval/uint8/cross_eval/SON_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SON/tested_on_DSP
 uint8,SON,GJA1,eval/uint8/cross_eval/SON_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SON/tested_on_GJA1
 uint8,SON,MYH10,eval/uint8/cross_eval/SON_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SON/tested_on_MYH10
-uint8,SON,NPM1,eval/uint8/cross_eval/SON_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SON/tested_on_NPM1
 uint8,SON,NUP153,eval/uint8/cross_eval/SON_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SON/tested_on_NUP153
 uint8,SON,RAB5A,eval/uint8/cross_eval/SON_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SON/tested_on_RAB5A
 uint8,SON,SEC61B,eval/uint8/cross_eval/SON_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-SON/tested_on_SEC61B
@@ -355,7 +304,6 @@ uint8,ST6GAL1,CTNNB1,eval/uint8/cross_eval/ST6GAL1_model/cross_eval,outputs/eval
 uint8,ST6GAL1,DSP,eval/uint8/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ST6GAL1/tested_on_DSP
 uint8,ST6GAL1,GJA1,eval/uint8/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ST6GAL1/tested_on_GJA1
 uint8,ST6GAL1,MYH10,eval/uint8/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ST6GAL1/tested_on_MYH10
-uint8,ST6GAL1,NPM1,eval/uint8/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ST6GAL1/tested_on_NPM1
 uint8,ST6GAL1,NUP153,eval/uint8/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ST6GAL1/tested_on_NUP153
 uint8,ST6GAL1,RAB5A,eval/uint8/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ST6GAL1/tested_on_RAB5A
 uint8,ST6GAL1,SEC61B,eval/uint8/cross_eval/ST6GAL1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-ST6GAL1/tested_on_SEC61B
@@ -369,7 +317,6 @@ uint8,TJP1,CTNNB1,eval/uint8/cross_eval/TJP1_model/cross_eval,outputs/eval/uint8
 uint8,TJP1,DSP,eval/uint8/cross_eval/TJP1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TJP1/tested_on_DSP
 uint8,TJP1,GJA1,eval/uint8/cross_eval/TJP1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TJP1/tested_on_GJA1
 uint8,TJP1,MYH10,eval/uint8/cross_eval/TJP1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TJP1/tested_on_MYH10
-uint8,TJP1,NPM1,eval/uint8/cross_eval/TJP1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TJP1/tested_on_NPM1
 uint8,TJP1,NUP153,eval/uint8/cross_eval/TJP1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TJP1/tested_on_NUP153
 uint8,TJP1,RAB5A,eval/uint8/cross_eval/TJP1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TJP1/tested_on_RAB5A
 uint8,TJP1,SEC61B,eval/uint8/cross_eval/TJP1_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TJP1/tested_on_SEC61B
@@ -383,7 +330,6 @@ uint8,TOMM20,CTNNB1,eval/uint8/cross_eval/TOMM20_model/cross_eval,outputs/eval/u
 uint8,TOMM20,DSP,eval/uint8/cross_eval/TOMM20_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TOMM20/tested_on_DSP
 uint8,TOMM20,GJA1,eval/uint8/cross_eval/TOMM20_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TOMM20/tested_on_GJA1
 uint8,TOMM20,MYH10,eval/uint8/cross_eval/TOMM20_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TOMM20/tested_on_MYH10
-uint8,TOMM20,NPM1,eval/uint8/cross_eval/TOMM20_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TOMM20/tested_on_NPM1
 uint8,TOMM20,NUP153,eval/uint8/cross_eval/TOMM20_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TOMM20/tested_on_NUP153
 uint8,TOMM20,RAB5A,eval/uint8/cross_eval/TOMM20_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TOMM20/tested_on_RAB5A
 uint8,TOMM20,SEC61B,eval/uint8/cross_eval/TOMM20_model/cross_eval,outputs/eval/uint8/cross_eval/ms13-TOMM20/tested_on_SEC61B

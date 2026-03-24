@@ -1,0 +1,40 @@
+# @package _global_
+# Ablation: train DynUNet from scratch on 2 structures
+# Structures: TOMM20, TJP1
+defaults:
+  - override /data: local/segmentation_finetune.yaml
+  - override /model: local/segmentation_ms25_float32.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: ddp.yaml
+  - override /logger: csv.yaml
+
+tags: ["ablation", "2-structs", "from-scratch"]
+seed: 12345
+test: false
+
+channel_name: "C:0"
+
+checkpoint:
+  ckpt_path: null
+  weights_only: null
+  strict: true
+
+experiment_name: ablation_2_structs
+run_name: dynunet_2structs_scratch
+source_col: raw
+target_col: seg
+spatial_dims: 3
+raw_im_channels: 1
+
+trainer:
+  max_epochs: 700
+  devices: [0]
+
+data:
+  path: /allen/aics/rep_learn/MegaSeg/data/ablation/2-STRUCTS/
+  cache_dir: /allen/aics/rep_learn/MegaSeg/benchmark/cache/
+  subsample:
+  batch_size: 32
+  num_workers: 12
+  _aux:
+    patch_shape: [32, 128, 128]
