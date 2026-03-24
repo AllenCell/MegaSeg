@@ -25,10 +25,16 @@ MS_CLASSIC_DIR = Path("/allen/aics/lumenoid/inner_outer_seg/megaseg_exp/ms_class
 # ---------------------------------------------------------------------------
 STRUCTURES = {
     # structure: (script_basename, workflow_func_name, broken_reason_or_None)
+    #
+    # script_basename=None means "import from the installed aicssegmentation
+    # package" (aicssegmentation.structure_wrapper.seg_{struct_lower}).
     "ACTN1": ("ms_seg_ACTN1.py", "Workflow_actn1", None),
+    "ATP2A2": (None, "Workflow_atp2a2", None),
     "CETN2": ("classic_segmentation_CETN2.py", "Workflow_cetn2", "peak_local_max"),
     "CTNNB1": ("classic_segmentation_CTNNB1.py", "Workflow_ctnnb1", None),
+    "DSP": (None, "Workflow_dsp", None),
     "FBL": ("classic_segmentation_FBL.py", "Workflow_fbl", None),
+    "GJA1": (None, "Workflow_gja1", None),
     "LAMP1": ("classic_segmentation_LAMP1.py", "Workflow_lamp1", None),
     "LMNB1": (
         "classic_segmentation_LMNB1.py",
@@ -52,6 +58,7 @@ STRUCTURES = {
     ),
     "SON": ("classic_segmentation_SON.py", "Workflow_son", None),
     "ST6GAL1": ("classic_segmentation_ST6GAL1.py", "Workflow_st6gal1", None),
+    "TJP1": (None, "Workflow_tjp1", None),
     "TOMM20": ("classic_segmentation_TOMM20.py", "Workflow_tomm20", "main_only"),
     "TUBA1B": ("classic_segmentation_TUBA1B.py", "Workflow_tuba1b", None),
 }
@@ -198,7 +205,11 @@ def load_workflow_function(
 ) -> Optional[Callable]:
     """Dynamically import the workflow function for a structure.
 
-    Applies source patches for scripts with known incompatibilities.
+    Structures with ``script_basename=None`` in STRUCTURES are imported
+    directly from the installed ``aicssegmentation.structure_wrapper``
+    package.  All others are loaded from local scripts in MS_CLASSIC_DIR,
+    with source patches applied for known incompatibilities.
+
     Returns the callable workflow function, or None on failure.
     """
     if structure not in STRUCTURES:
@@ -206,13 +217,21 @@ def load_workflow_function(
         return None
 
     script_basename, func_name, broken_reason = STRUCTURES[structure]
-    script_path = MS_CLASSIC_DIR / script_basename
-
-    if not script_path.exists():
-        print(f"  WARNING: Script not found: {script_path}", file=sys.stderr)
-        return None
 
     try:
+        # --- Import from installed aicssegmentation package ---
+        if script_basename is None:
+            module_path = f"aicssegmentation.structure_wrapper.seg_{structure.lower()}"
+            module = importlib.import_module(module_path)
+            return getattr(module, func_name)
+
+        # --- Import from local script with optional patching ---
+        script_path = MS_CLASSIC_DIR / script_basename
+
+        if not script_path.exists():
+            print(f"  WARNING: Script not found: {script_path}", file=sys.stderr)
+            return None
+
         if broken_reason:
             # Apply source patches and compile
             patched_source = patch_script_source(script_path, broken_reason)
