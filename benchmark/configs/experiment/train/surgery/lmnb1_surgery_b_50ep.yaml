@@ -1,0 +1,60 @@
+# @package _global_
+#
+# Strategy B: Reinitialize bottleneck + dec0 (cascade)
+# -----------------------------------------------------
+# The bottleneck is 100% dead and dec0 (upsamples.0) is ~66% dead from the
+# cascade effect of zero bottleneck activations. This surgery reinitializes
+# both layers to give the decoder a fresh start from the deep path.
+#
+# Control: FT 100% converged = Dice 0.958, Hausdorff-95 0.20
+# Hypothesis: Reinitializing the cascade-damaged decoder alongside the
+# bottleneck allows coherent deep feature learning.
+
+defaults:
+  - override /data: local/segmentation_finetune.yaml
+  - override /model: local/segmentation_ms25_float32.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: ddp.yaml
+  - override /logger: csv.yaml
+
+persist_cache: true
+
+tags: ["surgery", "strategy_b", "reinit_bottleneck_cascade", "lmnb1"]
+seed: 12345
+test: false
+
+channel_name: EGFP
+
+checkpoint:
+  ckpt_path: /allen/aics/assay-dev/users/Suraj/megaSeg/Amil/cyto-dl/logs/train/runs/megaseg_b64_deep_new_13-STRUCTS/dynUNet_st6_base_cytodl/2024-07-15_00-39-47/checkpoints/epoch_650.ckpt
+  weights_only: true
+  strict: true
+
+experiment_name: lmnb1_surgery_b_50ep
+run_name: lmnb1_surgery_b_reinit_cascade
+
+source_col: raw
+target_col: seg
+spatial_dims: 3
+raw_im_channels: 1
+
+trainer:
+  max_epochs: 50
+  devices: [0]
+
+callbacks:
+  layer_reinit:
+    _target_: cyto_dl.callbacks.LayerReinit
+    modules: backbone
+    layers: [bottleneck, "upsamples.0"]
+    freeze_others: false
+    init_method: kaiming_normal
+
+data:
+  path: /allen/aics/rep_learn/MegaSeg/data/variance-100x/LMNB1/local/
+  cache_dir: /allen/aics/rep_learn/MegaSeg/benchmark/cache/tmpi4tkztph
+  subsample:
+  batch_size: 16
+  num_workers: 4
+  _aux:
+    patch_shape: [32, 128, 128]

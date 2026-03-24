@@ -1,0 +1,60 @@
+# @package _global_
+#
+# Strategy A: Reinitialize bottleneck only
+# -----------------------------------------
+# The MegaSeg pretrained bottleneck (320 channels) is 100% dead (all zeros).
+# This surgery reinitializes just the bottleneck with Kaiming normal weights
+# while preserving all other pretrained layers.
+#
+# Control: FT 100% converged = Dice 0.958, Hausdorff-95 0.20
+# Hypothesis: Fresh bottleneck weights allow the model to learn useful deep
+# representations, potentially improving over standard FT.
+
+defaults:
+  - override /data: local/segmentation_finetune.yaml
+  - override /model: local/segmentation_ms25_float32.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: ddp.yaml
+  - override /logger: csv.yaml
+
+persist_cache: true
+
+tags: ["surgery", "strategy_a", "reinit_bottleneck", "lmnb1"]
+seed: 12345
+test: false
+
+channel_name: EGFP
+
+checkpoint:
+  ckpt_path: /allen/aics/assay-dev/users/Suraj/megaSeg/Amil/cyto-dl/logs/train/runs/megaseg_b64_deep_new_13-STRUCTS/dynUNet_st6_base_cytodl/2024-07-15_00-39-47/checkpoints/epoch_650.ckpt
+  weights_only: true
+  strict: true
+
+experiment_name: lmnb1_surgery_a_50ep
+run_name: lmnb1_surgery_a_reinit_bottleneck
+
+source_col: raw
+target_col: seg
+spatial_dims: 3
+raw_im_channels: 1
+
+trainer:
+  max_epochs: 50
+  devices: [0]
+
+callbacks:
+  layer_reinit:
+    _target_: cyto_dl.callbacks.LayerReinit
+    modules: backbone
+    layers: [bottleneck]
+    freeze_others: false
+    init_method: kaiming_normal
+
+data:
+  path: /allen/aics/rep_learn/MegaSeg/data/variance-100x/LMNB1/local/
+  cache_dir: /allen/aics/rep_learn/MegaSeg/benchmark/cache/tmpi4tkztph
+  subsample:
+  batch_size: 16
+  num_workers: 4
+  _aux:
+    patch_shape: [32, 128, 128]

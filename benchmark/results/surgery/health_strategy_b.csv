@@ -1,0 +1,11 @@
+layer,n_channels,n_dead,pct_dead,n_images
+input_block,32,0,0.0,5
+downsamples.0,64,0,0.0,5
+downsamples.1,128,0,0.0,5
+downsamples.2,256,2,0.8,5
+bottleneck,320,0,0.0,5
+upsamples.0,256,0,0.0,5
+upsamples.1,128,0,0.0,5
+upsamples.2,64,0,0.0,5
+upsamples.3,32,0,0.0,5
+output_block,1,0,0.0,5
