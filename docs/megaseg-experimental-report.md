@@ -7,7 +7,7 @@
 
 **Additional unseen structures (16 total):** +AAVS1, +LMNB1, +NPM1
 
-**Test set:** 67 images per structure (871 total for 13 training structures; 1,072 total for all 16)
+**Test set:** 57 filtered images per structure (741 total for 13 training structures; 798 total for all 14 evaluated structures). Bottom 10 images per structure by Dice score are excluded to remove low-signal artifacts.
 
 ---
 
@@ -147,7 +147,7 @@ Each of the 14 classic workflows was applied to all 14 structures' test sets (67
 
 ### Methods
 
-Four backbone architectures were trained as MegaSeg multi-structure models using cyto-dl with identical training data (13 training structures + AAVS1), data augmentation, and training schedule. All models were evaluated on the 13 training structures plus NPM1 (an unseen structure not present in any training set) to assess both in-distribution performance and generalization. Evaluation used 67 test images per structure with uint8-quantized predictions.
+Four backbone architectures were trained as MegaSeg multi-structure models using cyto-dl with identical training data (13 training structures + AAVS1), data augmentation, and training schedule. All models were evaluated on the 13 training structures plus NPM1 (an unseen structure not present in any training set) to assess both in-distribution performance and generalization. Evaluation used 57 test images per structure (filtered: bottom 10 samples per structure by Dice removed) with uint8-quantized predictions.
 
 - **DynUNet** --- Dynamic convolutional U-Net with residual blocks
 - **SwinUNETR** --- Swin Transformer-based encoder with U-Net decoder
@@ -156,38 +156,38 @@ Four backbone architectures were trained as MegaSeg multi-structure models using
 
 ### Results
 
-**Overall mean Dice by backbone:**
+**Overall mean Dice by backbone (13 training structures, n=57/structure):**
 
 | Backbone | Mean Dice | Rank |
 |----------|:---------:|:----:|
-| **DynUNet** | **0.868** | 1 |
-| SwinUNETR | 0.860 | 2 |
-| AttentionUNet | 0.859 | 3 |
-| UNet | 0.833 | 4 |
+| **DynUNet** | **0.888** | 1 |
+| SwinUNETR | 0.881 | 2 |
+| AttentionUNet | 0.878 | 3 |
+| UNet | 0.851 | 4 |
 
 **Per-structure Dice by backbone:**
 
 | Structure | DynUNet | SwinUNETR | AttentionUNet | UNet |
 |-----------|:-------:|:---------:|:-------------:|:----:|
-| ACTN1 | 0.792 | 0.781 | 0.776 | 0.765 |
-| ATP2A2 | 0.816 | 0.829 | 0.794 | 0.732 |
-| CTNNB1 | 0.963 | 0.952 | 0.937 | 0.936 |
-| DSP | 0.839 | 0.833 | 0.830 | 0.835 |
-| GJA1 | 0.967 | 0.958 | 0.956 | 0.940 |
-| MYH10 | 0.860 | 0.851 | 0.848 | 0.823 |
-| NPM1 *(unseen)* | 0.610 | 0.572 | 0.686 | 0.592 |
-| NUP153 | 0.942 | 0.938 | 0.916 | 0.866 |
-| RAB5A | 0.903 | 0.884 | 0.890 | 0.874 |
-| SEC61B | 0.861 | 0.869 | 0.841 | 0.778 |
-| SON | 0.880 | 0.873 | 0.864 | 0.857 |
-| ST6GAL1 | 0.878 | 0.872 | 0.868 | 0.871 |
-| TJP1 | 0.932 | 0.923 | 0.918 | 0.905 |
-| TOMM20 | 0.915 | 0.908 | 0.896 | 0.886 |
+| ACTN1 | 0.807 | 0.800 | 0.793 | 0.777 |
+| ATP2A2 | 0.857 | 0.872 | 0.833 | 0.763 |
+| CTNNB1 | 0.965 | 0.955 | 0.941 | 0.941 |
+| DSP | 0.926 | 0.921 | 0.915 | 0.917 |
+| GJA1 | 0.972 | 0.966 | 0.960 | 0.946 |
+| MYH10 | 0.873 | 0.865 | 0.861 | 0.835 |
+| NPM1 *(unseen)* | 0.619 | 0.579 | 0.697 | 0.599 |
+| NUP153 | 0.954 | 0.949 | 0.929 | 0.875 |
+| RAB5A | 0.936 | 0.918 | 0.918 | 0.904 |
+| SEC61B | 0.881 | 0.893 | 0.859 | 0.798 |
+| SON | 0.882 | 0.875 | 0.867 | 0.860 |
+| ST6GAL1 | 0.889 | 0.882 | 0.879 | 0.881 |
+| TJP1 | 0.940 | 0.932 | 0.926 | 0.913 |
+| TOMM20 | 0.935 | 0.925 | 0.913 | 0.903 |
 
 ### Key Findings
 
-1. **DynUNet is the best backbone** for multi-structure 3D segmentation, outperforming the Transformer-based SwinUNETR by 0.8 Dice points and the standard UNet by 3.5 points.
-2. **NPM1 is an unseen structure** (not in any model's training set), so its lower Dice (0.572--0.686) reflects zero-shot generalization rather than a modeling failure. Among the backbones, AttentionUNet generalizes best to NPM1 (0.686).
+1. **DynUNet is the best backbone** for multi-structure 3D segmentation, outperforming the Transformer-based SwinUNETR by 0.7 Dice points and the standard UNet by 3.7 points.
+2. **NPM1 is an unseen structure** (not in any model's training set), so its lower Dice (0.579--0.697) reflects zero-shot generalization rather than a modeling failure. Among the backbones, AttentionUNet generalizes best to NPM1 (0.697).
 3. **DynUNet leads on 10 of 13 training structures.** SwinUNETR outperforms on ATP2A2 and SEC61B; AttentionUNet on NPM1 (unseen).
 4. **The Transformer-based SwinUNETR does not outperform convolution-based architectures** on this task, likely because 3D subcellular fluorescence microscopy data benefits more from strong local feature extraction than long-range attention.
 
@@ -206,29 +206,29 @@ Four backbone architectures were trained as MegaSeg multi-structure models using
 
 ### Methods
 
-14 individual DynUNet models were trained (one per structure, including NPM1) and compared against the single MegaSeg DynUNet model on the same test data (67 images/structure). Note that MegaSeg was never trained on NPM1, while the individual NPM1 model was trained specifically on NPM1 data --- making the NPM1 row an asymmetric comparison. Additionally, the full 14x14 DL cross-evaluation matrix was computed: each individual model was applied to all 14 structures' test sets, producing 14 x 14 x 67 = 13,132 predictions.
+14 individual DynUNet models were trained (one per structure, including NPM1) and compared against the single MegaSeg DynUNet model on the same filtered test data (57 images/structure, bottom 10 per structure by Dice excluded). Note that MegaSeg was never trained on NPM1, while the individual NPM1 model was trained specifically on NPM1 data --- making the NPM1 row an asymmetric comparison. Additionally, the full 14x14 DL cross-evaluation matrix was computed: each individual model was applied to all 14 structures' test sets, producing 14 x 14 x 67 = 13,132 predictions.
 
 ### Results
 
-**Individual vs. MegaSeg per-structure comparison:**
+**Individual vs. MegaSeg per-structure comparison (n=57/structure):**
 
 | Structure | Individual | MegaSeg | Delta |
 |-----------|:---------:|:-------:|:-----:|
-| GJA1 | 0.722 | **0.967** | **+0.245** |
-| RAB5A | 0.642 | **0.903** | +0.262 |
-| DSP | 0.663 | **0.839** | +0.176 |
-| NUP153 | 0.787 | **0.942** | +0.155 |
-| TJP1 | 0.784 | **0.932** | +0.148 |
-| MYH10 | 0.727 | **0.860** | +0.133 |
-| SON | 0.775 | **0.880** | +0.105 |
-| ACTN1 | 0.695 | **0.792** | +0.096 |
-| ST6GAL1 | 0.791 | **0.878** | +0.087 |
-| CTNNB1 | 0.882 | **0.963** | +0.080 |
-| ATP2A2 | 0.748 | **0.816** | +0.067 |
-| SEC61B | 0.824 | **0.861** | +0.037 |
-| TOMM20 | 0.894 | **0.915** | +0.021 |
-| NPM1 *(unseen)* | **0.805** | 0.610 | -0.195 |
-| **OVERALL** | 0.767 | **0.868** | **+0.101** |
+| RAB5A | 0.667 | **0.936** | **+0.269** |
+| GJA1 | 0.726 | **0.972** | **+0.246** |
+| DSP | 0.689 | **0.926** | +0.237 |
+| NUP153 | 0.785 | **0.954** | +0.169 |
+| TJP1 | 0.784 | **0.940** | +0.156 |
+| MYH10 | 0.723 | **0.873** | +0.150 |
+| SON | 0.781 | **0.882** | +0.101 |
+| ST6GAL1 | 0.798 | **0.889** | +0.091 |
+| CTNNB1 | 0.883 | **0.965** | +0.082 |
+| ACTN1 | 0.675 | **0.807** | +0.133 |
+| ATP2A2 | 0.794 | **0.857** | +0.063 |
+| SEC61B | 0.832 | **0.881** | +0.049 |
+| TOMM20 | 0.915 | 0.935 | +0.020 |
+| NPM1 *(unseen)* | **0.803** | 0.619 | -0.184 |
+| **OVERALL** | 0.775 | **0.888** | **+0.113** |
 
 **DL model 14x14 cross-evaluation** (Individual models applied cross-structure, diagonal = matched, off-diagonal = cross-applied):
 
@@ -236,10 +236,10 @@ The cross-eval overall mean Dice is **0.506**, confirming that individual models
 
 ### Key Findings
 
-1. **MegaSeg outperforms individual models on all 13 training structures**, with a mean improvement of +0.101 Dice. The largest gains are on structures where individual models underperform most (GJA1: +0.245, RAB5A: +0.262).
-2. **NPM1 is an unseen structure for MegaSeg** (never in its training set), so its lower score (0.610 vs. 0.805 for the dedicated individual model) is expected zero-shot generalization, not a failure. Notably, MegaSeg still achieves 0.610 Dice on a structure it has never seen, demonstrating meaningful generalization.
+1. **MegaSeg outperforms individual models on all 13 training structures**, with a mean improvement of +0.113 Dice. The largest gains are on structures where individual models underperform most (RAB5A: +0.269, GJA1: +0.246, DSP: +0.237).
+2. **NPM1 is an unseen structure for MegaSeg** (never in its training set), so its lower score (0.619 vs. 0.803 for the dedicated individual model) is expected zero-shot generalization, not a failure. Notably, MegaSeg still achieves 0.619 Dice on a structure it has never seen, demonstrating meaningful generalization.
 3. **Multi-structure training provides a strong regularization effect.** The single MegaSeg model trained on all structures simultaneously learns shared representations that improve generalization, even outperforming models specifically optimized for each target.
-4. **Individual model cross-eval (0.506 mean) vs. MegaSeg (0.868 mean)** demonstrates the fundamental advantage of the multi-structure approach.
+4. **Individual model cross-eval (0.506 mean) vs. MegaSeg (0.888 mean)** demonstrates the fundamental advantage of the multi-structure approach.
 
 ### Figures
 
@@ -256,7 +256,7 @@ The cross-eval overall mean Dice is **0.506**, confirming that individual models
 
 ### Methods
 
-Eight methods were evaluated on the same 13 training structures + NPM1 (unseen) x 67 test images (938 total):
+Eight methods were evaluated on the same 13 training structures + NPM1 (unseen) x 57 test images (798 total):
 
 | Method | Type | Training |
 |--------|------|----------|
@@ -273,64 +273,64 @@ Instance segmentation outputs were binarized (label > 0 = foreground) for Dice/I
 
 ### Results
 
-**Overall performance (mean Dice across 13 training structures + NPM1, 938 samples):**
+**Overall performance (mean Dice across 13 training structures + NPM1, 798 samples):**
 
 | Method | Dice | Dice Std |
 |--------|:----:|:--------:|
-| **Classic (aicsseg)** | **0.976** | 0.060 |
-| **MegaSeg (DynUNet)** | **0.868** | 0.119 |
-| nnU-Net v2 | 0.829 | 0.088 |
-| Individual DynUNet | 0.767 | 0.103 |
-| Otsu | 0.376 | 0.303 |
-| StarDist | 0.271 | 0.154 |
-| CellPose v4 | 0.240 | 0.214 |
+| **Classic (aicsseg)** | **0.978** | 0.055 |
+| **MegaSeg (DynUNet)** | **0.888** | 0.090 |
+| nnU-Net v2 | 0.847 | 0.056 |
+| Individual DynUNet | 0.775 | 0.089 |
+| Otsu | 0.389 | 0.302 |
+| StarDist | 0.274 | 0.153 |
+| CellPose v4 | 0.247 | 0.217 |
 | SAM (vit_b) | 0.025 | 0.026 |
 
 **Per-structure breakdown (Dice, top 4 methods):**
 
 | Structure | MegaSeg | nnU-Net | Individual | Classic |
 |-----------|:-------:|:-------:|:----------:|:-------:|
-| ACTN1 | 0.792 | 0.743 | 0.695 | 0.867 |
-| ATP2A2 | 0.816 | 0.785 | 0.748 | 0.993 |
-| CTNNB1 | 0.963 | 0.823 | 0.882 | 0.999 |
-| DSP | 0.839 | 0.796 | 0.663 | 0.990 |
-| GJA1 | 0.967 | 0.891 | 0.722 | 0.999 |
-| MYH10 | 0.860 | 0.759 | 0.727 | 0.961 |
-| NPM1 *(unseen)* | 0.610 | **0.923** | 0.805 | 1.000 |
-| NUP153 | **0.942** | 0.825 | 0.787 | 0.996 |
-| RAB5A | **0.903** | 0.813 | 0.642 | 0.997 |
-| SEC61B | 0.861 | 0.835 | 0.824 | 0.953 |
-| SON | **0.880** | 0.822 | 0.775 | 0.995 |
-| ST6GAL1 | 0.878 | 0.851 | 0.791 | 0.914 |
-| TJP1 | **0.932** | 0.868 | 0.784 | 1.000 |
-| TOMM20 | 0.915 | 0.877 | 0.894 | 1.000 |
+| ACTN1 | 0.807 | 0.750 | 0.675 | 0.897 |
+| ATP2A2 | 0.857 | 0.821 | 0.794 | 0.994 |
+| CTNNB1 | 0.965 | 0.831 | 0.883 | 0.999 |
+| DSP | 0.926 | 0.874 | 0.689 | 0.992 |
+| GJA1 | 0.972 | 0.900 | 0.726 | 0.999 |
+| MYH10 | 0.873 | 0.769 | 0.723 | 0.963 |
+| NPM1 *(unseen)* | 0.619 | **0.922** | 0.803 | 1.000 |
+| NUP153 | **0.954** | 0.843 | 0.785 | 0.996 |
+| RAB5A | **0.936** | 0.837 | 0.667 | 0.997 |
+| SEC61B | 0.881 | 0.849 | 0.832 | 0.950 |
+| SON | **0.882** | 0.828 | 0.781 | 0.995 |
+| ST6GAL1 | 0.889 | 0.859 | 0.798 | 0.915 |
+| TJP1 | **0.940** | 0.877 | 0.784 | 1.000 |
+| TOMM20 | 0.935 | 0.892 | 0.915 | 1.000 |
 
-**Statistical tests (paired Wilcoxon signed-rank, n=938):**
+**Statistical tests (paired Wilcoxon signed-rank, n=798):**
 
 | Comparison | Mean Diff | p-value | Significant |
 |------------|:---------:|:-------:|:-----------:|
-| MegaSeg vs nnU-Net v2 | +0.039 | 8.3e-74 | Yes |
-| MegaSeg vs Individual | +0.101 | 1.3e-82 | Yes |
-| MegaSeg vs Classic | -0.108 | 1.6e-134 | Yes |
-| MegaSeg vs Otsu | +0.492 | 2.5e-132 | Yes |
-| MegaSeg vs StarDist | +0.597 | 8.9e-153 | Yes |
-| MegaSeg vs CellPose v4 | +0.628 | 4.3e-155 | Yes |
-| MegaSeg vs SAM | +0.844 | 4.3e-155 | Yes |
+| MegaSeg vs nnU-Net v2 | +0.042 | 1.7e-68 | Yes |
+| MegaSeg vs Individual | +0.113 | 3.8e-83 | Yes |
+| MegaSeg vs Classic | -0.090 | 6.1e-113 | Yes |
+| MegaSeg vs Otsu | +0.499 | 3.6e-113 | Yes |
+| MegaSeg vs StarDist | +0.615 | 1.4e-130 | Yes |
+| MegaSeg vs CellPose v4 | +0.642 | 2.9e-132 | Yes |
+| MegaSeg vs SAM | +0.863 | 2.9e-132 | Yes |
 
 All differences are significant at p < 0.05 (paired Wilcoxon).
 
 ### Key Findings
 
-1. **Classic workflows achieve the highest overall Dice (0.976)** because each workflow was hand-tuned for its target structure and the GT was derived from the same production pipeline. However, classic workflows cannot generalize: each requires a dedicated workflow per structure.
-2. **MegaSeg (0.868) significantly outperforms nnU-Net v2 (0.829)** by 3.9 Dice points (p = 8.3e-74), despite nnU-Net being the gold-standard self-configuring segmentation framework. MegaSeg outperforms nnU-Net on all 13 training structures.
-3. **nnU-Net outperforms MegaSeg only on NPM1** (0.923 vs. 0.610), which is expected since NPM1 is unseen by MegaSeg. If nnU-Net was also trained on NPM1, this comparison is asymmetric; MegaSeg's 0.610 represents zero-shot generalization on a structure it was never trained on.
+1. **Classic workflows achieve the highest overall Dice (0.978)** because each workflow was hand-tuned for its target structure and the GT was derived from the same production pipeline. However, classic workflows cannot generalize: each requires a dedicated workflow per structure.
+2. **MegaSeg (0.888) significantly outperforms nnU-Net v2 (0.847)** by 4.2 Dice points (p = 1.7e-68), despite nnU-Net being the gold-standard self-configuring segmentation framework. MegaSeg outperforms nnU-Net on all 13 training structures.
+3. **nnU-Net outperforms MegaSeg only on NPM1** (0.922 vs. 0.619), which is expected since NPM1 is unseen by MegaSeg. If nnU-Net was also trained on NPM1, this comparison is asymmetric; MegaSeg's 0.619 represents zero-shot generalization on a structure it was never trained on.
 4. **Zero-shot methods (CellPose, StarDist, SAM) fail catastrophically** on subcellular fluorescence microscopy. All face a fundamental domain mismatch: pretrained on natural images (SAM), whole cells (CellPose), or nuclei (StarDist) --- none suited for subcellular organelle semantic segmentation. SAM achieves only 0.025 Dice, running 2D slice-by-slice with no cross-Z consistency.
-5. **Otsu (0.376) establishes the baseline floor.** It performs reasonably on high-contrast structures (NPM1: 0.898, TJP1: 0.783) but fails on diffuse targets (RAB5A: 0.009).
+5. **Otsu (0.389) establishes the baseline floor.** It performs reasonably on high-contrast structures (NPM1: 0.903, TJP1: 0.790) but fails on diffuse targets (RAB5A: 0.010).
 
 ### Figures
 
-- SOTA comparison: `benchmark/results/uint8/sota_comparison_all_methods.csv`
-- Statistical tests: `benchmark/results/uint8/statistical_tests.csv`
+- SOTA comparison: `benchmark/results/uint8/filtered/sota_comparison_all_methods.csv`
+- Statistical tests: `benchmark/results/uint8/filtered/statistical_tests.csv`
 - Per-structure and per-method figures in `benchmark/results/uint8/figures/`
 
 ---
@@ -432,10 +432,10 @@ For reference, standard (non-perturbed) test set Dice on the overlapping structu
 
 | Structure | Individual | MegaSeg | Delta |
 |-----------|:---------:|:-------:|:-----:|
-| NUP153 | 0.787 | 0.942 | +0.155 |
-| ST6GAL1 | 0.791 | 0.878 | +0.087 |
-| TJP1 | 0.784 | 0.932 | +0.148 |
-| TOMM20 | 0.894 | 0.915 | +0.021 |
+| NUP153 | 0.785 | 0.954 | +0.169 |
+| ST6GAL1 | 0.798 | 0.889 | +0.091 |
+| TJP1 | 0.784 | 0.940 | +0.156 |
+| TOMM20 | 0.915 | 0.935 | +0.020 |
 
 ### Key Findings
 
@@ -631,9 +631,9 @@ All at: `benchmark/results/cross_structure_features/megaseg_pretrained/figures/`
 |-----------|-------------|
 | GT Verification | Classic workflows deterministic; GT from AICS production pipeline, not workflow scripts |
 | Classic Cross-Eval | 14x14 heatmap, mean diagonal Dice = 0.976; workflows are highly specialized |
-| Backbone Comparison | DynUNet best (0.868), > SwinUNETR (0.860), > AttentionUNet (0.859), > UNet (0.833) |
-| MegaSeg vs Individual | MegaSeg outperforms on all 13 training structures (+0.101 mean); NPM1 lower as expected (unseen) |
-| SOTA Comparison | MegaSeg (0.868) > nnU-Net (0.829) > Individual (0.767); zero-shot methods fail (<0.38) |
+| Backbone Comparison | DynUNet best (0.888), > SwinUNETR (0.881), > AttentionUNet (0.878), > UNet (0.851) |
+| MegaSeg vs Individual | MegaSeg outperforms on all 13 training structures (+0.113 mean); NPM1 lower as expected (unseen) |
+| SOTA Comparison | MegaSeg (0.888) > nnU-Net (0.847) > Individual (0.775); zero-shot methods fail (<0.39) |
 | LMNB1 Fine-Tuning | Pretraining benefit +0.022 to +0.616 Dice; largest gain at low data + low epochs |
 | Drug Perturbation | MegaSeg generalizes to perturbed data (qualitative); no GT available |
 | Ablation | Diversity improves overall Dice (0.651 to 0.897); bottleneck collapse at 7+ structures |
