@@ -460,7 +460,7 @@ def plot_heldout_heatmap(frames):
         heatmap_df,
         annot=True,
         fmt=".3f",
-        cmap="RdYlGn",
+        cmap="viridis",
         vmin=0,
         vmax=1,
         ax=ax,

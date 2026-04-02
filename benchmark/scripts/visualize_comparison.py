@@ -142,7 +142,7 @@ def make_delta_heatmap(
 
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    im = ax.imshow(delta, cmap="RdYlGn", vmin=-0.05, vmax=0.65, aspect="auto")
+    im = ax.imshow(delta, cmap="viridis", vmin=-0.05, vmax=0.65, aspect="auto")
 
     # Annotate with both delta and absolute values
     for i in range(delta.shape[0]):
@@ -152,7 +152,7 @@ def make_delta_heatmap(
             sc = scratch_grid[i, j]
             if np.isnan(d):
                 continue
-            color = "white" if d > 0.5 else "black"
+            color = "white" if d < 0.2 else "black"
             ax.text(
                 j,
                 i,

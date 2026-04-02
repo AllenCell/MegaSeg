@@ -629,7 +629,7 @@ def plot_cosine_heatmap(
         yticklabels=labels,
         annot=True,
         fmt=".2f",
-        cmap="coolwarm",
+        cmap="viridis",
         vmin=-1,
         vmax=1,
         ax=ax,
