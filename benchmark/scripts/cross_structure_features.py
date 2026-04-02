@@ -54,11 +54,7 @@ RESULTS_DIR = BENCHMARK_DIR / "results" / "cross_structure_features"
 DATA_ROOT = Path("/allen/aics/rep_learn/MegaSeg/data/variance-100x")
 
 # MegaSeg pretrained (13-struct general model)
-MEGASEG_CKPT = (
-    "/allen/aics/assay-dev/users/Suraj/megaSeg/Amil/cyto-dl/logs/train/runs/"
-    "megaseg_b64_deep_new_13-STRUCTS/dynUNet_st6_base_cytodl/"
-    "2024-07-15_00-39-47/checkpoints/epoch_650.ckpt"
-)
+MEGASEG_CKPT = str(BENCHMARK_DIR / "checkpoints" / "megaseg" / "dynunet.ckpt")
 
 # All 16 structures with available test data
 ALL_STRUCTURES = [

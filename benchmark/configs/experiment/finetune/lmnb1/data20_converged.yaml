@@ -13,7 +13,7 @@ tags: ["finetune", "lmnb1", "predict", "data20"]
 seed: 12345
 
 checkpoint:
-  ckpt_path: /allen/aics/users/ashwin.samudre/EMT_image_analysis/Colony_mask_training_inference/logs/train/runs/megaseg_finetune_lamin/dynUNet_st6_base_cytodl_ft_lamin_20data/2026-01-16_15-33-55/checkpoints/epoch_734.ckpt
+  ckpt_path: ${paths.checkpoint_dir}/finetune/lmnb1/lmnb1_data20_converged.ckpt
 
 experiment_name: finetune_lmnb1_data20_converged
 run_name: dynunet_lmnb1_data20_converged_predict

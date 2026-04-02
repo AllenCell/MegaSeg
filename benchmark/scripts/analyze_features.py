@@ -92,11 +92,11 @@ LAYER_CHANNELS = [32, 64, 128, 256, 320, 256, 128, 64, 32, 1]
 # Default 4 backbone checkpoints
 DEFAULT_CHECKPOINTS = {
     "megaseg_pretrained": {
-        "path": (
-            "/allen/aics/assay-dev/users/Suraj/megaSeg/Amil/cyto-dl/"
-            "logs/train/runs/megaseg_b64_deep_new_13-STRUCTS/"
-            "dynUNet_st6_base_cytodl/2024-07-15_00-39-47/checkpoints/"
-            "epoch_650.ckpt"
+        "path": str(
+            Path(__file__).resolve().parent.parent
+            / "checkpoints"
+            / "megaseg"
+            / "dynunet.ckpt"
         ),
         "label": "MegaSeg pretrained",
         "color": "#e74c3c",

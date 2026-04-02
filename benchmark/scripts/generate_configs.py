@@ -65,47 +65,44 @@ MEGASEG_BACKBONES = {
 # All training was done outside the benchmark. These configs run predict passes
 # using eval.py to generate predictions from existing fine-tuned checkpoints.
 #
-# Checkpoint root: /allen/aics/users/ashwin.samudre/EMT_image_analysis/
-#   Colony_mask_training_inference/logs/train/runs/megaseg_finetune_lamin/
+# Checkpoint root: benchmark/checkpoints/finetune/lmnb1/
 
-_FT_CKPT_ROOT = (
-    "/allen/aics/users/ashwin.samudre/EMT_image_analysis/"
-    "Colony_mask_training_inference/logs/train/runs/megaseg_finetune_lamin"
-)
+_BENCHMARK_DIR = Path(__file__).resolve().parent.parent
+_FT_CKPT_DIR = _BENCHMARK_DIR / "checkpoints" / "finetune" / "lmnb1"
 
 FINETUNE_LMNB1_EXPERIMENTS = {
     "data100_converged": {
-        "ckpt": f"{_FT_CKPT_ROOT}/dynUNet_st6_base_cytodl_ft_lamin/2026-01-15_15-55-59/checkpoints/epoch_738.ckpt",
+        "ckpt": str(_FT_CKPT_DIR / "lmnb1_data100_converged.ckpt"),
         "data_pct": 100,
         "desc": "100% data, converged (~88 FT epochs)",
     },
     "data100_10epochs": {
-        "ckpt": f"{_FT_CKPT_ROOT}/dynUNet_st6_base_cytodl_ft_lamin_10epochs/2026-01-16_12-50-20/checkpoints/epoch_651.ckpt",
+        "ckpt": str(_FT_CKPT_DIR / "lmnb1_data100_10epochs.ckpt"),
         "data_pct": 100,
         "desc": "100% data, 10 FT epochs",
     },
     "data100_50epochs": {
-        "ckpt": f"{_FT_CKPT_ROOT}/dynUNet_st6_base_cytodl_ft_lamin_50epochs/2026-01-16_12-50-41/checkpoints/epoch_698.ckpt",
+        "ckpt": str(_FT_CKPT_DIR / "lmnb1_data100_50epochs.ckpt"),
         "data_pct": 100,
         "desc": "100% data, 50 FT epochs",
     },
     "data100_100epochs": {
-        "ckpt": f"{_FT_CKPT_ROOT}/dynUNet_st6_base_cytodl_ft_lamin_100epochs/2026-01-16_12-51-55/checkpoints/epoch_738.ckpt",
+        "ckpt": str(_FT_CKPT_DIR / "lmnb1_data100_100epochs.ckpt"),
         "data_pct": 100,
         "desc": "100% data, 100 FT epochs",
     },
     "data10_converged": {
-        "ckpt": f"{_FT_CKPT_ROOT}/dynUNet_st6_base_cytodl_ft_lamin_10data/2026-01-16_15-36-40/checkpoints/epoch_748.ckpt",
+        "ckpt": str(_FT_CKPT_DIR / "lmnb1_data10_converged.ckpt"),
         "data_pct": 10,
         "desc": "10% data (17 train, 5 val), converged",
     },
     "data20_converged": {
-        "ckpt": f"{_FT_CKPT_ROOT}/dynUNet_st6_base_cytodl_ft_lamin_20data/2026-01-16_15-33-55/checkpoints/epoch_734.ckpt",
+        "ckpt": str(_FT_CKPT_DIR / "lmnb1_data20_converged.ckpt"),
         "data_pct": 20,
         "desc": "20% data (33 train, 8 val), converged",
     },
     "data50_converged": {
-        "ckpt": f"{_FT_CKPT_ROOT}/dynUNet_st6_base_cytodl_ft_lamin_50data/2026-01-16_15-33-27/checkpoints/epoch_726.ckpt",
+        "ckpt": str(_FT_CKPT_DIR / "lmnb1_data50_converged.ckpt"),
         "data_pct": 50,
         "desc": "50% data (82 train, 20 val), converged",
     },
