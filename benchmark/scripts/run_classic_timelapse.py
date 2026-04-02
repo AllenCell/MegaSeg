@@ -190,6 +190,11 @@ DATASET_CONFIG = {
         "tif_dir": "Tubulin_MultiCh",
         "glob_pattern": "*.tif",
     },
+    "Tubulin_MultiCh_2": {
+        "workflow": "TUBA1B",
+        "tif_dir": "Tubulin_MultiCh_2",
+        "glob_pattern": "*.tif",
+    },
 }
 
 ALL_DATASETS = list(DATASET_CONFIG.keys())

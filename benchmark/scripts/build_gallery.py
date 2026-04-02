@@ -46,9 +46,28 @@ FOV_LABELS: dict[str, str] = {
     "20170424_C01_001_Airyscan_Processing_scene01": "Airyscan",
     "20170718_C01_001_Airyscan_Processing_scene01": "CZI 1 Scene 1",
     "20171031_C01_001_Airyscan_Processing_scene01": "CZI 2 Scene 1",
+    "20170606_C04_001_Airyscan_Processing_scene01": "Tubulin 2 Scene 1",
+    "20170606_C04_001_Airyscan_Processing_scene02": "Tubulin 2 Scene 2",
+    "20170606_C04_001_Airyscan_Processing_scene03": "Tubulin 2 Scene 3",
+    "20180327_C09_scene01_C00": "C09 S1 Ch0",
+    "20180327_C09_scene01_C01": "C09 S1 Ch1",
+    "20180327_C09_scene01_C02": "C09 S1 Ch2",
+    "20180327_C09_scene01_C03": "C09 S1 Ch3",
+    "20180327_C09_scene01_C04": "C09 S1 Ch4",
+    "20180327_C08_scene00_C00": "C08 S0 Ch0",
+    "20180327_C08_scene00_C01": "C08 S0 Ch1",
+    "20180327_C08_scene00_C02": "C08 S0 Ch2",
+    "20180327_C08_scene00_C03": "C08 S0 Ch3",
+    "20180327_C08_scene00_C04": "C08 S0 Ch4",
 }
 
-DATASET_ORDER = ["NPM1", "Mitochondria", "Tubulin_MultiCh"]
+DATASET_ORDER = [
+    "NPM1",
+    "Mitochondria",
+    "Tubulin_MultiCh",
+    "Tubulin_MultiCh_2",
+    "Cardio_MultiCh",
+]
 FIGURE_TYPE_LABELS = {
     "comparison": "Comparison Grid",
     "overlay": "Contour Overlay",
@@ -59,6 +78,8 @@ DATASET_METHODS: dict[str, list[str]] = {
     "NPM1": ["Classic", "Individual", "MegaSeg"],
     "Mitochondria": ["Classic", "Individual", "MegaSeg"],
     "Tubulin_MultiCh": ["Classic", "MegaSeg"],
+    "Tubulin_MultiCh_2": ["Classic", "MegaSeg"],
+    "Cardio_MultiCh": ["MegaSeg"],
 }
 
 # ---------------------------------------------------------------------------

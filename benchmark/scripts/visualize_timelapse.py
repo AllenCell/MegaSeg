@@ -50,6 +50,12 @@ RAW_DIRS: dict[str, Path] = {
     "Tubulin_MultiCh": (
         BENCHMARK_DIR / "data" / "caroline_data" / "raw" / "Tubulin_MultiCh"
     ),
+    "Tubulin_MultiCh_2": (
+        BENCHMARK_DIR / "data" / "caroline_data" / "raw" / "Tubulin_MultiCh_2"
+    ),
+    "Cardio_MultiCh": (
+        BENCHMARK_DIR / "data" / "caroline_data" / "raw" / "Cardio_MultiCh"
+    ),
 }
 
 CLASSIC_DIRS: dict[str, Path] = {
@@ -74,6 +80,16 @@ CLASSIC_DIRS: dict[str, Path] = {
         / "timelapse"
         / "Tubulin_MultiCh"
     ),
+    "Tubulin_MultiCh_2": (
+        BENCHMARK_DIR
+        / "outputs"
+        / "eval"
+        / "uint8"
+        / "classic"
+        / "timelapse"
+        / "Tubulin_MultiCh_2"
+    ),
+    # Cardio_MultiCh: no classic segmentation workflow
 }
 
 INDIVIDUAL_DIRS: dict[str, Path] = {
@@ -97,6 +113,8 @@ INDIVIDUAL_DIRS: dict[str, Path] = {
         / "TOMM20"
         / "seg"
     ),
+    # Tubulin_MultiCh_2: no individual checkpoint
+    # Cardio_MultiCh: no individual checkpoint
 }
 
 MEGASEG_DIRS: dict[str, Path] = {
@@ -133,6 +151,28 @@ MEGASEG_DIRS: dict[str, Path] = {
         / "Tubulin_MultiCh"
         / "seg"
     ),
+    "Tubulin_MultiCh_2": (
+        BENCHMARK_DIR
+        / "outputs"
+        / "eval"
+        / "uint8"
+        / "megaseg"
+        / "dynunet"
+        / "timelapse"
+        / "Tubulin_MultiCh_2"
+        / "seg"
+    ),
+    "Cardio_MultiCh": (
+        BENCHMARK_DIR
+        / "outputs"
+        / "eval"
+        / "uint8"
+        / "megaseg"
+        / "dynunet"
+        / "timelapse"
+        / "Cardio_MultiCh"
+        / "seg"
+    ),
 }
 
 VISUALS_DIR = BENCHMARK_DIR / "outputs" / "visuals"
@@ -155,6 +195,8 @@ DATASET_METHODS: dict[str, list[str]] = {
     "NPM1": ["Classic", "Individual", "MegaSeg"],
     "Mitochondria": ["Classic", "Individual", "MegaSeg"],
     "Tubulin_MultiCh": ["Classic", "MegaSeg"],
+    "Tubulin_MultiCh_2": ["Classic", "MegaSeg"],
+    "Cardio_MultiCh": ["MegaSeg"],
 }
 
 # ---------------------------------------------------------------------------
@@ -174,6 +216,15 @@ CURATED_FOVS: dict[str, list[str]] = {
         "20170718_C01_001_Airyscan Processing_scene01",  # CZI 1
         "20171031_C01_001_Airyscan_Processing_scene01",  # CZI 2
     ],
+    "Tubulin_MultiCh_2": [
+        "20170606_C04_001_Airyscan Processing_scene01",  # Scene 1
+        "20170606_C04_001_Airyscan Processing_scene02",  # Scene 2
+    ],
+    "Cardio_MultiCh": [
+        # One scene per SLD file, channel 0 as representative
+        "20180327_C09_scene01_C00",  # C09 Scene 1 Ch 0
+        "20180327_C08_scene00_C00",  # C08 Scene 0 Ch 0
+    ],
 }
 
 FOV_LABELS: dict[str, str] = {
@@ -183,6 +234,19 @@ FOV_LABELS: dict[str, str] = {
     "20170424_C01_001_Airyscan Processing_scene01": "Mitochondria - Airyscan",
     "20170718_C01_001_Airyscan Processing_scene01": "Tubulin - CZI 1 Scene 1",
     "20171031_C01_001_Airyscan_Processing_scene01": "Tubulin - CZI 2 Scene 1",
+    "20170606_C04_001_Airyscan Processing_scene01": "Tubulin 2 - Scene 1",
+    "20170606_C04_001_Airyscan Processing_scene02": "Tubulin 2 - Scene 2",
+    "20170606_C04_001_Airyscan Processing_scene03": "Tubulin 2 - Scene 3",
+    "20180327_C09_scene01_C00": "Cardio C09 S1 Ch0",
+    "20180327_C09_scene01_C01": "Cardio C09 S1 Ch1",
+    "20180327_C09_scene01_C02": "Cardio C09 S1 Ch2",
+    "20180327_C09_scene01_C03": "Cardio C09 S1 Ch3",
+    "20180327_C09_scene01_C04": "Cardio C09 S1 Ch4",
+    "20180327_C08_scene00_C00": "Cardio C08 S0 Ch0",
+    "20180327_C08_scene00_C01": "Cardio C08 S0 Ch1",
+    "20180327_C08_scene00_C02": "Cardio C08 S0 Ch2",
+    "20180327_C08_scene00_C03": "Cardio C08 S0 Ch3",
+    "20180327_C08_scene00_C04": "Cardio C08 S0 Ch4",
 }
 
 # ---------------------------------------------------------------------------
@@ -200,11 +264,15 @@ _SCENE_RE = re.compile(r"^(.+)_scene(\d+)$")
 
 
 def parse_raw_stem(stem: str) -> dict | None:
-    """Extract (fov_group, timepoint) from a raw/classic filename stem."""
+    """Extract (fov_group, timepoint, channel) from a raw/classic filename stem."""
     m = _RAW_STEM_RE.match(stem)
     if m is None:
         return None
-    return {"fov_group": m.group(1), "timepoint": int(m.group(2))}
+    return {
+        "fov_group": m.group(1),
+        "timepoint": int(m.group(2)),
+        "channel": int(m.group(3)),
+    }
 
 
 def strip_seg_suffix(stem: str) -> dict | None:
@@ -336,6 +404,25 @@ def discover_files(dataset: str) -> dict[str, list[dict]]:
                     "raw": e["path"],
                     "classic": classic_lookup.get(e["stem"]),
                     "individual": individual_lookup.get(e["stem"]),
+                    "megaseg": megaseg_lookup.get(e["stem"]),
+                }
+            )
+
+    # --- Cardio_MultiCh: channel-as-FOV, direct stem matching for MegaSeg ---
+    elif dataset == "Cardio_MultiCh":
+        megaseg_lookup = _build_direct_seg_lookup(megaseg_dir)
+
+        results = defaultdict(list)
+        for e in raw_entries:
+            # Include channel in FOV group: e.g. "20180327_C09_scene01_C00"
+            ch = e["channel"]
+            fov_with_ch = f"{e['fov_group']}_C{ch:02d}"
+            results[fov_with_ch].append(
+                {
+                    "timepoint": e["timepoint"],
+                    "raw": e["path"],
+                    "classic": None,
+                    "individual": None,
                     "megaseg": megaseg_lookup.get(e["stem"]),
                 }
             )
