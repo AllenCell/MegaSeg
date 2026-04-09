@@ -1,0 +1,52 @@
+# @package _global_
+defaults:
+  - override /data: local/segmentation.yaml
+  - override /model: local/segmentation_ms25_uint8.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: gpu.yaml
+  - override /logger: csv.yaml
+
+tags: ["megaseg_eval", "uint8", "additional_structures"]
+seed: 12345
+
+checkpoint:
+  ckpt_path: ${paths.checkpoint_dir}/megaseg/dynunet.ckpt
+
+train: False
+test: False
+predict: True
+
+experiment_name: megaseg_eval_additional_structures
+run_name: dynunet_megaseg_additional_structures
+source_col: file_path
+target_col: split
+
+spatial_dims: 3
+raw_im_channels: 1
+
+trainer:
+  max_epochs: 1000
+  devices: [0]
+
+model:
+  save_dir: ${paths.log_dir}/eval/uint8/megaseg/dynunet/additional_structures
+
+paths:
+  output_dir: ${paths.log_dir}/eval/uint8/megaseg/dynunet/additional_structures
+
+data:
+  path: ${paths.root_dir}/data/additional_structures_eval_csvs/all.csv
+  split_column: split
+  just_inference: True
+  subsample:
+  batch_size: 1
+  num_workers: 4
+  _aux:
+    patch_shape: [32, 128, 128]
+
+callbacks:
+  rich_progress_bar: null
+  saving:
+    _target_: cyto_dl.callbacks.ImageSaver
+    save_dir: ${paths.log_dir}/eval/uint8/megaseg/dynunet/additional_structures
+    stages: ["predict"]
