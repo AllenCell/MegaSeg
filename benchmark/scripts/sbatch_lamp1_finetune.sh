@@ -3,10 +3,10 @@
 #SBATCH --output=/home/ashwin.samudre/logs/%j.out
 #SBATCH --error=/home/ashwin.samudre/logs/%j.err
 #SBATCH --partition=aics_gpu
-#SBATCH --mem=48G
+#SBATCH --mem=80G
 #SBATCH --time=12:00:00
-#SBATCH --gres=gpu:1
-#SBATCH --constraint="v100"
+#SBATCH --gres=gpu:a100sxm:1
+
 
 # LAMP1 fine-tuning experiment launcher.
 #
