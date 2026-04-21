@@ -172,10 +172,16 @@ def _get_samples(
         return []
 
     df = pd.read_csv(metrics_csv)
-    best_exp = "data100_converged"
-    subset = df[df["experiment"] == best_exp].sort_values("dice")
+    # Prefer data100_converged, fall back to base_megaseg, then first available
+    for candidate in ("data100_converged", "base_megaseg"):
+        subset = df[df["experiment"] == candidate].sort_values("dice")
+        if not subset.empty:
+            break
     if subset.empty:
-        print(f"  WARNING: no data100_converged rows in {metrics_csv}")
+        # Last resort: use whatever experiment is available
+        subset = df.sort_values("dice")
+    if subset.empty:
+        print(f"  WARNING: no experiment rows in {metrics_csv}")
         return []
 
     n = len(subset)
