@@ -1,17 +1,23 @@
 #!/usr/bin/env python
 """
-Generate figures for LMNB1 experiments (fine-tuning or from-scratch).
+Generate figures for fine-tuning / from-scratch experiments.
 
 1. Per-experiment GT vs prediction comparison figures (3 rows x 2 cols).
 2. A 4x4 heatmap of mean Dice scores (data fraction x epochs).
 
+Supports multiple structures via --structure (lmnb1, lamp1, etc.).
+
 Usage:
-    uv run python scripts/visualize_finetune.py --mode finetune
-    uv run python scripts/visualize_finetune.py --mode scratch
-    uv run python scripts/visualize_finetune.py --mode scratch --heatmap-only
+    uv run python scripts/visualize_finetune.py --structure lmnb1 --mode finetune
+    uv run python scripts/visualize_finetune.py --structure lamp1 --mode finetune
+    uv run python scripts/visualize_finetune.py --structure lmnb1 --mode scratch
+    uv run python scripts/visualize_finetune.py --mode finetune --heatmap-only
 """
 
+from __future__ import annotations
+
 import argparse
+import csv
 from pathlib import Path
 
 import matplotlib
@@ -29,9 +35,7 @@ import tifffile
 PROJECT_ROOT = Path(__file__).resolve().parent.parent  # benchmark/
 DATA_ROOT = PROJECT_ROOT.parent / "data"
 
-GT_DIR = DATA_ROOT / "variance-100x" / "LMNB1" / "seg"
-
-# Grid experiments (shared between modes)
+# Grid experiments (shared between modes and structures)
 GRID_EXPERIMENTS = [
     # 100% data
     "data100_10epochs",
@@ -54,26 +58,6 @@ GRID_EXPERIMENTS = [
     "data10_100epochs",
     "data10_converged",
 ]
-
-# Mode-specific settings
-MODE_CONFIG = {
-    "finetune": {
-        "pred_base": PROJECT_ROOT / "outputs" / "eval" / "finetune" / "lmnb1",
-        "results_dir": PROJECT_ROOT / "results" / "finetune" / "lmnb1",
-        "figures_dir": PROJECT_ROOT / "results" / "finetune" / "lmnb1" / "figures",
-        "experiments": ["base_megaseg"] + GRID_EXPERIMENTS,
-        "label": "Fine-Tuning",
-        "has_baseline": True,
-    },
-    "scratch": {
-        "pred_base": PROJECT_ROOT / "outputs" / "eval" / "scratch" / "lmnb1",
-        "results_dir": PROJECT_ROOT / "results" / "scratch" / "lmnb1",
-        "figures_dir": PROJECT_ROOT / "results" / "scratch" / "lmnb1" / "figures",
-        "experiments": GRID_EXPERIMENTS,
-        "label": "From-Scratch Training",
-        "has_baseline": False,
-    },
-}
 
 # Labels for display
 EXP_LABELS = {
@@ -100,27 +84,176 @@ EXP_LABELS = {
 DATA_FRACTIONS = ["100", "50", "20", "10"]  # rows (top=100%, bottom=10%)
 EPOCH_CONFIGS = ["10epochs", "50epochs", "100epochs", "converged"]  # columns
 
-# 3 representative samples: low, median, high Dice (from data100_converged)
-SAMPLES = [
+# --- Structure-specific configuration ---
+
+# Hardcoded representative samples for LMNB1 (low, median, high Dice from
+# data100_converged).
+_LMNB1_SAMPLES = [
     {
-        "stem": "3500000896_100X_20170515_F04_P48",
         "pred_name": "3500000896_100X_20170515_F04_P48.ome.tif",
         "gt_name": "3500000896_100X_20170515_F04_P48_struct_segmentation.tiff",
         "label": "Low Dice",
     },
     {
-        "stem": "3500000938_100X_20170526_3-Scene-08-P22-E07",
         "pred_name": "3500000938_100X_20170526_3-Scene-08-P22-E07.ome.tif",
         "gt_name": "3500000938_100X_20170526_3-Scene-08-P22-E07_struct_segmentation.tiff",
         "label": "Median Dice",
     },
     {
-        "stem": "3500000926_100X_20170523_1-Scene-02-P2-E04",
         "pred_name": "3500000926_100X_20170523_1-Scene-02-P2-E04.ome.tif",
         "gt_name": "3500000926_100X_20170523_1-Scene-02-P2-E04_struct_segmentation.tiff",
         "label": "High Dice",
     },
 ]
+
+
+# ---------------------------------------------------------------------------
+# Structure helpers
+# ---------------------------------------------------------------------------
+
+
+def _get_structure_config(structure: str, mode: str) -> dict:
+    """Return paths, samples, and metadata for a given structure + mode."""
+    struct_upper = structure.upper()  # e.g. LMNB1, LAMP1
+
+    pred_base = PROJECT_ROOT / "outputs" / "eval" / mode / structure
+    results_dir = PROJECT_ROOT / "results" / mode / structure
+    figures_dir = results_dir / "figures"
+
+    has_baseline = mode == "finetune" and (pred_base / "base_megaseg" / "seg").is_dir()
+    experiments = (
+        (["base_megaseg"] + GRID_EXPERIMENTS) if has_baseline else GRID_EXPERIMENTS
+    )
+
+    label = "Fine-Tuning" if mode == "finetune" else "From-Scratch Training"
+
+    return {
+        "pred_base": pred_base,
+        "results_dir": results_dir,
+        "figures_dir": figures_dir,
+        "experiments": experiments,
+        "label": label,
+        "has_baseline": has_baseline,
+        "structure_name": struct_upper,
+    }
+
+
+def _get_gt_dir(structure: str) -> Path:
+    """Return the ground-truth segmentation directory for a structure."""
+    struct_upper = structure.upper()
+    # LMNB1 uses a flat seg/ directory
+    seg_dir = DATA_ROOT / "variance-100x" / struct_upper / "seg"
+    if seg_dir.is_dir():
+        return seg_dir
+    # Other structures (e.g. LAMP1) store GT inside dataset/test/ with _seg suffix
+    test_dir = DATA_ROOT / "variance-100x" / struct_upper / "dataset" / "test"
+    if test_dir.is_dir():
+        return test_dir
+    raise FileNotFoundError(
+        f"No GT directory found for {struct_upper} at {seg_dir} or {test_dir}"
+    )
+
+
+def _get_samples(
+    structure: str, results_dir: Path, pred_base: Path, gt_dir: Path
+) -> list[dict]:
+    """Return 3 representative samples (low, median, high Dice).
+
+    Uses hardcoded samples for LMNB1.  For other structures, selects
+    automatically from per_sample_metrics.csv using data100_converged.
+    """
+    if structure == "lmnb1":
+        return _LMNB1_SAMPLES
+
+    # Auto-select from per_sample_metrics.csv
+    metrics_csv = results_dir / "per_sample_metrics.csv"
+    if not metrics_csv.is_file():
+        print(f"  WARNING: {metrics_csv} not found; cannot auto-select samples")
+        return []
+
+    df = pd.read_csv(metrics_csv)
+    # Prefer data100_converged, fall back to base_megaseg, then first available
+    for candidate in ("data100_converged", "base_megaseg"):
+        subset = df[df["experiment"] == candidate].sort_values("dice")
+        if not subset.empty:
+            break
+    if subset.empty:
+        # Last resort: use whatever experiment is available
+        subset = df.sort_values("dice")
+    if subset.empty:
+        print(f"  WARNING: no experiment rows in {metrics_csv}")
+        return []
+
+    n = len(subset)
+    picks = [
+        (subset.iloc[0], "Low Dice"),
+        (subset.iloc[n // 2], "Median Dice"),
+        (subset.iloc[-1], "High Dice"),
+    ]
+
+    samples = []
+    for row, label in picks:
+        sample_id = row["sample_id"]  # e.g. LAMP1_8273
+        # Derive prediction and GT file names from the sample_id.
+        # Predictions: <sample_id>.tif  (in pred_base/<experiment>/seg/)
+        pred_name = f"{sample_id}.tif"
+        # GT: try <sample_id>_seg.tiff first, then <sample_id>_struct_segmentation.tiff
+        gt_candidates = [
+            f"{sample_id}_seg.tiff",
+            f"{sample_id}_struct_segmentation.tiff",
+        ]
+        gt_name = None
+        for candidate in gt_candidates:
+            if (gt_dir / candidate).exists():
+                gt_name = candidate
+                break
+        if gt_name is None:
+            # Fallback: check if the raw test CSV has the path
+            gt_name = _find_gt_name_from_csv(structure, sample_id)
+        if gt_name is None:
+            print(f"  WARNING: cannot find GT file for {sample_id}, skipping")
+            continue
+        samples.append({"pred_name": pred_name, "gt_name": gt_name, "label": label})
+
+    return samples
+
+
+def _find_gt_name_from_csv(structure: str, sample_id: str) -> str | None:
+    """Look up the GT filename from the test CSV."""
+    struct_upper = structure.upper()
+    test_csv = DATA_ROOT / "variance-100x" / struct_upper / "local" / "test.csv"
+    if not test_csv.is_file():
+        return None
+    with open(test_csv) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            seg_path = row.get("seg", "")
+            if sample_id in seg_path:
+                return Path(seg_path).name
+    return None
+
+
+def _count_test_samples(structure: str) -> int:
+    """Count the number of test samples from the test CSV."""
+    struct_upper = structure.upper()
+    local_dir = DATA_ROOT / "variance-100x" / struct_upper / "local"
+    if not local_dir.is_dir():
+        return 0
+    # Try structure-specific CSV first, then generic test.csv
+    candidates = [
+        local_dir / f"test_{structure}_local_cytodl.csv",
+        local_dir / "test.csv",
+    ]
+    for csv_path in candidates:
+        if csv_path.is_file():
+            with open(csv_path) as f:
+                return sum(1 for _ in f) - 1  # subtract header
+    # Fallback: glob for test*.csv
+    test_csvs = sorted(local_dir.glob("test*.csv"))
+    if test_csvs:
+        with open(test_csvs[0]) as f:
+            return sum(1 for _ in f) - 1
+    return 0
 
 
 # ---------------------------------------------------------------------------
@@ -157,19 +290,28 @@ def load_and_project(path: Path, is_gt: bool = False) -> tuple[np.ndarray, np.nd
     return proj, mask
 
 
-def make_figure(experiment: str, output_dir: Path, pred_base: Path) -> None:
+def make_figure(
+    experiment: str,
+    output_dir: Path,
+    pred_base: Path,
+    gt_dir: Path,
+    samples: list[dict],
+    structure_name: str = "LMNB1",
+) -> None:
     """Create a 3-row x 2-col figure for one experiment."""
     exp_label = EXP_LABELS.get(experiment, experiment)
     pred_dir = pred_base / experiment / "seg"
 
     fig, axes = plt.subplots(
-        len(SAMPLES), 2, figsize=(8, 3.5 * len(SAMPLES)), squeeze=False
+        len(samples), 2, figsize=(8, 3.5 * len(samples)), squeeze=False
     )
-    fig.suptitle(f"LMNB1 — {exp_label}", fontsize=14, fontweight="bold", y=0.98)
+    fig.suptitle(
+        f"{structure_name} — {exp_label}", fontsize=14, fontweight="bold", y=0.98
+    )
 
-    for row, sample in enumerate(SAMPLES):
+    for row, sample in enumerate(samples):
         pred_path = pred_dir / sample["pred_name"]
-        gt_path = GT_DIR / sample["gt_name"]
+        gt_path = gt_dir / sample["gt_name"]
 
         if not pred_path.exists():
             print(f"  WARNING: missing pred {pred_path}")
@@ -215,6 +357,8 @@ def make_heatmap(
     results_dir: Path | None = None,
     label: str = "Fine-Tuning",
     has_baseline: bool = True,
+    structure_name: str = "LMNB1",
+    n_test: int = 0,
 ) -> None:
     """Create a 4x4 heatmap of mean Dice scores (data fraction x epochs).
 
@@ -279,7 +423,7 @@ def make_heatmap(
     ax.set_xlabel("Training Epochs", fontsize=12, labelpad=8)
     ax.set_ylabel("Training Data Fraction", fontsize=12, labelpad=8)
 
-    title = f"LMNB1 {label}: Mean Dice Score (n=67 test samples)"
+    title = f"{structure_name} {label}: Mean Dice Score (n={n_test} test samples)"
     if base_dice is not None:
         title += f"\nBaseline (no fine-tuning): {base_dice:.3f}"
     ax.set_title(title, fontsize=13, fontweight="bold", pad=12)
@@ -306,7 +450,12 @@ def make_heatmap(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Visualize LMNB1 experiment results (finetune or scratch)"
+        description="Visualize experiment results (finetune or scratch)"
+    )
+    parser.add_argument(
+        "--structure",
+        default="lmnb1",
+        help="Structure name, e.g. lmnb1, lamp1 (default: lmnb1)",
     )
     parser.add_argument(
         "--mode",
@@ -344,28 +493,47 @@ def main():
     )
     args = parser.parse_args()
 
-    cfg = MODE_CONFIG[args.mode]
+    structure = args.structure.lower()
+    cfg = _get_structure_config(structure, args.mode)
+    gt_dir = _get_gt_dir(structure)
+    n_test = _count_test_samples(structure)
+
     experiments = args.experiments or cfg["experiments"]
     output_dir = args.output_dir or cfg["figures_dir"]
     pred_base = cfg["pred_base"]
     results_dir = cfg["results_dir"]
     label = cfg["label"]
     has_baseline = cfg["has_baseline"]
+    structure_name = cfg["structure_name"]
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    print(f"Structure: {structure_name}")
     print(f"Mode: {args.mode} ({label})")
+    print(f"GT dir: {gt_dir}")
+    print(f"Test samples: {n_test}")
 
     if not args.heatmap_only:
-        print(f"Saving figures to {output_dir}")
-        print(f"Samples: {[s['label'] for s in SAMPLES]}")
-        print()
+        samples = _get_samples(structure, results_dir, pred_base, gt_dir)
+        if not samples:
+            print("  ERROR: no representative samples found; skipping figures")
+        else:
+            print(f"Saving figures to {output_dir}")
+            print(f"Samples: {[s['label'] for s in samples]}")
+            print()
 
-        for exp in experiments:
-            print(f"Processing {exp}...")
-            make_figure(exp, output_dir, pred_base=pred_base)
+            for exp in experiments:
+                print(f"Processing {exp}...")
+                make_figure(
+                    exp,
+                    output_dir,
+                    pred_base=pred_base,
+                    gt_dir=gt_dir,
+                    samples=samples,
+                    structure_name=structure_name,
+                )
 
-        print(f"\n{len(experiments)} comparison figures saved.")
+            print(f"\n{len(experiments)} comparison figures saved.")
 
     if not args.skip_heatmap:
         print("\nGenerating heatmap...")
@@ -375,6 +543,8 @@ def main():
             results_dir=results_dir,
             label=label,
             has_baseline=has_baseline,
+            structure_name=structure_name,
+            n_test=n_test,
         )
 
     print("\nDone.")

@@ -459,7 +459,7 @@ def plot_heatmap(summary: pd.DataFrame, df: pd.DataFrame, out_dir: Path) -> None
     fig, ax = plt.subplots(figsize=(18, 6))
     # Use masked array for NaN handling in imshow
     masked_grid = np.ma.masked_invalid(grid)
-    cmap = plt.cm.RdYlGn.copy()
+    cmap = plt.cm.viridis.copy()
     cmap.set_bad(color="lightgray")
     im = ax.imshow(masked_grid, cmap=cmap, vmin=0.0, vmax=1.0, aspect="auto")
 
@@ -469,7 +469,7 @@ def plot_heatmap(summary: pd.DataFrame, df: pd.DataFrame, out_dir: Path) -> None
             if np.isnan(val):
                 ax.text(j, i, "N/A", ha="center", va="center", fontsize=7, color="gray")
             else:
-                color = "white" if val < 0.35 or val > 0.8 else "black"
+                color = "white" if val < 0.4 else "black"
                 ax.text(
                     j,
                     i,
@@ -705,7 +705,7 @@ def plot_structure_rankings(
                 ranks[orig_indices[idx], j] = rank + 1
 
     fig, ax = plt.subplots(figsize=(18, 6))
-    cmap = plt.cm.RdYlGn_r.copy()
+    cmap = plt.cm.viridis.copy()
     cmap.set_bad(color="lightgray")
     masked_ranks = np.ma.masked_invalid(ranks)
     im = ax.imshow(
@@ -718,7 +718,7 @@ def plot_structure_rankings(
             if np.isnan(val):
                 ax.text(j, i, "N/A", ha="center", va="center", fontsize=7, color="gray")
             else:
-                color = "white" if val <= 2 or val >= len(methods_keys) - 1 else "black"
+                color = "white" if val <= 2 else "black"
                 ax.text(
                     j,
                     i,

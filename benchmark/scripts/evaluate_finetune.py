@@ -2,14 +2,14 @@
 """Evaluate fine-tuning and scratch experiment results.
 
 Computes per-image segmentation metrics (Dice, IoU, precision, recall,
-Hausdorff-95, surface Dice) for all 17 LMNB1 fine-tuning experiments
+Hausdorff-95, surface Dice) for all 17 fine-tuning experiments
 (base_megaseg + 4x4 grid) and 16 scratch experiments.
 
 Usage:
-    python scripts/evaluate_finetune.py compute --mode ft --workers 8
-    python scripts/evaluate_finetune.py compute --mode scratch --workers 8
-    python scripts/evaluate_finetune.py report --mode ft
-    python scripts/evaluate_finetune.py plot --mode ft
+    python scripts/evaluate_finetune.py compute --mode ft --structure lmnb1 --workers 8
+    python scripts/evaluate_finetune.py compute --mode scratch --structure lamp1 --workers 8
+    python scripts/evaluate_finetune.py report --mode ft --structure lmnb1
+    python scripts/evaluate_finetune.py plot --mode ft --structure lamp1
 """
 
 import argparse
@@ -197,22 +197,44 @@ def binarize_gt(gt: np.ndarray) -> np.ndarray:
 # ---------------------------------------------------------------------------
 # Path helpers
 # ---------------------------------------------------------------------------
-def resolve_pred_dir(experiment: str, mode: str = "ft") -> Path:
+def resolve_pred_dir(
+    experiment: str, mode: str = "ft", structure: str = "lmnb1"
+) -> Path:
     """Resolve the prediction directory for an experiment.
 
     Args:
         experiment: Experiment label (e.g. 'data100_converged').
         mode: 'ft' for fine-tuning or 'scratch' for scratch training.
+        structure: Structure name subdirectory (e.g. 'lmnb1', 'lamp1').
     """
     subdir = "finetune" if mode == "ft" else "scratch"
-    return PROJECT_ROOT / "outputs" / "eval" / subdir / "lmnb1" / experiment / "seg"
+    return PROJECT_ROOT / "outputs" / "eval" / subdir / structure / experiment / "seg"
 
 
-def get_test_csv() -> Path:
-    """Get the LMNB1 test CSV path (variance-100x local data)."""
-    return (
-        DATA_ROOT / "variance-100x" / "LMNB1" / "local" / "test_lmnb1_local_cytodl.csv"
+def get_test_csv(structure: str = "lmnb1") -> Path:
+    """Get the test CSV path for a given structure (variance-100x local data).
+
+    Args:
+        structure: Structure name, e.g. 'lmnb1' or 'lamp1' (case-insensitive).
+    """
+    struct_upper = structure.upper()
+    # Try exact filename match first, then fall back to glob
+    candidate = (
+        DATA_ROOT
+        / "variance-100x"
+        / struct_upper
+        / "local"
+        / f"test_{structure.lower()}_local_cytodl.csv"
     )
+    if candidate.is_file():
+        return candidate
+    # Glob fallback: any test*.csv in that directory
+    matches = sorted(
+        (DATA_ROOT / "variance-100x" / struct_upper / "local").glob("test*.csv")
+    )
+    if matches:
+        return matches[0]
+    return candidate  # return non-existent path so caller reports the error
 
 
 def derive_prediction_path(raw_filename: str, pred_dir: Path) -> Path:
@@ -301,7 +323,10 @@ def parse_experiment_label(exp: str) -> dict:
 # Compute phase
 # ---------------------------------------------------------------------------
 def compute_all(
-    workers: int, mode: str = "ft", experiments: list[str] | None = None
+    workers: int,
+    mode: str = "ft",
+    experiments: list[str] | None = None,
+    structure: str = "lmnb1",
 ) -> None:
     """Compute metrics for all experiments.
 
@@ -309,13 +334,14 @@ def compute_all(
         workers: Number of parallel workers.
         mode: 'ft' for fine-tuning or 'scratch' for scratch training.
         experiments: Optional list of experiment labels to evaluate.
+        structure: Structure name subdirectory (e.g. 'lmnb1', 'lamp1').
     """
     subdir = "finetune" if mode == "ft" else "scratch"
-    results_dir = PROJECT_ROOT / "results" / subdir / "lmnb1"
+    results_dir = PROJECT_ROOT / "results" / subdir / structure
     results_dir.mkdir(parents=True, exist_ok=True)
     csv_path = results_dir / "per_sample_metrics.csv"
 
-    test_csv = get_test_csv()
+    test_csv = get_test_csv(structure)
     if not test_csv.is_file():
         print(f"ERROR: Test CSV not found: {test_csv}", file=sys.stderr)
         sys.exit(1)
@@ -333,7 +359,7 @@ def compute_all(
     all_items = []
     skipped = []
     for exp in exp_list:
-        pred_dir = resolve_pred_dir(exp, mode=mode)
+        pred_dir = resolve_pred_dir(exp, mode=mode, structure=structure)
         if not pred_dir.is_dir():
             skipped.append(exp)
             continue
@@ -387,14 +413,14 @@ def compute_all(
 # ---------------------------------------------------------------------------
 # Report phase
 # ---------------------------------------------------------------------------
-def report(mode: str = "ft") -> None:
+def report(mode: str = "ft", structure: str = "lmnb1") -> None:
     """Generate summary tables from per-sample metrics."""
     subdir = "finetune" if mode == "ft" else "scratch"
-    csv_path = PROJECT_ROOT / "results" / subdir / "lmnb1" / "per_sample_metrics.csv"
+    csv_path = PROJECT_ROOT / "results" / subdir / structure / "per_sample_metrics.csv"
     if not csv_path.is_file():
         print(f"ERROR: Metrics not found: {csv_path}", file=sys.stderr)
         print(
-            f"Run: python scripts/evaluate_finetune.py compute --mode {mode}",
+            f"Run: python scripts/evaluate_finetune.py compute --mode {mode} --structure {structure}",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -431,10 +457,10 @@ def report(mode: str = "ft") -> None:
 # ---------------------------------------------------------------------------
 # Plot phase
 # ---------------------------------------------------------------------------
-def plot(mode: str = "ft") -> None:
+def plot(mode: str = "ft", structure: str = "lmnb1") -> None:
     """Generate visualizations from per-sample metrics."""
     subdir = "finetune" if mode == "ft" else "scratch"
-    csv_path = PROJECT_ROOT / "results" / subdir / "lmnb1" / "per_sample_metrics.csv"
+    csv_path = PROJECT_ROOT / "results" / subdir / structure / "per_sample_metrics.csv"
     if not csv_path.is_file():
         print("ERROR: Metrics not found. Run compute first.", file=sys.stderr)
         sys.exit(1)
@@ -442,6 +468,7 @@ def plot(mode: str = "ft") -> None:
     df = pd.read_csv(csv_path)
     results_dir = csv_path.parent
 
+    struct_label = structure.upper()
     sns.set_theme(style="whitegrid", font_scale=1.1)
     exp_order = [e for e in ALL_EXPERIMENTS if e in df["experiment"].unique()]
 
@@ -498,7 +525,9 @@ def plot(mode: str = "ft") -> None:
     for idx in range(n_metrics, len(axes)):
         axes[idx].set_visible(False)
 
-    fig.suptitle("LMNB1 Fine-Tuning: All Metrics by Experiment", fontsize=14, y=1.01)
+    fig.suptitle(
+        f"{struct_label} Fine-Tuning: All Metrics by Experiment", fontsize=14, y=1.01
+    )
     plt.tight_layout()
     fig.savefig(results_dir / "bar_all_metrics.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
@@ -521,7 +550,7 @@ def plot(mode: str = "ft") -> None:
     ax.set_xticks(range(len(summary)))
     ax.set_xticklabels(summary.index, rotation=45, ha="right")
     ax.set_ylabel("Mean Dice Score")
-    ax.set_title("LMNB1 Fine-Tuning: Dice by Experiment")
+    ax.set_title(f"{struct_label} Fine-Tuning: Dice by Experiment")
     ax.set_ylim(0, 1)
     for bar, val in zip(bars, summary["mean"]):
         ax.text(
@@ -620,7 +649,7 @@ def plot(mode: str = "ft") -> None:
                 ax.legend(fontsize=8)
             ax.set_xlabel("Fine-Tuning Epochs")
             ax.set_ylabel(f"Mean {name}")
-            ax.set_title(f"{name} vs Epochs (100% Data)")
+            ax.set_title(f"{name} vs Epochs (100% Data) — {struct_label}")
             ax.set_xscale("log")
             if ylim is not None:
                 ax.set_ylim(*ylim)
@@ -712,7 +741,7 @@ def plot(mode: str = "ft") -> None:
             )
             ax.set_xlabel("Training Data Fraction (%)")
             ax.set_ylabel(f"Mean {name}")
-            ax.set_title(f"{name} vs Data Fraction (Converged)")
+            ax.set_title(f"{name} vs Data Fraction (Converged) — {struct_label}")
             if ylim is not None:
                 ax.set_ylim(*ylim)
             ax.set_xticks([10, 20, 50, 100])
@@ -777,6 +806,12 @@ def main() -> None:
         default="ft",
         help="Evaluation mode: 'ft' (fine-tuning) or 'scratch' (default: ft)",
     )
+    parser.add_argument(
+        "--structure",
+        type=str,
+        default="lmnb1",
+        help="Structure subdirectory name, e.g. 'lmnb1' or 'lamp1' (default: lmnb1)",
+    )
     subparsers = parser.add_subparsers(dest="phase", required=True)
 
     p_compute = subparsers.add_parser("compute", help="Compute metrics")
@@ -799,11 +834,16 @@ def main() -> None:
         exp_filter = None
         if args.experiments:
             exp_filter = [e.strip() for e in args.experiments.split(",")]
-        compute_all(workers=args.workers, mode=args.mode, experiments=exp_filter)
+        compute_all(
+            workers=args.workers,
+            mode=args.mode,
+            experiments=exp_filter,
+            structure=args.structure,
+        )
     elif args.phase == "report":
-        report(mode=args.mode)
+        report(mode=args.mode, structure=args.structure)
     elif args.phase == "plot":
-        plot(mode=args.mode)
+        plot(mode=args.mode, structure=args.structure)
 
 
 if __name__ == "__main__":
