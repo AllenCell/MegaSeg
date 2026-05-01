@@ -93,7 +93,7 @@ def make_side_by_side(
     n_samples: int = 67,
 ) -> None:
     """Create side-by-side heatmaps for finetune vs scratch."""
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6), gridspec_kw={"right": 0.88})
 
     vmin, vmax = 0.05, 1.0
 
@@ -118,8 +118,9 @@ def make_side_by_side(
     ax2.set_xlabel("Training Epochs", fontsize=11)
     ax2.set_title("From Scratch (random init)", fontsize=12, fontweight="bold")
 
-    # Shared colorbar
-    fig.colorbar(im2, ax=[ax1, ax2], shrink=0.8, pad=0.02, label="Mean Dice Score")
+    # Shared colorbar — placed to the right of both axes
+    cbar_ax = fig.add_axes([0.90, 0.15, 0.02, 0.7])
+    fig.colorbar(im2, cax=cbar_ax, label="Mean Dice Score")
 
     fig.suptitle(
         f"{structure.upper()} Segmentation: Pretrained vs From-Scratch (n={n_samples} test samples)",
@@ -128,7 +129,6 @@ def make_side_by_side(
         y=1.02,
     )
 
-    plt.tight_layout()
     for ext in ("png", "pdf"):
         fig.savefig(output_dir / f"side_by_side.{ext}", dpi=200, bbox_inches="tight")
     plt.close(fig)
