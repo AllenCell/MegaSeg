@@ -211,24 +211,24 @@ PROJECT_ROOT=$PWD uv run python scripts/evaluate_benchmark.py plot --dtype uint8
 
 Results are saved to `results/{dtype}/` with CSVs and a `figures/` subdirectory.
 
-**Note on plots:** NPM1 is excluded from all visualization plots. NPM1 is a nucleolar marker with fundamentally different signal characteristics that distorts visual scales. The `PLOT_STRUCTURES` constant in `evaluate_benchmark.py` filters it out of plots only; compute and report phases still use all 14 structures. Plots use the `viridis` colormap for perceptual uniformity and colorblind accessibility. A hierarchically clustered clustermap (Ward linkage) is also generated for the cross-eval matrix.
+**Note on plots:** NPM1 is excluded from the active benchmark pipeline. The current `STRUCTURES` list in `evaluate_benchmark.py` contains 14 structures total (AAVS1 included, NPM1 excluded). Plots use the `viridis` colormap for perceptual uniformity and colorblind accessibility. A hierarchically clustered clustermap (Ward linkage) is also generated for the cross-eval matrix.
 
 ### Per-Image Metrics Manifest
 
-A standalone CSV with per-image Dice, IoU, precision, recall, and accuracy for all 938 test images evaluated by the megaseg-dynunet model is available at:
+A standalone CSV with per-image Dice, IoU, precision, recall, and accuracy for all 871 test images evaluated by the megaseg-dynunet model is available at:
 
 ```
 results/uint8/megaseg_dynunet_per_image_dice.csv
 ```
 
-This covers all 14 structures across 67 test images (938 total evaluations) and is useful for sharing with collaborators without requiring the full pipeline.
+This covers the 13 MegaSeg-pretrained benchmark structures across 67 test images each (871 total evaluations) and is useful for sharing with collaborators without requiring the full pipeline.
 
 ## Low-Signal Sample Filtering
 
 The `filter` subcommand in `evaluate_benchmark.py` identifies and removes the bottom-N lowest-scoring samples per structure, then regenerates all reports and plots on the filtered dataset.
 
 **How it works:**
-- For each of the 14 structures, the bottom N samples by Dice (from the megaseg/dynunet/standard reference) are identified
+- For each active benchmark structure in the MegaSeg reference set, the bottom N samples by Dice (from the megaseg/dynunet/standard reference) are identified
 - These samples are removed across **all** eval types (individual, megaseg, cross_eval) for consistency
 - An `excluded_samples.csv` manifest is saved alongside the regenerated metrics and plots
 
