@@ -90,7 +90,7 @@ def make_side_by_side(
     scratch_grid: np.ndarray,
     output_dir: Path,
     structure: str = "lmnb1",
-    n_samples: int = 67,
+    n_samples: int = 57,
 ) -> None:
     """Create side-by-side heatmaps for finetune vs scratch."""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6), gridspec_kw={"right": 0.88})
@@ -145,7 +145,7 @@ def make_delta_heatmap(
     scratch_grid: np.ndarray,
     output_dir: Path,
     structure: str = "lmnb1",
-    n_samples: int = 67,
+    n_samples: int = 57,
 ) -> None:
     """Create a delta heatmap showing the pretraining benefit."""
     delta = finetune_grid - scratch_grid

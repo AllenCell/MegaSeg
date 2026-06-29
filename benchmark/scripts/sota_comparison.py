@@ -2,8 +2,9 @@
 """
 SOTA Segmentation Comparison for MegaSeg benchmark.
 
-Loads per-sample results from all methods, aggregates by structure and
-overall, then generates:
+Loads per-sample results from all methods, applies the standard low-signal
+sample filter (bottom 10 per structure removed, 57 samples per structure),
+restricts to the shared structure intersection across methods, then generates:
   1. Bar chart: overall Dice per method
   2. Grouped bar chart: per-structure Dice for all methods
   3. Heatmap: Dice[method x structure]
@@ -11,16 +12,10 @@ overall, then generates:
   5. Statistical tests: paired Wilcoxon signed-rank (MegaSeg vs. each method)
   6. Combined summary CSV
 
-Supports a --filtered mode that removes the bottom-10 samples per structure
-(identified by MegaSeg DynUNet Dice in PR #16) and regenerates all outputs
-into results/uint8/filtered/.
-
 Usage:
-    uv run python scripts/sota_comparison.py              # full (n=938)
-    uv run python scripts/sota_comparison.py --filtered   # filtered (n=798)
+    uv run python scripts/sota_comparison.py
 """
 
-import argparse
 from pathlib import Path
 
 import matplotlib
@@ -46,7 +41,6 @@ STRUCTURES = [
     "DSP",
     "GJA1",
     "MYH10",
-    "NPM1",
     "NUP153",
     "RAB5A",
     "SEC61B",
@@ -56,12 +50,10 @@ STRUCTURES = [
     "TOMM20",
 ]
 
-# Structures that have classic aicssegmentation workflow scripts (10 of 14)
 CLASSIC_STRUCTURES = [
     "ACTN1",
     "CTNNB1",
     "MYH10",
-    "NPM1",
     "NUP153",
     "RAB5A",
     "SEC61B",
@@ -72,45 +64,31 @@ CLASSIC_STRUCTURES = [
 
 
 def get_comparison_structures(df: pd.DataFrame) -> list[str]:
-    """Return structures present for every active method.
-
-    The current repo state mixes 13-structure MegaSeg/individual outputs with
-    14-structure baselines, so the fair SOTA comparison must use the shared
-    intersection rather than a hardcoded structure list.
-    """
-
+    """Return structures present for every active method."""
     methods = _active_methods(df)
     if not methods:
         return STRUCTURES
-
     shared = set(STRUCTURES)
     for method, _, _ in methods:
         method_structs = set(df.loc[df["method"] == method, "structure"].dropna().unique())
         shared &= method_structs
-
-    return [struct for struct in STRUCTURES if struct in shared]
+    return [s for s in STRUCTURES if s in shared]
 
 
 def describe_comparison(df: pd.DataFrame) -> str:
     """Build a subtitle from the actual shared structure/sample coverage."""
-
     structures = get_comparison_structures(df)
     if not structures:
         return "(no shared structures across methods)"
-
     counts = []
     for method, _, _ in _active_methods(df):
         sub = df[(df["method"] == method) & (df["structure"].isin(structures))]
         per_struct = sub.groupby("structure").size()
         if not per_struct.empty:
             counts.append(int(per_struct.min()))
-
-    samples_per_structure = min(counts) if counts else 0
-    total = len(structures) * samples_per_structure
-    return (
-        f"({len(structures)} shared structures, "
-        f"{samples_per_structure} paired test samples each = {total} paired total)"
-    )
+    samples_per = min(counts) if counts else 0
+    total = len(structures) * samples_per
+    return f"({len(structures)} structures, {samples_per} test samples each = {total} total)"
 
 # Method display order: (key, label, color)
 # - Trained methods first (descending by expected Dice), then zero-shot
@@ -509,7 +487,6 @@ def plot_heatmap(summary: pd.DataFrame, df: pd.DataFrame, out_dir: Path) -> None
                 grid[i, j] = row["dice_mean"].values[0]
 
     fig, ax = plt.subplots(figsize=(18, 6))
-    # Use masked array for NaN handling in imshow
     masked_grid = np.ma.masked_invalid(grid)
     cmap = plt.cm.viridis.copy()
     cmap.set_bad(color="lightgray")
@@ -703,11 +680,8 @@ def plot_per_structure_violin(df: pd.DataFrame, out_dir: Path) -> None:
         ax.set_xticklabels([l.split()[0] for l in labels], fontsize=7, rotation=30)
         ax.set_ylim(-0.05, 1.05)
         ax.grid(axis="y", alpha=0.3)
-        if idx % n_cols == 0:
+        if idx % 7 == 0:
             ax.set_ylabel("Dice", fontsize=10)
-
-    for ax in axes_flat[n_structs:]:
-        ax.axis("off")
 
     fig.suptitle(
         "Per-Structure Dice Distributions: Trained Methods",
@@ -734,10 +708,11 @@ def plot_structure_rankings(
 ) -> None:
     """Heatmap showing rank of each method per structure (1 = best)."""
     methods = _active_methods(df)
-    comparison_structures = get_comparison_structures(df)
     struct_df = summary[(summary["structure"] != "OVERALL") & (summary["n"] > 0)]
     methods_keys = [m for m, _, _ in methods]
     methods_labels = [lbl for _, lbl, _ in methods]
+
+    comparison_structures = get_comparison_structures(df)
 
     # Build grid of mean Dice
     grid = np.full((len(methods_keys), len(comparison_structures)), np.nan)
@@ -755,11 +730,9 @@ def plot_structure_rankings(
         col = grid[:, j]
         valid_mask = ~np.isnan(col)
         if valid_mask.any():
-            # Rank valid values (highest Dice = rank 1)
             valid_vals = col[valid_mask]
             order = np.argsort(-valid_vals)
             for rank, idx in enumerate(order):
-                # Map back to original indices
                 orig_indices = np.where(valid_mask)[0]
                 ranks[orig_indices[idx], j] = rank + 1
 
@@ -843,14 +816,14 @@ def _run_pipeline(
     df: pd.DataFrame,
     out_dir: Path,
     fig_dir: Path,
-    subtitle: str | None = None,
 ) -> None:
     """Run the full aggregation, stats, and figure pipeline on *df*."""
     comparison_structures = get_comparison_structures(df)
     df = df[df["structure"].isin(comparison_structures)].copy()
-    if subtitle is None:
-        subtitle = describe_comparison(df)
+    subtitle = describe_comparison(df)
+
     methods = _active_methods(df)
+    print(f"  Structures: {comparison_structures}")
     print(f"  Total rows: {len(df)}")
     for method, label, _ in methods:
         n = len(df[df["method"] == method])
@@ -886,49 +859,23 @@ def _run_pipeline(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="SOTA segmentation comparison")
-    parser.add_argument(
-        "--filtered",
-        action="store_true",
-        help="Also generate filtered results (bottom-10 per structure removed)",
-    )
-    args = parser.parse_args()
-
     print("Loading per-sample results...")
     df = load_all()
 
-    # --- Full results ---
-    print("\n=== Full results (all samples) ===")
-    FIG_DIR.mkdir(parents=True, exist_ok=True)
-    _run_pipeline(
-        df,
-        out_dir=RES,
-        fig_dir=FIG_DIR,
-    )
+    excluded_csv = RES / "filtered" / "excluded_samples.csv"
+    if not excluded_csv.exists():
+        print(f"\nERROR: {excluded_csv} not found. Run evaluate_benchmark.py filter first.")
+        return
 
-    # --- Filtered results (n=798) ---
-    if args.filtered:
-        excluded_csv = RES / "filtered" / "excluded_samples.csv"
-        if not excluded_csv.exists():
-            print(
-                f"\nERROR: {excluded_csv} not found. Run evaluate_benchmark.py filter first."
-            )
-            return
+    print("\nApplying low-signal sample filter (bottom-10 per structure)...")
+    df = filter_excluded_samples(df, excluded_csv)
 
-        print("\n=== Filtered results (bottom-10 removed per structure) ===")
-        print(f"Loading exclusion list from {excluded_csv} ...")
-        df_filtered = filter_excluded_samples(df, excluded_csv)
+    out_dir = RES / "filtered"
+    fig_dir = out_dir / "figures"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    fig_dir.mkdir(parents=True, exist_ok=True)
 
-        filt_out = RES / "filtered"
-        filt_fig = filt_out / "figures"
-        filt_out.mkdir(parents=True, exist_ok=True)
-        filt_fig.mkdir(parents=True, exist_ok=True)
-
-        _run_pipeline(
-            df_filtered,
-            out_dir=filt_out,
-            fig_dir=filt_fig,
-        )
+    _run_pipeline(df, out_dir=out_dir, fig_dir=fig_dir)
 
     print("\nDone.")
 
