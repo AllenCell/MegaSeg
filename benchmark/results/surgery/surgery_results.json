@@ -480,13 +480,13 @@
       }
     ],
     "summary": {
-      "n_samples": 67,
-      "dice_mean": 0.9484057308921445,
-      "dice_std": 0.013058804869464148,
-      "hausdorff_95_mean": 0.47761194029850745,
-      "hausdorff_95_std": 0.5032683769612476,
-      "surface_dice_mean": 0.995777973842559,
-      "surface_dice_std": 0.00626418821364997
+      "n_samples": 57,
+      "dice_mean": 0.9476559625148726,
+      "dice_std": 0.013841608151773654,
+      "hausdorff_95_mean": 0.49122807017543857,
+      "hausdorff_95_std": 0.5043668951391246,
+      "surface_dice_mean": 0.9954794806710092,
+      "surface_dice_std": 0.0067031109353328615
     },
     "eval_time_sec": 3372.6132910251617
   },
@@ -971,13 +971,13 @@
       }
     ],
     "summary": {
-      "n_samples": 67,
-      "dice_mean": 0.9484382400059402,
-      "dice_std": 0.015464050057298622,
-      "hausdorff_95_mean": 0.47761194029850745,
-      "hausdorff_95_std": 0.5325242619376499,
-      "surface_dice_mean": 0.9954102866508446,
-      "surface_dice_std": 0.008222013002987517
+      "n_samples": 57,
+      "dice_mean": 0.9477245716618866,
+      "dice_std": 0.016482793070275503,
+      "hausdorff_95_mean": 0.49122807017543857,
+      "hausdorff_95_std": 0.5386095530405736,
+      "surface_dice_mean": 0.995114293106808,
+      "surface_dice_std": 0.008829900577270866
     },
     "eval_time_sec": 2700.0748620033264
   },
@@ -1462,13 +1462,13 @@
       }
     ],
     "summary": {
-      "n_samples": 67,
-      "dice_mean": 0.8823923995712677,
-      "dice_std": 0.013853725981316439,
-      "hausdorff_95_mean": 1.0061822919757177,
-      "hausdorff_95_std": 0.05060424075996682,
-      "surface_dice_mean": 0.9908840654589391,
-      "surface_dice_std": 0.00874036938192645
+      "n_samples": 57,
+      "dice_mean": 0.8822909075295912,
+      "dice_std": 0.014764138707243753,
+      "hausdorff_95_mean": 1.0072669046030367,
+      "hausdorff_95_std": 0.054863926609834426,
+      "surface_dice_mean": 0.9907139483960874,
+      "surface_dice_std": 0.009343803696411829
     },
     "eval_time_sec": 2704.879113674164
   }
