@@ -59,7 +59,7 @@ STRUCTURES = [
     "TJP1",
     "TOMM20",
 ]
-# NOTE: NPM1 excluded - not used in training and no test data available.
+# NOTE: NPM1 excluded from active benchmark — not used in MegaSeg training.
 
 BACKBONES = ["dynunet", "attention_unet", "swin_unetr", "unet"]
 

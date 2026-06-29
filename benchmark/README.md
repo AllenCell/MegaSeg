@@ -215,13 +215,13 @@ Results are saved to `results/{dtype}/` with CSVs and a `figures/` subdirectory.
 
 ### Per-Image Metrics Manifest
 
-A standalone CSV with per-image Dice, IoU, precision, recall, and accuracy for all 938 test images evaluated by the megaseg-dynunet model is available at:
+A standalone CSV with per-image Dice, IoU, precision, recall, and accuracy for all test images evaluated by the megaseg-dynunet model is available at:
 
 ```
 results/uint8/megaseg_dynunet_per_image_dice.csv
 ```
 
-This covers all 14 structures across 67 test images (938 total evaluations) and is useful for sharing with collaborators without requiring the full pipeline.
+This covers the 13 MegaSeg benchmark structures across 57 test images each (741 total, bottom-10 low-signal samples removed per structure) and is useful for sharing with collaborators without requiring the full pipeline.
 
 ## Low-Signal Sample Filtering
 
@@ -271,7 +271,7 @@ A complete pipeline for LMNB1 (Lamin B1) fine-tuning, measuring how data fractio
 
 A 4x4 grid varying **data fraction** (10%, 20%, 50%, 100%) and **max training epochs** (10, 50, 100, converged/700), plus a baseline (no fine-tuning). Total: 16 fine-tuned models + 1 baseline = 17 experiments.
 
-### Results (Mean Dice, n=67 test samples)
+### Results (Mean Dice, n=57 test samples)
 
 |  | 10 epochs | 50 epochs | 100 epochs | Converged |
 |---|---|---|---|---|
@@ -340,7 +340,7 @@ LMNB1 `.ome.tiff` files have inconsistent channel layouts: 4-channel files have 
 
 Companion to the fine-tuning experiments: trains the same DynUNet architecture from random initialization (no MegaSeg pretrained checkpoint) to quantify the pretraining benefit.
 
-### From-Scratch Results (Mean Dice, n=67)
+### From-Scratch Results (Mean Dice, n=57)
 
 |  | 10 epochs | 50 epochs | 100 epochs | Converged |
 |---|---|---|---|---|
@@ -973,9 +973,8 @@ The submodule includes a custom `channel_name` parameter added to `MonaiBioReade
 
 | Eval Type | Samples | Mean Dice |
 |---|---|---|
-| individual | 938 | 0.7671 |
-| megaseg | 3,952 | 0.8482 |
+| individual | 741 | 0.7733 |
+| megaseg | 741 | 0.9092 |
 | cross_eval | 13,132 | 0.5062 |
-| individual_test_new | 28 | 0.7885 |
 
-MegaSeg outperforms individual models on **13/14 structures** (only NPM1 is the exception). Best backbone: DynUNet (0.8684), followed by SwinUNETR (0.8601), AttentionUNet (0.8586), UNet (0.8329).
+All results use the filtered test set (57 samples per structure, bottom-10 low-signal samples removed). MegaSeg outperforms individual models on **12/13 structures**. Best backbone: DynUNet, followed by SwinUNETR, AttentionUNet, UNet.
