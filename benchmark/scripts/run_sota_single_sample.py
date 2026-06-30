@@ -37,16 +37,18 @@ from pathlib import Path
 import numpy as np
 import tifffile
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent  # benchmark/
-DATA_DIR = PROJECT_ROOT.parent / "data" / "variance-100x"
-CHECKPOINT_DIR = PROJECT_ROOT / "checkpoints"
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent  # benchmark/ (may be a worktree)
+MAIN_BENCHMARK = Path("/allen/aics/rep_learn/megaseg/benchmark")
+DATA_DIR = Path("/allen/aics/rep_learn/megaseg/data/variance-100x")
+CHECKPOINT_DIR = MAIN_BENCHMARK / "checkpoints"
 
 ENVS = {
-    "benchmark": PROJECT_ROOT / ".venv" / "bin" / "python",
-    "cellpose": PROJECT_ROOT / "envs" / "cellpose" / "bin" / "python",
-    "stardist": PROJECT_ROOT / "envs" / "stardist" / "bin" / "python",
-    "microsam": PROJECT_ROOT / "envs" / "microsam" / "bin" / "python",
-    "nnunet": PROJECT_ROOT / "envs" / "nnunet" / "bin" / "python",
+    "benchmark": MAIN_BENCHMARK / ".venv" / "bin" / "python",
+    "cellpose": MAIN_BENCHMARK / "envs" / "cellpose" / "bin" / "python",
+    "stardist": MAIN_BENCHMARK / "envs" / "stardist" / "bin" / "python",
+    "microsam": MAIN_BENCHMARK / "envs" / "microsam" / "bin" / "python",
+    "nnunet": MAIN_BENCHMARK / "envs" / "nnunet" / "bin" / "python",
 }
 
 ALL_METHODS = [
@@ -167,7 +169,7 @@ def run_individual(raw_path, structure, out_path, gpu=0):
 
 
 def run_nnunet(raw_path, structure, sample_id, out_path, gpu=0):
-    existing = PROJECT_ROOT / "outputs" / "eval" / "uint8" / "nnunet_3d_fullres" / f"{sample_id}.nii.gz"
+    existing = MAIN_BENCHMARK / "outputs" / "eval" / "uint8" / "nnunet_3d_fullres" / f"{sample_id}.nii.gz"
     if existing.exists():
         code = textwrap.dedent(f"""\
             import nibabel as nib, numpy as np, tifffile
@@ -180,7 +182,7 @@ def run_nnunet(raw_path, structure, sample_id, out_path, gpu=0):
         """)
         return run_subprocess(ENVS["nnunet"], code, "nnU-Net (cached)", gpu)
 
-    nnunet_dir = PROJECT_ROOT / "nnUNet_results" / "Dataset001_MegaSeg" / "nnUNetTrainer__nnUNetPlans__3d_fullres"
+    nnunet_dir = MAIN_BENCHMARK / "nnUNet_results" / "Dataset001_MegaSeg" / "nnUNetTrainer__nnUNetPlans__3d_fullres"
     code = textwrap.dedent(f"""\
         import tempfile, shutil, subprocess, nibabel as nib, numpy as np, tifffile
         from pathlib import Path
@@ -212,7 +214,7 @@ def run_nnunet(raw_path, structure, sample_id, out_path, gpu=0):
 def run_classic(raw_path, structure, out_path):
     code = textwrap.dedent(f"""\
         import sys
-        sys.path.insert(0, "{PROJECT_ROOT / 'scripts'}")
+        sys.path.insert(0, "{MAIN_BENCHMARK / 'scripts'}")
         from classic_workflows import load_workflow_function, load_image_3d
         import numpy as np, tifffile
 
@@ -280,7 +282,7 @@ def run_sam(raw_path, out_path, gpu=0):
     code = textwrap.dedent(f"""\
         import numpy as np, tifffile, torch
         from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
-        sam = sam_model_registry["vit_b"](checkpoint="/allen/aics/rep_learn/megaseg/benchmark/checkpoints/sam/sam_vit_b_01ec64.pth")
+        sam = sam_model_registry["vit_b"](checkpoint="{MAIN_BENCHMARK / 'envs' / 'microsam' / 'checkpoints' / 'sam_vit_b_01ec64.pth'}")
         sam.to("cuda").eval()
         mask_generator = SamAutomaticMaskGenerator(sam, points_per_side=32, pred_iou_thresh=0.86,
                                                     stability_score_thresh=0.92, min_mask_region_area=100)
@@ -375,7 +377,7 @@ def main():
         sys.exit(f"ERROR: raw file not found: {raw_path}")
 
     out_dir = Path(args.output_dir) if args.output_dir else (
-        PROJECT_ROOT / "results" / "qualitative" / structure / sample_id
+        MAIN_BENCHMARK / "results" / "qualitative" / structure / sample_id
     )
     out_dir.mkdir(parents=True, exist_ok=True)
 

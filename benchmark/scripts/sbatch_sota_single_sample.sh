@@ -18,13 +18,11 @@
 #     sbatch scripts/sbatch_sota_single_sample.sh $struct $sid
 #   done
 
-set --
-
 STRUCTURE=${1:?"Usage: sbatch $0 STRUCTURE SAMPLE_ID"}
 SAMPLE_ID=${2:?"Usage: sbatch $0 STRUCTURE SAMPLE_ID"}
 
-BENCHMARK_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-PYTHON="${BENCHMARK_DIR}/.venv/bin/python"
+BENCHMARK_DIR="${SLURM_SUBMIT_DIR}"
+PYTHON="/allen/aics/rep_learn/megaseg/benchmark/.venv/bin/python"
 
 echo "========================================="
 echo "SOTA Single Sample: ${STRUCTURE} / ${SAMPLE_ID}"
