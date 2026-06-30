@@ -42,6 +42,8 @@ PROJECT_ROOT = SCRIPT_DIR.parent  # benchmark/ (may be a worktree)
 MAIN_BENCHMARK = Path("/allen/aics/rep_learn/megaseg/benchmark")
 DATA_DIR = Path("/allen/aics/rep_learn/megaseg/data/variance-100x")
 CHECKPOINT_DIR = MAIN_BENCHMARK / "checkpoints"
+OUTPUTS_DIR = MAIN_BENCHMARK / "outputs" / "eval" / "uint8"
+CLASSIC_CROSS_DIR = MAIN_BENCHMARK / "results" / "uint8" / "classic_cross_eval"
 
 ENVS = {
     "benchmark": MAIN_BENCHMARK / ".venv" / "bin" / "python",
@@ -49,12 +51,58 @@ ENVS = {
     "stardist": MAIN_BENCHMARK / "envs" / "stardist" / "bin" / "python",
     "microsam": MAIN_BENCHMARK / "envs" / "microsam" / "bin" / "python",
     "nnunet": MAIN_BENCHMARK / "envs" / "nnunet" / "bin" / "python",
+    "msseg": Path("/allen/aics/users/ashwin.samudre/miniconda3/envs/msseg/bin/python"),
 }
 
 ALL_METHODS = [
     "megaseg", "individual", "nnunet", "classic", "otsu",
     "cellpose", "stardist", "sam",
 ]
+
+CACHED_PATHS = {
+    "cellpose": lambda struct, sid: OUTPUTS_DIR / "cellpose_zeroshot" / struct / f"{sid}_pred.tiff",
+    "stardist": lambda struct, sid: OUTPUTS_DIR / "stardist_zeroshot" / struct / f"{sid}_pred.tiff",
+    "sam": lambda struct, sid: OUTPUTS_DIR / "sam_zeroshot" / struct / f"{sid}_pred.tiff",
+    "otsu": lambda struct, sid: OUTPUTS_DIR / "otsu_baseline" / struct / f"{sid}_pred.tiff",
+    "nnunet": lambda struct, sid: OUTPUTS_DIR / "nnunet_3d_fullres" / f"{sid}.nii.gz",
+    "classic": lambda struct, sid: CLASSIC_CROSS_DIR / struct / f"tested_on_{struct}" / f"{sid}_seg.tiff",
+}
+
+
+def try_cached(method, structure, sample_id, out_path):
+    """Check for an existing benchmark prediction and copy/convert it."""
+    if method not in CACHED_PATHS:
+        return False
+    cached = CACHED_PATHS[method](structure, sample_id)
+    if not cached.exists():
+        return False
+
+    if str(cached).endswith(".nii.gz"):
+        code = textwrap.dedent(f"""\
+            import gzip, numpy as np, tifffile
+            with gzip.open("{cached}", "rb") as f:
+                data = f.read()
+            hdr_size = int.from_bytes(data[:4], "little")
+            if hdr_size == 348:
+                offset = 352
+                dtype_code = int.from_bytes(data[70:72], "little")
+                dims = [int.from_bytes(data[42+2*i:44+2*i], "little") for i in range(3)]
+            else:
+                offset = int.from_bytes(data[168:176], "little")
+                dtype_code = int.from_bytes(data[12:14], "little")
+                dims = [int.from_bytes(data[24+8*i:32+8*i], "little") for i in range(3)]
+            dt = {{2: np.uint8, 4: np.int16, 8: np.int32, 16: np.float32, 64: np.float64}}.get(dtype_code, np.float32)
+            arr = np.frombuffer(data[int(offset):], dtype=dt).reshape(dims[::-1])
+            pred = (arr > 0).astype(np.uint8)
+            tifffile.imwrite("{out_path}", pred)
+            print(f"Converted NIfTI: {{pred.shape}}")
+        """)
+        return run_subprocess(ENVS["benchmark"], code, f"{method} (cached NIfTI)")
+
+    import shutil
+    shutil.copy2(str(cached), str(out_path))
+    print(f"  [{method}] copied from benchmark cache: {cached.name}")
+    return True
 
 
 def resolve_sample(structure: str, sample_id: str):
@@ -74,15 +122,23 @@ def resolve_sample(structure: str, sample_id: str):
 def run_subprocess(python_bin, script_code, label, gpu=0):
     """Run a Python snippet in a subprocess with the given interpreter."""
     t0 = time.time()
+    python_bin = str(python_bin)
+    if not Path(python_bin).exists():
+        print(f"  [{label}] SKIPPED — interpreter not found: {python_bin}")
+        return False
     print(f"  [{label}] running...", end="", flush=True)
-    result = subprocess.run(
-        [str(python_bin), "-c", script_code],
-        capture_output=True, text=True,
-        env={
-            **dict(__import__("os").environ),
-            "CUDA_VISIBLE_DEVICES": str(gpu),
-        },
-    )
+    try:
+        result = subprocess.run(
+            [python_bin, "-c", script_code],
+            capture_output=True, text=True,
+            env={
+                **dict(__import__("os").environ),
+                "CUDA_VISIBLE_DEVICES": str(gpu),
+            },
+        )
+    except FileNotFoundError:
+        print(f" FAILED — interpreter not found")
+        return False
     elapsed = time.time() - t0
     if result.returncode != 0:
         print(f" FAILED ({elapsed:.1f}s)")
@@ -92,41 +148,39 @@ def run_subprocess(python_bin, script_code, label, gpu=0):
     return True
 
 
+DYNUNET_INFERENCE = """\
+import torch, numpy as np, tifffile
+from monai.inferers import SlidingWindowInferer
+from monai.networks.nets import DynUNet
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+net = DynUNet(spatial_dims=3, in_channels=1, out_channels=1,
+              kernel_size=[3,3,3,3,3], strides=[1,2,2,2,2],
+              upsample_kernel_size=[2,2,2,2], dropout=0.0, res_block=True)
+state = torch.load("{ckpt}", map_location="cpu", weights_only=False)["state_dict"]
+clean = {{k.replace("backbone.", "", 1): v for k, v in state.items() if k.startswith("backbone.")}}
+net.load_state_dict(clean, strict=True)
+net.to(device).eval()
+
+img = tifffile.imread("{raw_path}").astype(np.float32)
+img = (img - img.mean()) / (img.std() + 1e-8)
+tensor = torch.from_numpy(img).unsqueeze(0).unsqueeze(0).to(device)
+
+inferer = SlidingWindowInferer(roi_size=(32,128,128), sw_batch_size=4, overlap=0.5)
+with torch.no_grad():
+    pred = inferer(tensor, net)
+pred = (torch.sigmoid(pred) > 0.5).squeeze().cpu().numpy().astype(np.uint8)
+tifffile.imwrite("{out_path}", pred)
+print(f"Saved {{pred.shape}}")
+"""
+
+
 def run_megaseg(raw_path, structure, out_path, gpu=0):
     ckpt = CHECKPOINT_DIR / "megaseg" / "dynunet.ckpt"
     if not ckpt.exists():
         print(f"  [MegaSeg] checkpoint not found: {ckpt}")
         return False
-    code = textwrap.dedent(f"""\
-        import torch, numpy as np, tifffile
-        from monai.inferers import SlidingWindowInferer
-        from monai.networks.nets import DynUNet
-
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        kernels = [[3,3,3]]*4
-        strides = [[1,1,1],[2,2,2],[2,2,2],[2,2,2]]
-        net = DynUNet(spatial_dims=3, in_channels=1, out_channels=1,
-                      kernel_size=kernels, strides=strides,
-                      upsample_kernel_size=strides[1:])
-        ckpt = torch.load("{ckpt}", map_location=device, weights_only=False)
-        state = ckpt.get("state_dict", ckpt)
-        state = {{k.replace("model.", "", 1): v for k, v in state.items() if k.startswith("model.")}}
-        if not state:
-            state = ckpt.get("state_dict", ckpt)
-        net.load_state_dict(state, strict=False)
-        net.to(device).eval()
-
-        img = tifffile.imread("{raw_path}").astype(np.float32)
-        img = (img - img.min()) / (img.max() - img.min() + 1e-8)
-        tensor = torch.from_numpy(img).unsqueeze(0).unsqueeze(0).to(device)
-
-        inferer = SlidingWindowInferer(roi_size=(32,128,128), sw_batch_size=4, overlap=0.5)
-        with torch.no_grad():
-            pred = inferer(tensor, net)
-        pred = (torch.sigmoid(pred) > 0.5).squeeze().cpu().numpy().astype(np.uint8)
-        tifffile.imwrite("{out_path}", pred)
-        print(f"Saved {{pred.shape}}")
-    """)
+    code = DYNUNET_INFERENCE.format(ckpt=ckpt, raw_path=raw_path, out_path=out_path)
     return run_subprocess(ENVS["benchmark"], code, "MegaSeg", gpu)
 
 
@@ -135,80 +189,13 @@ def run_individual(raw_path, structure, out_path, gpu=0):
     if not ckpt.exists():
         print(f"  [Individual] checkpoint not found: {ckpt}")
         return False
-    code = textwrap.dedent(f"""\
-        import torch, numpy as np, tifffile
-        from monai.inferers import SlidingWindowInferer
-        from monai.networks.nets import DynUNet
-
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        kernels = [[3,3,3]]*4
-        strides = [[1,1,1],[2,2,2],[2,2,2],[2,2,2]]
-        net = DynUNet(spatial_dims=3, in_channels=1, out_channels=1,
-                      kernel_size=kernels, strides=strides,
-                      upsample_kernel_size=strides[1:])
-        ckpt = torch.load("{ckpt}", map_location=device, weights_only=False)
-        state = ckpt.get("state_dict", ckpt)
-        state = {{k.replace("model.", "", 1): v for k, v in state.items() if k.startswith("model.")}}
-        if not state:
-            state = ckpt.get("state_dict", ckpt)
-        net.load_state_dict(state, strict=False)
-        net.to(device).eval()
-
-        img = tifffile.imread("{raw_path}").astype(np.float32)
-        img = (img - img.min()) / (img.max() - img.min() + 1e-8)
-        tensor = torch.from_numpy(img).unsqueeze(0).unsqueeze(0).to(device)
-
-        inferer = SlidingWindowInferer(roi_size=(32,128,128), sw_batch_size=4, overlap=0.5)
-        with torch.no_grad():
-            pred = inferer(tensor, net)
-        pred = (torch.sigmoid(pred) > 0.5).squeeze().cpu().numpy().astype(np.uint8)
-        tifffile.imwrite("{out_path}", pred)
-        print(f"Saved {{pred.shape}}")
-    """)
+    code = DYNUNET_INFERENCE.format(ckpt=ckpt, raw_path=raw_path, out_path=out_path)
     return run_subprocess(ENVS["benchmark"], code, "Individual", gpu)
 
 
 def run_nnunet(raw_path, structure, sample_id, out_path, gpu=0):
-    existing = MAIN_BENCHMARK / "outputs" / "eval" / "uint8" / "nnunet_3d_fullres" / f"{sample_id}.nii.gz"
-    if existing.exists():
-        code = textwrap.dedent(f"""\
-            import nibabel as nib, numpy as np, tifffile
-            nii = nib.load("{existing}")
-            pred = nii.get_fdata().astype(np.uint8)
-            pred = np.transpose(pred, (2, 1, 0))
-            pred = (pred > 0).astype(np.uint8)
-            tifffile.imwrite("{out_path}", pred)
-            print(f"Converted from NIfTI: {{pred.shape}}")
-        """)
-        return run_subprocess(ENVS["nnunet"], code, "nnU-Net (cached)", gpu)
-
-    nnunet_dir = MAIN_BENCHMARK / "nnUNet_results" / "Dataset001_MegaSeg" / "nnUNetTrainer__nnUNetPlans__3d_fullres"
-    code = textwrap.dedent(f"""\
-        import tempfile, shutil, subprocess, nibabel as nib, numpy as np, tifffile
-        from pathlib import Path
-
-        raw = tifffile.imread("{raw_path}")
-        raw_nii = nib.Nifti1Image(np.transpose(raw, (2,1,0)).astype(np.float32), np.eye(4))
-
-        tmpdir = Path(tempfile.mkdtemp())
-        nib.save(raw_nii, tmpdir / "{sample_id}_0000.nii.gz")
-        outdir = tmpdir / "out"
-
-        subprocess.run([
-            "nnUNetv2_predict",
-            "-i", str(tmpdir), "-o", str(outdir),
-            "-d", "001", "-c", "3d_fullres", "-f", "0",
-            "--disable_tta",
-        ], check=True, capture_output=True)
-
-        pred_nii = nib.load(outdir / "{sample_id}.nii.gz")
-        pred = np.transpose(pred_nii.get_fdata().astype(np.uint8), (2,1,0))
-        pred = (pred > 0).astype(np.uint8)
-        tifffile.imwrite("{out_path}", pred)
-        shutil.rmtree(tmpdir)
-        print(f"Saved {{pred.shape}}")
-    """)
-    return run_subprocess(ENVS["nnunet"], code, "nnU-Net", gpu)
+    print(f"  [nnU-Net] SKIPPED — no cached prediction found; recreate nnunet env to run live inference")
+    return False
 
 
 def run_classic(raw_path, structure, out_path):
@@ -231,7 +218,7 @@ def run_classic(raw_path, structure, out_path):
         tifffile.imwrite("{out_path}", pred)
         print(f"Saved {{pred.shape}}")
     """)
-    return run_subprocess(ENVS["benchmark"], code, "Classic")
+    return run_subprocess(ENVS["msseg"], code, "Classic")
 
 
 def run_otsu(raw_path, out_path):
@@ -399,6 +386,9 @@ def main():
 
         if out_path.exists():
             print(f"  [{method}] cached: {out_path}")
+            continue
+
+        if try_cached(method, structure, sample_id, out_path):
             continue
 
         if method == "megaseg":
