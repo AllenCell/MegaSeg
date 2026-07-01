@@ -102,7 +102,9 @@ def add_scalebar(ax, crop_px, scalebar_um, pixel_um):
 def load_raw(dcfg, stem):
     vol = tif.imread(f"{dcfg['raw_dir']}/{dcfg['raw_template'].format(stem=stem)}")
     ch = dcfg.get("raw_channel")
-    if ch is not None and vol.ndim == 4:      # (Z, C, Y, X) -> pick channel
+    if ch is not None and vol.ndim == 4:      # (Z, C, Y, X) -> pick structure channel
+        if isinstance(ch, dict):              # channel-count-dependent rule
+            ch = ch["then"] if vol.shape[1] >= ch["if_channels_ge"] else ch["else"]
         vol = vol[:, ch, :, :]
     return vol.astype(np.float32)
 

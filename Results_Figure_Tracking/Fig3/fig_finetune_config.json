@@ -33,7 +33,7 @@
       "data": {
         "raw_dir": "//allen/aics/rep_learn/MegaSeg/data/variance-100x/LMNB1/raw",
         "raw_template": "{stem}.ome.tiff",
-        "raw_channel": 3,
+        "raw_channel": {"if_channels_ge": 7, "then": 3, "else": 1},
         "gt_dir": "//allen/aics/rep_learn/MegaSeg/data/variance-100x/LMNB1/seg",
         "gt_template": "{stem}_struct_segmentation.tiff",
         "pred_root": "//allen/aics/rep_learn/MegaSeg/benchmark/outputs/eval/finetune/lmnb1",
@@ -44,7 +44,7 @@
           "label": "A  Epoch effect\n(100% data)",
           "conditions": ["data100_10epochs", "data100_50epochs", "data100_100epochs", "data100_converged"],
           "column_labels": ["10 ep", "50 ep", "100 ep", "Converged"],
-          "crop_ref_cond": null,
+          "crop_ref_cond": "data100_10epochs",
           "stems": ["3500000956_100X_20170606_1r-Scene-2-P5-E04", "3500000896_100X_20170515_E05_P17"]
         },
         "panel_B": {
