@@ -1,0 +1,159 @@
+{
+  "figure": "Fig1a — MegaSeg structure gallery (13 training structures)",
+  "naming_convention": "Viana et al., Nature 2023 (s41586-022-05563-7), Fig. 1a: '<structure> via <protein>' with 6-bucket cellular-compartment color squares.",
+  "source_root": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test",
+  "image_type": "single-channel 3D fluorescence TIFF, displayed as max-intensity projection (MIP)",
+  "pixel_size_um": 0.10833,
+  "scalebar_um": 10,
+  "crop_size_px": 400,
+  "render": {
+    "projection": "MIP (max over z)",
+    "p_lo": 2,
+    "p_hi": 99.7,
+    "gamma": 0.85,
+    "cmap": "gray",
+    "interpolation": "bilinear"
+  },
+  "compartment_colors": {
+    "nucleus": "#5B9BD5",
+    "nuclear_periphery": "#2A5DB0",
+    "cytoplasm": "#EFC275",
+    "apical_domain": "#84BB4C",
+    "cell_periphery": "#F5A8C6",
+    "basal_domain": "#D63F9B"
+  },
+  "compartment_labels": {
+    "nucleus": "Nucleus",
+    "nuclear_periphery": "Nuclear periphery",
+    "cytoplasm": "Cytoplasm",
+    "apical_domain": "Apical domain",
+    "cell_periphery": "Cell periphery",
+    "basal_domain": "Basal domain"
+  },
+  "compartment_legend_order": [
+    "nucleus",
+    "nuclear_periphery",
+    "cytoplasm",
+    "apical_domain",
+    "basal_domain"
+  ],
+  "structures": [
+    {
+      "gene": "ACTN1",
+      "marker": "α-actinin 1",
+      "structure": "Actin bundles",
+      "compartment": "basal_domain",
+      "sample_stem": "ACTN1_11459",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/ACTN1_11459.tiff",
+      "exists": true
+    },
+    {
+      "gene": "ATP2A2",
+      "marker": "SERCA2",
+      "structure": "ER (SERCA)",
+      "compartment": "cytoplasm",
+      "sample_stem": "ATP2A2_146598",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/ATP2A2_146598.tiff",
+      "exists": true
+    },
+    {
+      "gene": "CTNNB1",
+      "marker": "β-catenin",
+      "structure": "Adherens junctions",
+      "compartment": "apical_domain",
+      "sample_stem": "CTNNB1_13430",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/CTNNB1_13430.tiff",
+      "exists": true
+    },
+    {
+      "gene": "DSP",
+      "marker": "desmoplakin",
+      "structure": "Desmosomes",
+      "compartment": "apical_domain",
+      "sample_stem": "DSP_4144",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/DSP_4144.tiff",
+      "exists": true
+    },
+    {
+      "gene": "GJA1",
+      "marker": "connexin-43",
+      "structure": "Gap junctions",
+      "compartment": "apical_domain",
+      "sample_stem": "GJA1_10539",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/GJA1_10539.tiff",
+      "exists": true
+    },
+    {
+      "gene": "MYH10",
+      "marker": "non-muscle-myosin IIB",
+      "structure": "Actomyosin bundles",
+      "compartment": "basal_domain",
+      "sample_stem": "MYH10_7549",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/MYH10_7549.tiff",
+      "exists": true
+    },
+    {
+      "gene": "NUP153",
+      "marker": "NUP153",
+      "structure": "Nuclear pores",
+      "compartment": "nuclear_periphery",
+      "sample_stem": "NUP153_140317",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/NUP153_140317.tiff",
+      "exists": true
+    },
+    {
+      "gene": "RAB5A",
+      "marker": "RAB5A",
+      "structure": "Endosomes",
+      "compartment": "cytoplasm",
+      "sample_stem": "RAB5A_147798",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/RAB5A_147798.tiff",
+      "exists": true
+    },
+    {
+      "gene": "SEC61B",
+      "marker": "SEC61β",
+      "structure": "ER (SEC61β)",
+      "compartment": "cytoplasm",
+      "sample_stem": "SEC61B_5293",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/SEC61B_5293.tiff",
+      "exists": true
+    },
+    {
+      "gene": "SON",
+      "marker": "SON",
+      "structure": "Nuclear speckles",
+      "compartment": "nucleus",
+      "sample_stem": "SON_136098",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/SON_136098.tiff",
+      "exists": true
+    },
+    {
+      "gene": "ST6GAL1",
+      "marker": "sialyltransferase 1",
+      "structure": "Golgi",
+      "compartment": "cytoplasm",
+      "sample_stem": "ST6GAL1_5555",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/ST6GAL1_5555.tiff",
+      "exists": true
+    },
+    {
+      "gene": "TJP1",
+      "marker": "ZO-1",
+      "structure": "Tight junctions",
+      "compartment": "apical_domain",
+      "sample_stem": "TJP1_7369",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/TJP1_7369.tiff",
+      "exists": true
+    },
+    {
+      "gene": "TOMM20",
+      "marker": "TOM20",
+      "structure": "Mitochondria",
+      "compartment": "cytoplasm",
+      "sample_stem": "TOMM20_3822",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/TOMM20_3822.tiff",
+      "exists": true
+    }
+  ]
+}
