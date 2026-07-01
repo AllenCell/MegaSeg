@@ -70,6 +70,48 @@ CLASSIC_STRUCTURES = [
     "TOMM20",
 ]
 
+
+def get_comparison_structures(df: pd.DataFrame) -> list[str]:
+    """Return structures present for every active method.
+
+    The current repo state mixes 13-structure MegaSeg/individual outputs with
+    14-structure baselines, so the fair SOTA comparison must use the shared
+    intersection rather than a hardcoded structure list.
+    """
+
+    methods = _active_methods(df)
+    if not methods:
+        return STRUCTURES
+
+    shared = set(STRUCTURES)
+    for method, _, _ in methods:
+        method_structs = set(df.loc[df["method"] == method, "structure"].dropna().unique())
+        shared &= method_structs
+
+    return [struct for struct in STRUCTURES if struct in shared]
+
+
+def describe_comparison(df: pd.DataFrame) -> str:
+    """Build a subtitle from the actual shared structure/sample coverage."""
+
+    structures = get_comparison_structures(df)
+    if not structures:
+        return "(no shared structures across methods)"
+
+    counts = []
+    for method, _, _ in _active_methods(df):
+        sub = df[(df["method"] == method) & (df["structure"].isin(structures))]
+        per_struct = sub.groupby("structure").size()
+        if not per_struct.empty:
+            counts.append(int(per_struct.min()))
+
+    samples_per_structure = min(counts) if counts else 0
+    total = len(structures) * samples_per_structure
+    return (
+        f"({len(structures)} shared structures, "
+        f"{samples_per_structure} paired test samples each = {total} paired total)"
+    )
+
 # Method display order: (key, label, color)
 # - Trained methods first (descending by expected Dice), then zero-shot
 METHODS = [
@@ -164,10 +206,12 @@ def _active_methods(df: pd.DataFrame) -> list[tuple[str, str, str]]:
 def aggregate(df: pd.DataFrame) -> pd.DataFrame:
     """Return per-method-structure summary with mean/std Dice."""
     methods = _active_methods(df)
+    comparison_structures = get_comparison_structures(df)
     rows = []
     for method, _, _ in methods:
         sub = df[df["method"] == method]
-        for struct in STRUCTURES:
+        sub = sub[sub["structure"].isin(comparison_structures)]
+        for struct in comparison_structures:
             s = sub[sub["structure"] == struct]["dice"]
             rows.append(
                 {
@@ -207,6 +251,8 @@ def run_statistical_tests(df: pd.DataFrame, out_dir: Path) -> pd.DataFrame:
     Returns a DataFrame with test results and saves to CSV.
     """
     methods = _active_methods(df)
+    comparison_structures = get_comparison_structures(df)
+    df = df[df["structure"].isin(comparison_structures)].copy()
     megaseg_df = df[df["method"] == "megaseg"].set_index(["structure", "sample_id"])
     results = []
 
@@ -241,7 +287,7 @@ def run_statistical_tests(df: pd.DataFrame, out_dir: Path) -> pd.DataFrame:
 
         # Also compute per-structure tests
         struct_results = []
-        for struct in STRUCTURES:
+        for struct in comparison_structures:
             ms = megaseg_df.loc[
                 megaseg_df.index.get_level_values("structure") == struct, "dice"
             ]
@@ -315,14 +361,16 @@ def plot_overall_bar(
     summary: pd.DataFrame,
     df: pd.DataFrame,
     out_dir: Path,
-    subtitle: str = "(14 structures, 67 test samples each = 938 total)",
+    subtitle: str | None = None,
 ) -> None:
+    if subtitle is None:
+        subtitle = describe_comparison(df)
     methods = _active_methods(df)
     overall = summary[summary["structure"] == "OVERALL"].copy()
     overall = overall.set_index("method").loc[[m for m, _, _ in methods]]
 
     # Determine expected n from the data (for annotation threshold)
-    expected_n = int(overall["n"].mode().iloc[0]) if len(overall) else 938
+    expected_n = int(overall["n"].mode().iloc[0]) if len(overall) else 0
 
     fig, ax = plt.subplots(figsize=(10, 5))
     labels = [label for _, label, _ in methods]
@@ -388,11 +436,14 @@ def plot_per_structure_grouped(
     summary: pd.DataFrame,
     df: pd.DataFrame,
     out_dir: Path,
-    subtitle: str = "(14 structures, 67 test samples each = 938 total)",
+    subtitle: str | None = None,
 ) -> None:
+    if subtitle is None:
+        subtitle = describe_comparison(df)
     methods = _active_methods(df)
+    comparison_structures = get_comparison_structures(df)
     struct_df = summary[summary["structure"] != "OVERALL"]
-    n_structs = len(STRUCTURES)
+    n_structs = len(comparison_structures)
     n_methods = len(methods)
     width = 0.8 / n_methods
     x = np.arange(n_structs)
@@ -400,7 +451,7 @@ def plot_per_structure_grouped(
     fig, ax = plt.subplots(figsize=(22, 6))
     for i, (method, label, color) in enumerate(methods):
         vals = []
-        for struct in STRUCTURES:
+        for struct in comparison_structures:
             row = struct_df[
                 (struct_df["method"] == method) & (struct_df["structure"] == struct)
             ]
@@ -416,7 +467,7 @@ def plot_per_structure_grouped(
         )
 
     ax.set_xticks(x)
-    ax.set_xticklabels(STRUCTURES, rotation=30, ha="right", fontsize=9)
+    ax.set_xticklabels(comparison_structures, rotation=30, ha="right", fontsize=9)
     ax.set_ylabel("Mean Dice Score", fontsize=12)
     ax.set_ylim(0, 1.05)
     ax.set_title(
@@ -443,13 +494,14 @@ def plot_per_structure_grouped(
 
 def plot_heatmap(summary: pd.DataFrame, df: pd.DataFrame, out_dir: Path) -> None:
     methods = _active_methods(df)
+    comparison_structures = get_comparison_structures(df)
     struct_df = summary[summary["structure"] != "OVERALL"]
     methods_keys = [m for m, _, _ in methods]
     methods_labels = [lbl for _, lbl, _ in methods]
 
-    grid = np.full((len(methods_keys), len(STRUCTURES)), np.nan)
+    grid = np.full((len(methods_keys), len(comparison_structures)), np.nan)
     for i, method in enumerate(methods_keys):
-        for j, struct in enumerate(STRUCTURES):
+        for j, struct in enumerate(comparison_structures):
             row = struct_df[
                 (struct_df["method"] == method) & (struct_df["structure"] == struct)
             ]
@@ -464,7 +516,7 @@ def plot_heatmap(summary: pd.DataFrame, df: pd.DataFrame, out_dir: Path) -> None
     im = ax.imshow(masked_grid, cmap=cmap, vmin=0.0, vmax=1.0, aspect="auto")
 
     for i in range(len(methods_keys)):
-        for j in range(len(STRUCTURES)):
+        for j in range(len(comparison_structures)):
             val = grid[i, j]
             if np.isnan(val):
                 ax.text(j, i, "N/A", ha="center", va="center", fontsize=7, color="gray")
@@ -481,8 +533,8 @@ def plot_heatmap(summary: pd.DataFrame, df: pd.DataFrame, out_dir: Path) -> None
                     color=color,
                 )
 
-    ax.set_xticks(range(len(STRUCTURES)))
-    ax.set_xticklabels(STRUCTURES, rotation=30, ha="right", fontsize=9)
+    ax.set_xticks(range(len(comparison_structures)))
+    ax.set_xticklabels(comparison_structures, rotation=30, ha="right", fontsize=9)
     ax.set_yticks(range(len(methods_keys)))
     ax.set_yticklabels(methods_labels, fontsize=10)
     ax.set_title(
@@ -600,13 +652,16 @@ def plot_per_structure_violin(df: pd.DataFrame, out_dir: Path) -> None:
     present = set(df["method"].unique())
     top_methods = [(k, l, c) for k, l, c in top_methods if k in present]
 
-    n_structs = len(STRUCTURES)
+    comparison_structures = get_comparison_structures(df)
+    n_structs = len(comparison_structures)
     n_methods = len(top_methods)
 
-    fig, axes = plt.subplots(2, 7, figsize=(28, 10), sharey=True)
+    n_cols = 7
+    n_rows = int(np.ceil(max(n_structs, 1) / n_cols))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(28, 5 * n_rows), sharey=True)
     axes_flat = axes.flatten()
 
-    for idx, struct in enumerate(STRUCTURES):
+    for idx, struct in enumerate(comparison_structures):
         ax = axes_flat[idx]
         struct_data = []
         colors = []
@@ -648,8 +703,11 @@ def plot_per_structure_violin(df: pd.DataFrame, out_dir: Path) -> None:
         ax.set_xticklabels([l.split()[0] for l in labels], fontsize=7, rotation=30)
         ax.set_ylim(-0.05, 1.05)
         ax.grid(axis="y", alpha=0.3)
-        if idx % 7 == 0:
+        if idx % n_cols == 0:
             ax.set_ylabel("Dice", fontsize=10)
+
+    for ax in axes_flat[n_structs:]:
+        ax.axis("off")
 
     fig.suptitle(
         "Per-Structure Dice Distributions: Trained Methods",
@@ -676,14 +734,15 @@ def plot_structure_rankings(
 ) -> None:
     """Heatmap showing rank of each method per structure (1 = best)."""
     methods = _active_methods(df)
+    comparison_structures = get_comparison_structures(df)
     struct_df = summary[(summary["structure"] != "OVERALL") & (summary["n"] > 0)]
     methods_keys = [m for m, _, _ in methods]
     methods_labels = [lbl for _, lbl, _ in methods]
 
     # Build grid of mean Dice
-    grid = np.full((len(methods_keys), len(STRUCTURES)), np.nan)
+    grid = np.full((len(methods_keys), len(comparison_structures)), np.nan)
     for i, method in enumerate(methods_keys):
-        for j, struct in enumerate(STRUCTURES):
+        for j, struct in enumerate(comparison_structures):
             row = struct_df[
                 (struct_df["method"] == method) & (struct_df["structure"] == struct)
             ]
@@ -692,7 +751,7 @@ def plot_structure_rankings(
 
     # Rank per structure (column-wise), handling NaN
     ranks = np.full_like(grid, np.nan)
-    for j in range(len(STRUCTURES)):
+    for j in range(len(comparison_structures)):
         col = grid[:, j]
         valid_mask = ~np.isnan(col)
         if valid_mask.any():
@@ -713,7 +772,7 @@ def plot_structure_rankings(
     )
 
     for i in range(len(methods_keys)):
-        for j in range(len(STRUCTURES)):
+        for j in range(len(comparison_structures)):
             val = ranks[i, j]
             if np.isnan(val):
                 ax.text(j, i, "N/A", ha="center", va="center", fontsize=7, color="gray")
@@ -730,8 +789,8 @@ def plot_structure_rankings(
                     color=color,
                 )
 
-    ax.set_xticks(range(len(STRUCTURES)))
-    ax.set_xticklabels(STRUCTURES, rotation=30, ha="right", fontsize=9)
+    ax.set_xticks(range(len(comparison_structures)))
+    ax.set_xticklabels(comparison_structures, rotation=30, ha="right", fontsize=9)
     ax.set_yticks(range(len(methods_keys)))
     ax.set_yticklabels(methods_labels, fontsize=10)
     ax.set_title(
@@ -784,9 +843,13 @@ def _run_pipeline(
     df: pd.DataFrame,
     out_dir: Path,
     fig_dir: Path,
-    subtitle: str,
+    subtitle: str | None = None,
 ) -> None:
     """Run the full aggregation, stats, and figure pipeline on *df*."""
+    comparison_structures = get_comparison_structures(df)
+    df = df[df["structure"].isin(comparison_structures)].copy()
+    if subtitle is None:
+        subtitle = describe_comparison(df)
     methods = _active_methods(df)
     print(f"  Total rows: {len(df)}")
     for method, label, _ in methods:
@@ -834,14 +897,13 @@ def main():
     print("Loading per-sample results...")
     df = load_all()
 
-    # --- Full results (n=938) ---
+    # --- Full results ---
     print("\n=== Full results (all samples) ===")
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     _run_pipeline(
         df,
         out_dir=RES,
         fig_dir=FIG_DIR,
-        subtitle="(14 structures, 67 test samples each = 938 total)",
     )
 
     # --- Filtered results (n=798) ---
@@ -866,7 +928,6 @@ def main():
             df_filtered,
             out_dir=filt_out,
             fig_dir=filt_fig,
-            subtitle="(14 structures, 57 test samples each = 798 total, bottom-10 removed)",
         )
 
     print("\nDone.")
