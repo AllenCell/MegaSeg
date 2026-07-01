@@ -55,7 +55,7 @@
       "structure": "LAMP1",
       "type": "heatmap",
       "file": "fig_lamp1_finetune_heatmap_v3.pdf",
-      "source_script": "LAMP1 render (generator not currently in repo)",
+      "source_script": "fig_lamp1_finetune_final.py (reads lamp1_finetune_metrics.csv)",
       "pixels_wh": [
         2010,
         1269
@@ -77,7 +77,7 @@
       "structure": "LAMP1",
       "type": "qualitative",
       "file": "fig_lamp1_finetune_qualitative_nolegend.pdf",
-      "source_script": "LAMP1 render (generator not currently in repo)",
+      "source_script": "fig_lamp1_finetune_final.py (build_qualitative show_legend=False)",
       "pixels_wh": [
         4425,
         3182

@@ -54,13 +54,13 @@ COMPONENTS = [
      "source_script": "fig_lmnb1_finetune_final.py"},
     {"key": "heatmap_lamp1", "panel": "b", "structure": "LAMP1", "type": "heatmap",
      "file": "fig_lamp1_finetune_heatmap_v3.pdf",
-     "source_script": "LAMP1 render (generator not currently in repo)"},
+     "source_script": "fig_lamp1_finetune_final.py (reads lamp1_finetune_metrics.csv)"},
     {"key": "qual_lmnb1", "panel": "c", "structure": "LMNB1", "type": "qualitative",
      "file": "fig_lmnb1_finetune_qualitative_nolegend.pdf",
      "source_script": "fig_lmnb1_finetune_final.py (build_qualitative show_legend=False)"},
     {"key": "qual_lamp1", "panel": "d", "structure": "LAMP1", "type": "qualitative",
      "file": "fig_lamp1_finetune_qualitative_nolegend.pdf",
-     "source_script": "LAMP1 render (generator not currently in repo)"},
+     "source_script": "fig_lamp1_finetune_final.py (build_qualitative show_legend=False)"},
 ]
 
 # Error-map colors (must match fig_lmnb1_finetune_final.make_error_map)
