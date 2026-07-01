@@ -1,0 +1,34 @@
+_target_: monai.data.DataLoader
+
+batch_size: 1
+num_workers: 1
+pin_memory: false
+persistent_workers: false
+shuffle: false
+
+dataset:
+  _target_: cyto_dl.datamodules.multidim_image.MultiDimImageDataset
+  csv_path: ${data._aux.csv_path}
+  img_path_column: path
+  channel_column: source_channel
+  scene_column: scene
+  time_start_column: start
+  time_stop_column: stop
+  time_step_column: step
+  spatial_dims: ${spatial_dims}
+  cache_num: 0
+  num_workers: 1
+  transform:
+    - _target_: cyto_dl.image.io.bioio_loader.BioIOImageLoaderd
+      path_key: original_path
+      out_key: ${source_col}
+      dask_load: true
+      dtype: numpy.float32
+      include_meta_in_filename: true
+    - _target_: monai.transforms.NormalizeIntensityd
+      keys: ${source_col}
+      channel_wise: true
+
+_aux:
+  csv_path:
+  patch_shape: [32, 128, 128]
