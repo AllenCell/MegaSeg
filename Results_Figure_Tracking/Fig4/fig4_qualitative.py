@@ -208,9 +208,9 @@ def add_scalebar(ax, crop_px, scalebar_um, pixel_um):
     y = crop_px - margin
     x_end = crop_px - margin
     x_start = x_end - bar_px
-    ax.plot([x_start, x_end], [y, y], color="white", linewidth=2, solid_capstyle="butt")
-    ax.text((x_start + x_end) / 2, y - 5, f"{scalebar_um} µm", color="white",
-            fontsize=6, ha="center", va="bottom", fontweight="bold")
+    ax.plot([x_start, x_end], [y, y], color="white", linewidth=2.5, solid_capstyle="butt")
+    ax.text((x_start + x_end) / 2, y - 7, f"{scalebar_um} µm", color="white",
+            fontsize=10, ha="center", va="bottom", fontweight="bold")
 
 
 def panels_for(cfg, data):
