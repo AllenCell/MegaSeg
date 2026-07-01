@@ -170,10 +170,10 @@ LMNB1_STEMS = [
     "3500000896_100X_20170515_F05_P59",
     "3500000896_100X_20170515_E05_P17",
 ]
-# LAMP1 samples — pick two with interesting morphology
+# LAMP1 samples — largest base→converged improvement
 LAMP1_STEMS = [
-    "LAMP1_150879",
-    "LAMP1_7697",
+    "LAMP1_150841",
+    "LAMP1_150666",
 ]
 
 EPOCH_CONDS = [
