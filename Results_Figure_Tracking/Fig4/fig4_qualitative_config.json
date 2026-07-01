@@ -26,7 +26,7 @@
   "structures": [
     {"name": "FBL", "drug": "Actinomycin", "bundle": "left", "keep_drug_tp": "4hr",
      "source_override": {"classic": {"struct_folder": "FBL-fine", "template": "{stem}_classic_seg.tiff"}},
-     "crop_overrides": {"3500002761_100X_20190218_4hr-Scene-114-P114-F06._ch1": {"center_xy": [220, 270], "z": 40, "contrast": {"p_lo": 5, "p_hi": 99.7, "gamma": 1.4}}}},
+     "crop_overrides": {"3500002761_100X_20190218_4hr-Scene-114-P114-F06._ch1": {"center_xy": [220, 325], "z": 40, "contrast": {"p_lo": 5, "p_hi": 99.7, "gamma": 1.4}}}},
     {"name": "NUP153", "drug": "Thapsigargin", "bundle": "left", "keep_drug_tp": "4hr",
      "crop_overrides": {"3500003143_100X_20190611_4h_P154-G8.ome": {"contrast": {"p_lo": 5, "p_hi": 99.7, "gamma": 1.4}}}},
     {"name": "TUBA1B", "drug": "Nocodazole", "bundle": "left", "keep_drug_tp": "4hr",
