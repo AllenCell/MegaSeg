@@ -275,17 +275,17 @@ A 4x4 grid varying **data fraction** (10%, 20%, 50%, 100%) and **max training ep
 
 |  | 10 epochs | 50 epochs | 100 epochs | Converged |
 |---|---|---|---|---|
-| **100% data** | 0.908 | 0.945 | 0.949 | **0.958** |
-| **50% data** | 0.879 | 0.932 | 0.945 | 0.952 |
-| **20% data** | 0.703 | 0.900 | 0.921 | 0.945 |
-| **10% data** | 0.699 | 0.895 | 0.914 | 0.942 |
+| **100% data** | 0.906 | 0.944 | 0.948 | **0.957** |
+| **50% data** | 0.877 | 0.931 | 0.944 | 0.951 |
+| **20% data** | 0.703 | 0.897 | 0.920 | 0.944 |
+| **10% data** | 0.699 | 0.893 | 0.913 | 0.941 |
 
-Baseline (no fine-tuning): **0.298**
+Baseline (no fine-tuning): **0.312**
 
 **Key findings:**
-- Fine-tuning improves Dice from 0.298 to 0.908-0.958
+- Fine-tuning improves Dice from 0.312 to 0.906-0.957
 - Training epochs dominate over data fraction: the biggest jump is 10 to 50 epochs regardless of data size
-- Even 10% of data (16 samples) trained to convergence reaches 0.942, only 0.016 below the best result
+- Even 10% of data (16 samples) trained to convergence reaches 0.941, only 0.016 below the best result
 - Diminishing returns beyond 50 epochs for all data fractions (50 to converged adds ~0.03-0.05)
 
 ### Training
@@ -344,21 +344,21 @@ Companion to the fine-tuning experiments: trains the same DynUNet architecture f
 
 |  | 10 epochs | 50 epochs | 100 epochs | Converged |
 |---|---|---|---|---|
-| **100% data** | 0.535 | 0.839 | 0.895 | 0.935 |
-| **50% data** | 0.264 | 0.787 | 0.854 | 0.902 |
-| **20% data** | 0.097 | 0.474 | 0.699 | 0.832 |
-| **10% data** | 0.103 | 0.469 | 0.694 | 0.805 |
+| **100% data** | 0.528 | 0.836 | 0.893 | 0.934 |
+| **50% data** | 0.258 | 0.783 | 0.851 | 0.899 |
+| **20% data** | 0.096 | 0.466 | 0.696 | 0.828 |
+| **10% data** | 0.101 | 0.461 | 0.691 | 0.801 |
 
 ### Pretraining Benefit (Fine-Tune Dice minus Scratch Dice)
 
 |  | 10 epochs | 50 epochs | 100 epochs | Converged |
 |---|---|---|---|---|
-| **100% data** | +0.373 | +0.106 | +0.054 | +0.023 |
-| **50% data** | +0.615 | +0.145 | +0.090 | +0.050 |
-| **20% data** | +0.606 | +0.426 | +0.222 | +0.113 |
-| **10% data** | +0.596 | +0.426 | +0.220 | +0.137 |
+| **100% data** | +0.377 | +0.108 | +0.055 | +0.023 |
+| **50% data** | +0.619 | +0.147 | +0.093 | +0.052 |
+| **20% data** | +0.608 | +0.432 | +0.224 | +0.116 |
+| **10% data** | +0.597 | +0.432 | +0.222 | +0.140 |
 
-**Key takeaway:** MegaSeg pretraining provides +0.02 to +0.62 Dice improvement. The benefit is largest with limited data and training budget (bottom-left of the grid) and smallest when both data and compute are abundant (top-right). Even at convergence with 100% data, fine-tuning still outperforms scratch by +0.023.
+**Key takeaway:** MegaSeg pretraining provides +0.02 to +0.62 Dice improvement. The benefit is largest with limited data and training budget (bottom-left of the grid) and smallest when both data and compute are abundant (top-right). Even at convergence with 100% data, fine-tuning still outperforms scratch by +0.023 Dice.
 
 ### Running From-Scratch Experiments
 
