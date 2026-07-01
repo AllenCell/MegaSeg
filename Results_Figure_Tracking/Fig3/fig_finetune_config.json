@@ -1,0 +1,94 @@
+{
+  "figure": "Fig 3 (Finetuning) — LMNB1 & LAMP1 combined",
+  "output": "fig_finetune_combined_v6.pdf",
+  "render_dpi": 300,
+  "pixel_size_um": 0.10833,
+  "scalebar_um": 10,
+  "crop_size_px": 320,
+
+  "heatmap": {
+    "data_pcts": [10, 20, 50, 100],
+    "epoch_cfgs": ["10epochs", "50epochs", "100epochs", "converged"],
+    "epoch_labels": ["10 ep", "50 ep", "100 ep", "Converged"],
+    "base_condition": "base_megaseg",
+    "cmap": ["#F7FBFF", "#C6DBEF", "#6BAED6", "#2171B5", "#08306B"]
+  },
+
+  "legend": [
+    {"label": "True Positive",  "rgb": [0.85, 0.75, 0.25]},
+    {"label": "False Positive", "rgb": [0.82, 0.35, 0.45]},
+    {"label": "False Negative", "rgb": [0.30, 0.55, 0.75]},
+    {"label": "True Negative",  "rgb": [0.12, 0.12, 0.12]}
+  ],
+
+  "structures": [
+    {
+      "name": "LMNB1",
+      "panel_heatmap": "a",
+      "panel_qualitative": "c",
+      "heatmap_title": "LMNB1 Finetuning — Mean Dice Score",
+      "metrics_csv": "lmnb1_finetune_metrics_v2.csv",
+      "condition_col": "condition",
+      "dice_col": "dice",
+      "data": {
+        "raw_dir": "//allen/aics/rep_learn/MegaSeg/data/variance-100x/LMNB1/raw",
+        "raw_template": "{stem}.ome.tiff",
+        "raw_channel": 3,
+        "gt_dir": "//allen/aics/rep_learn/MegaSeg/data/variance-100x/LMNB1/seg",
+        "gt_template": "{stem}_struct_segmentation.tiff",
+        "pred_root": "//allen/aics/rep_learn/MegaSeg/benchmark/outputs/eval/finetune/lmnb1",
+        "pred_template": "{cond}/seg/{stem}.ome.tif"
+      },
+      "qualitative": {
+        "panel_A": {
+          "label": "A  Epoch effect\n(100% data)",
+          "conditions": ["data100_10epochs", "data100_50epochs", "data100_100epochs", "data100_converged"],
+          "column_labels": ["10 ep", "50 ep", "100 ep", "Converged"],
+          "crop_ref_cond": null,
+          "stems": ["3500000956_100X_20170606_1r-Scene-2-P5-E04", "3500000896_100X_20170515_E05_P17"]
+        },
+        "panel_B": {
+          "label": "B  Data effect\n(10 epochs)",
+          "conditions": ["data10_10epochs", "data20_10epochs", "data50_10epochs", "data100_10epochs"],
+          "column_labels": ["10%", "20%", "50%", "100%"],
+          "crop_ref_cond": null,
+          "stems": ["3500000953_100X_20170607_2c-Scene-3-P18-F07", "3500000884_100X_20170509_1-Scene-20-P60-F05"]
+        }
+      }
+    },
+    {
+      "name": "LAMP1",
+      "panel_heatmap": "b",
+      "panel_qualitative": "d",
+      "heatmap_title": "LAMP1 Finetuning — Mean Dice Score",
+      "metrics_csv": "lamp1_finetune_metrics.csv",
+      "condition_col": "experiment",
+      "dice_col": "dice",
+      "data": {
+        "raw_dir": "//allen/aics/rep_learn/MegaSeg/data/variance-100x/LAMP1/dataset/test",
+        "raw_template": "{stem}.tiff",
+        "raw_channel": null,
+        "gt_dir": "//allen/aics/rep_learn/MegaSeg/data/variance-100x/LAMP1/dataset/test",
+        "gt_template": "{stem}_seg.tiff",
+        "pred_root": "//allen/aics/rep_learn/MegaSeg/benchmark/outputs/eval/finetune/lamp1",
+        "pred_template": "{cond}/seg/{stem}.tif"
+      },
+      "qualitative": {
+        "panel_A": {
+          "label": "A  Epoch effect\n(100% data)",
+          "conditions": ["data100_10epochs", "data100_50epochs", "data100_100epochs", "data100_converged"],
+          "column_labels": ["10 ep", "50 ep", "100 ep", "Converged"],
+          "crop_ref_cond": "data100_10epochs",
+          "stems": ["LAMP1_8309", "LAMP1_150886"]
+        },
+        "panel_B": {
+          "label": "B  Data effect\n(10 epochs)",
+          "conditions": ["data10_10epochs", "data20_10epochs", "data50_10epochs", "data100_10epochs"],
+          "column_labels": ["10%", "20%", "50%", "100%"],
+          "crop_ref_cond": null,
+          "stems": ["LAMP1_8554", "LAMP1_8055"]
+        }
+      }
+    }
+  ]
+}
