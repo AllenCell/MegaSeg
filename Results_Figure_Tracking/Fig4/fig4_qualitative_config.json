@@ -1,0 +1,41 @@
+{
+  "figure": "Fig 4 — drug-perturbation qualitative",
+  "output": "fig_drug_perturbation_qualitative.pdf",
+  "layout": "single",
+  "_comment_data_root": "Local raw + prediction TIFFs (too large to commit). Absolute path, or relative to this config; the four source dirs live under it.",
+  "data_root": "D:/Work/MegaSeg/Figures/Fig4",
+  "render_dpi": 300,
+  "pixel_size_um": 0.10833,
+  "scalebar_um": 10,
+  "crop_size_px": 320,
+  "threshold": 128,
+  "prob_cmap": "inferno",
+
+  "sources": {
+    "raw":        {"dir": "zarr_stage",        "template": "{stem}.tiff"},
+    "classic":    {"dir": "zarr_classic_v2",   "template": "{base}_classic_seg.tiff"},
+    "specialist": {"dir": "zarr_spec_ml",      "template": "{base}.tiff"},
+    "megaseg":    {"dir": "zarr_megaseg_mini", "template": "{base}.tiff"}
+  },
+
+  "columns": ["Raw", "Classic\nMask", "Specialist\nProb.", "Specialist\nMask", "MegaSeg\nProb.", "MegaSeg\nMask"],
+
+  "control_token": "contro",
+  "ignore_names": ["later"],
+
+  "structures": [
+    {"name": "FBL", "drug": "Actinomycin", "bundle": "left", "keep_drug_tp": "4hr",
+     "source_override": {"classic": {"struct_folder": "FBL-fine", "template": "{stem}_classic_seg.tiff"}},
+     "crop_overrides": {"3500002761_100X_20190218_4hr-Scene-114-P114-F06._ch1": {"center_xy": [220, 270], "z": 40, "contrast": {"p_lo": 5, "p_hi": 99.7, "gamma": 1.4}}}},
+    {"name": "NUP153", "drug": "Thapsigargin", "bundle": "left", "keep_drug_tp": "4hr",
+     "crop_overrides": {"3500003143_100X_20190611_4h_P154-G8.ome": {"contrast": {"p_lo": 5, "p_hi": 99.7, "gamma": 1.4}}}},
+    {"name": "TUBA1B", "drug": "Nocodazole", "bundle": "left", "keep_drug_tp": "4hr",
+     "crop": {"drug": "brightest"},
+     "crop_overrides": {"3500003886_100X_20200303_4hr_P48-B4.ome": {"center_xy": [720, 180], "z": 25, "contrast": {"p_lo": 0.5, "p_hi": 99.9, "gamma": 0.85}}}},
+    {"name": "ST6GAL1", "drug": "Rotenone", "bundle": "right", "keep_drug_tp": "24hr",
+     "crop": {"control": "brightest"},
+     "crop_overrides": {"3500004845_100X_20211109_24hr_P116-F6.ome": {"contrast": {"p_lo": 0.5, "p_hi": 99.9, "gamma": 0.85}}}},
+    {"name": "TOMM20", "drug": "Rotenone", "bundle": "right", "keep_drug_tp": "4hr",
+     "crop_overrides": {"3500002844_100X_20190326_4hr-Scene-098-P98-B06._ch1": {"center_xy": [220, 360], "z": 39, "contrast": {"p_lo": 5, "p_hi": 99.7, "gamma": 1.4}}}}
+  ]
+}
