@@ -14,7 +14,7 @@ Other changes from v4:
     current bigsb PDFs
 
 Layout per row (one per structure) is unchanged:
-  Raw | GT | Specialized Prob | Specialized Mask | Specialized Error |
+  Raw | Pseudo-Labels | Specialized Prob | Specialized Mask | Specialized Error |
   MegaSeg Prob | MegaSeg Mask | MegaSeg Error
 
 Usage:
@@ -264,7 +264,7 @@ def create_figure(all_data, save_path, dpi, struct_list, panel_in):
     n_cols = 8
 
     col_titles = [
-        "Raw", "Ground\nTruth",
+        "Raw", "Pseudo-\nLabels",
         "Specialized Model\nProb.", "Specialized Model\nMask", "Specialized Model\nError",
         "MegaSeg\nProb.", "MegaSeg\nMask", "MegaSeg\nError",
     ]
@@ -305,10 +305,10 @@ def create_figure(all_data, save_path, dpi, struct_list, panel_in):
             if col == 0:
                 add_scalebar(ax, crop_px)
                 ax.set_ylabel(STRUCTURE_LABELS.get(struct, struct),
-                              fontsize=13, fontweight="bold",
-                              rotation=90, labelpad=8, va="center")
+                              fontsize=16, fontweight="bold",
+                              rotation=90, labelpad=10, va="center")
             if row == 0:
-                ax.set_title(col_titles[col], fontsize=11, fontweight="bold", pad=6)
+                ax.set_title(col_titles[col], fontsize=14, fontweight="bold", pad=8)
 
     fig.savefig(save_path, dpi=dpi, bbox_inches="tight",
                 facecolor="white", pad_inches=0.1)
