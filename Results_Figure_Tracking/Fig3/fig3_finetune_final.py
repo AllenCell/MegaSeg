@@ -391,7 +391,7 @@ def build_qualitative(out_path):
     fig = plt.figure(figsize=(n_cols * 2.5, n_rows * 2.5 + 2.0), facecolor="white")
 
     outer_gs = gridspec.GridSpec(2, 1, hspace=0.12,
-                                top=0.95, bottom=0.04, left=0.07, right=0.98)
+                                top=0.95, bottom=0.04, left=0.09, right=0.98)
 
     lmnb1_gs = gridspec.GridSpecFromSubplotSpec(4, n_cols, subplot_spec=outer_gs[0],
                                                 wspace=0.03, hspace=0.08)
@@ -406,16 +406,26 @@ def build_qualitative(out_path):
                            LAMP1_PANEL_A_STEMS, LAMP1_PANEL_B_STEMS,
                            load_lamp1_raw, load_lamp1_gt, load_lamp1_pred, 4)
 
-    # Structure + panel labels
-    fig.text(0.01, 0.73, "LMNB1\nA  Epoch effect\n(100% data)",
-             fontsize=9, fontweight="bold", va="center", ha="left", rotation=90)
-    fig.text(0.01, 0.56, "B  Data effect\n(10 epochs)",
-             fontsize=9, fontweight="bold", va="center", ha="left", rotation=90)
+    # Force layout so we can read actual subplot positions
+    fig.canvas.draw()
 
-    fig.text(0.01, 0.35, "LAMP1\nA  Epoch effect\n(100% data)",
-             fontsize=9, fontweight="bold", va="center", ha="left", rotation=90)
-    fig.text(0.01, 0.18, "B  Data effect\n(10 epochs)",
-             fontsize=9, fontweight="bold", va="center", ha="left", rotation=90)
+    def _panel_y_center(gs_block, row_start, row_end):
+        top = gs_block[row_start, 0].get_position(fig).y1
+        bot = gs_block[row_end, 0].get_position(fig).y0
+        return (top + bot) / 2
+
+    # Structure + panel labels — aligned to actual subplot positions
+    for gs_block, struct_name in [(lmnb1_gs, "LMNB1"), (lamp1_gs, "LAMP1")]:
+        panel_a_y = _panel_y_center(gs_block, 0, 1)
+        panel_b_y = _panel_y_center(gs_block, 2, 3)
+        struct_y = _panel_y_center(gs_block, 0, 3)
+
+        fig.text(0.005, struct_y, struct_name,
+                 fontsize=11, fontweight="bold", va="center", ha="left", rotation=90)
+        fig.text(0.025, panel_a_y, "A  Epoch effect\n(100% data)",
+                 fontsize=8, fontweight="bold", va="center", ha="left", rotation=90)
+        fig.text(0.025, panel_b_y, "B  Data effect\n(10 epochs)",
+                 fontsize=8, fontweight="bold", va="center", ha="left", rotation=90)
 
     # Separator between Panel A and B within each structure
     for gs_block in [lmnb1_gs, lamp1_gs]:
