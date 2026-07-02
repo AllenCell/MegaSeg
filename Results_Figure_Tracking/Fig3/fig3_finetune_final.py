@@ -132,7 +132,7 @@ def plot_single_heatmap(ax, grid, std_grid, base_mean, base_std, title, n,
 
 
 def build_heatmaps(out_path):
-    """Build 2×2 heatmap figure."""
+    """Build 2×2 heatmap figure with shared colorbar."""
     panels = [
         ("LMNB1 Fine-Tuning", RESULTS / "finetune" / "lmnb1" / "summary.csv"),
         ("LMNB1 From-Scratch", RESULTS / "scratch" / "lmnb1" / "summary.csv"),
@@ -140,22 +140,76 @@ def build_heatmaps(out_path):
         ("LAMP1 From-Scratch", RESULTS / "scratch" / "lamp1" / "summary.csv"),
     ]
 
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-    fig.subplots_adjust(hspace=0.4, wspace=0.25)
+    fig, axes = plt.subplots(2, 2, figsize=(14, 11))
+    fig.subplots_adjust(hspace=0.4, wspace=0.25, right=0.88)
+
+    global_vmin, global_vmax = 1.0, 0.0
+    grids = []
+    for title, csv_path in panels:
+        if csv_path.exists():
+            grid, std_grid, base_mean, base_std, n = load_summary_grid(csv_path)
+            lo = min(np.nanmin(grid), base_mean if base_mean else 1.0)
+            hi = np.nanmax(grid)
+            global_vmin = min(global_vmin, lo)
+            global_vmax = max(global_vmax, hi)
+            grids.append((grid, std_grid, base_mean, base_std, n))
+        else:
+            grids.append(None)
+
+    global_vmin -= 0.02
+    global_vmax += 0.02
+    global_norm = Normalize(vmin=global_vmin, vmax=global_vmax)
 
     for idx, (title, csv_path) in enumerate(panels):
         ax = axes[idx // 2, idx % 2]
-        if not csv_path.exists():
+        if grids[idx] is None:
             ax.text(0.5, 0.5, f"{title}\n(data not available)",
                     ha="center", va="center", transform=ax.transAxes)
             ax.set_title(title, fontsize=11, fontweight="bold")
             continue
-        grid, std_grid, base_mean, base_std, n = load_summary_grid(csv_path)
-        plot_single_heatmap(
-            ax, grid, std_grid, base_mean, base_std, title, n,
-            show_ylabel=(idx % 2 == 0),
-            show_xlabel=(idx // 2 == 1),
-        )
+        grid, std_grid, base_mean, base_std, n = grids[idx]
+
+        ax.imshow(grid, cmap=HEATMAP_CMAP, norm=global_norm, aspect="auto")
+
+        for i in range(4):
+            for j in range(4):
+                val = grid[i, j]
+                if np.isnan(val):
+                    ax.text(j, i, "N/A", ha="center", va="center", fontsize=7, color="gray")
+                    continue
+                std = std_grid[i, j]
+                rgba = HEATMAP_CMAP(global_norm(val))
+                brightness = 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2]
+                color = "white" if brightness < 0.55 else "black"
+                ax.text(j, i, f"{val:.3f}\n±{std:.3f}",
+                        ha="center", va="center", fontsize=7.5,
+                        fontweight="bold", color=color)
+
+        ax.set_xticks(range(4))
+        ax.set_xticklabels(EPOCH_DISPLAY, fontsize=9)
+        ax.set_yticks(range(4))
+        ax.set_yticklabels(FRAC_DISPLAY if (idx % 2 == 0) else [], fontsize=8)
+        ax.set_xlabel("Training Epochs", fontsize=10)
+        if idx % 2 == 0:
+            ax.set_ylabel("Data (train+val)", fontsize=10)
+
+        subtitle = f"(n={n})" if n else ""
+        ax.set_title(f"{title} {subtitle}", fontsize=11, fontweight="bold", pad=8)
+
+        if base_mean is not None:
+            ax.text(0.5, -0.15,
+                    f"Base MegaSeg (no finetuning): {base_mean:.3f} ± {base_std:.3f}",
+                    transform=ax.transAxes, ha="center", va="top", fontsize=8.5,
+                    fontweight="bold",
+                    bbox=dict(boxstyle="round,pad=0.4",
+                              facecolor="#2C2C2C",
+                              edgecolor="black", linewidth=1.5),
+                    color="#FFDD44")
+
+    cbar_ax = fig.add_axes([0.90, 0.15, 0.02, 0.7])
+    cbar = fig.colorbar(ScalarMappable(norm=global_norm, cmap=HEATMAP_CMAP),
+                        cax=cbar_ax)
+    cbar.set_label("Mean Dice Score", fontsize=11)
 
     fig.savefig(str(out_path), dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
@@ -169,23 +223,23 @@ CROP_SIZE = 320
 PIXEL_SIZE_UM = 0.10833
 SCALEBAR_UM = 10
 
-# Panel A samples (epoch effect, 100% data) — largest base→converged improvement
+# Panel A samples (epoch effect, 100% data)
 LMNB1_PANEL_A_STEMS = [
-    "3500000896_100X_20170515_F05_P59",
+    "3500000883_100X_20170509_F06_P43",
     "3500000896_100X_20170515_E05_P17",
 ]
 LAMP1_PANEL_A_STEMS = [
-    "LAMP1_150841",
-    "LAMP1_150666",
+    "LAMP1_150632",
+    "LAMP1_150886",
 ]
 
-# Panel B samples (data effect, 10 epochs) — different samples showing data scaling
+# Panel B samples (data effect, 10 epochs)
 LMNB1_PANEL_B_STEMS = [
     "3500000953_100X_20170607_2c-Scene-3-P18-F07",
     "3500000884_100X_20170509_1-Scene-20-P60-F05",
 ]
 LAMP1_PANEL_B_STEMS = [
-    "LAMP1_150673",
+    "LAMP1_150639",
     "LAMP1_8943",
 ]
 
