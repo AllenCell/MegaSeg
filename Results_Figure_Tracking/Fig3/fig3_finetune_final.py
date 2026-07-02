@@ -43,10 +43,15 @@ FIGURE_DIR = Path(__file__).parent
 LMNB1_PRED_ROOT = BENCHMARK / "outputs" / "eval" / "finetune" / "lmnb1"
 LAMP1_PRED_ROOT = BENCHMARK / "outputs" / "eval" / "finetune" / "lamp1"
 
-DATA_FRACTIONS = [100, 50, 20, 10]
+DATA_FRACTIONS = [10, 20, 50, 100]
 EPOCH_CONFIGS = ["10epochs", "50epochs", "100epochs", "converged"]
 EPOCH_DISPLAY = ["10 ep", "50 ep", "100 ep", "Conv."]
-FRAC_DISPLAY = ["100%", "50%", "20%", "10%"]
+FRAC_DISPLAY = [
+    "10%\n(16+4)",
+    "20%\n(32+8)",
+    "50%\n(80+20)",
+    "100%\n(160+40)",
+]
 
 # ══════════════════════════════════════════════════════════════
 #  HEATMAPS — 2×2 panel
@@ -103,13 +108,12 @@ def plot_single_heatmap(ax, grid, std_grid, base_mean, base_std, title, n,
                     fontweight="bold", color=color)
 
     ax.set_xticks(range(4))
-    ax.set_xticklabels(EPOCH_DISPLAY if show_xlabel else [], fontsize=9)
+    ax.set_xticklabels(EPOCH_DISPLAY, fontsize=9)
     ax.set_yticks(range(4))
-    ax.set_yticklabels(FRAC_DISPLAY if show_ylabel else [], fontsize=9)
-    if show_xlabel:
-        ax.set_xlabel("Training Epochs", fontsize=10)
+    ax.set_yticklabels(FRAC_DISPLAY if show_ylabel else [], fontsize=8)
+    ax.set_xlabel("Training Epochs", fontsize=10)
     if show_ylabel:
-        ax.set_ylabel("Data Fraction", fontsize=10)
+        ax.set_ylabel("Data (train+val)", fontsize=10)
 
     subtitle = f"(n={n})" if n else ""
     ax.set_title(f"{title} {subtitle}", fontsize=11, fontweight="bold", pad=8)
@@ -165,24 +169,43 @@ CROP_SIZE = 320
 PIXEL_SIZE_UM = 0.10833
 SCALEBAR_UM = 10
 
-# LMNB1 samples — largest base→converged improvement
-LMNB1_STEMS = [
+# Panel A samples (epoch effect, 100% data) — largest base→converged improvement
+LMNB1_PANEL_A_STEMS = [
     "3500000896_100X_20170515_F05_P59",
     "3500000896_100X_20170515_E05_P17",
 ]
-# LAMP1 samples — largest base→converged improvement
-LAMP1_STEMS = [
+LAMP1_PANEL_A_STEMS = [
     "LAMP1_150841",
     "LAMP1_150666",
 ]
 
+# Panel B samples (data effect, 10 epochs) — different samples showing data scaling
+LMNB1_PANEL_B_STEMS = [
+    "3500000953_100X_20170607_2c-Scene-3-P18-F07",
+    "3500000884_100X_20170509_1-Scene-20-P60-F05",
+]
+LAMP1_PANEL_B_STEMS = [
+    "LAMP1_150673",
+    "LAMP1_8943",
+]
+
 EPOCH_CONDS = [
+    "base_megaseg",
     "data100_10epochs",
     "data100_50epochs",
     "data100_100epochs",
     "data100_converged",
 ]
-EPOCH_LABELS = ["10 ep", "50 ep", "100 ep", "Conv."]
+EPOCH_COL_LABELS = ["MegaSeg", "10 ep", "50 ep", "100 ep", "Conv."]
+
+DATA_CONDS = [
+    "base_megaseg",
+    "data10_10epochs",
+    "data20_10epochs",
+    "data50_10epochs",
+    "data100_10epochs",
+]
+DATA_COL_LABELS = ["MegaSeg", "10%", "20%", "50%", "100%"]
 
 
 def load_lmnb1_raw(stem):
@@ -278,7 +301,7 @@ def add_scalebar(ax, crop_pixels):
 
 
 def load_row_data(stem, conditions, load_raw_fn, load_gt_fn, load_pred_fn):
-    """Load one row: raw, GT, MegaSeg generalist pred, then error maps for conditions."""
+    """Load one row: raw, GT, then error maps for ALL conditions (including base_megaseg)."""
     raw_vol = load_raw_fn(stem)
     gt_vol = load_gt_fn(stem)
 
@@ -293,12 +316,6 @@ def load_row_data(stem, conditions, load_raw_fn, load_gt_fn, load_pred_fn):
     raw_crop = crop(raw_mip)
     gt_crop = crop(gt_mip)
 
-    # MegaSeg generalist prediction (binary MIP)
-    base_vol = load_pred_fn("base_megaseg", stem)
-    base_mip = mip(base_vol.astype(np.uint8)) > 0
-    base_crop = crop(base_mip).astype(np.float32)
-
-    # Error maps for fine-tuning conditions
     error_maps = []
     for cond in conditions:
         try:
@@ -309,33 +326,33 @@ def load_row_data(stem, conditions, load_raw_fn, load_gt_fn, load_pred_fn):
             print(f"    WARNING: {cond}/{stem}: {e}")
             error_maps.append(np.zeros((cs, cs, 3), dtype=np.float32))
 
-    return raw_crop, gt_crop, base_crop, error_maps, cs
+    return raw_crop, gt_crop, error_maps, cs
 
 
-def build_qualitative(out_path):
-    """4 rows × 8 columns: Raw | GT | MegaSeg (generalist) | 4 fine-tuning conditions."""
-    # Columns: Raw, GT, MegaSeg, 10ep, 50ep, 100ep, Converged
-    col_titles = ["Raw", "GT", "MegaSeg"] + EPOCH_LABELS
-    n_rows = 4  # 2 LMNB1 + 2 LAMP1
-    n_cols = len(col_titles)
+def _build_structure_panel(fig, gs_block, struct, panel_a_stems, panel_b_stems,
+                           load_raw_fn, load_gt_fn, load_pred_fn, row_offset):
+    """Build Panel A (epoch effect) + Panel B (data effect) for one structure.
 
-    fig = plt.figure(figsize=(n_cols * 2.2, n_rows * 2.2 + 1.6), facecolor="white")
-    gs = gridspec.GridSpec(n_rows, n_cols, wspace=0.03, hspace=0.08)
-    fig.subplots_adjust(left=0.08, right=0.98, top=0.94, bottom=0.06)
+    4 rows total: 2 for Panel A, 2 for Panel B.
+    7 columns: Raw | GT | MegaSeg/Base | cond1 | cond2 | cond3 | cond4
+    """
+    col_titles_a = ["Raw", "GT"] + EPOCH_COL_LABELS
+    col_titles_b = ["Raw", "GT"] + DATA_COL_LABELS
+    n_cols = 7
 
-    rows_spec = []
-    for stem in LMNB1_STEMS:
-        rows_spec.append((stem, EPOCH_CONDS, load_lmnb1_raw, load_lmnb1_gt, load_lmnb1_pred, "LMNB1"))
-    for stem in LAMP1_STEMS:
-        rows_spec.append((stem, EPOCH_CONDS, load_lamp1_raw, load_lamp1_gt, load_lamp1_pred, "LAMP1"))
-
-    for row_idx, (stem, conditions, load_raw_fn, load_gt_fn, load_pred_fn, struct) in enumerate(rows_spec):
-        print(f"  Loading row {row_idx} ({struct}): {stem}...")
-        raw_crop, gt_crop, base_crop, error_maps, crop_px = load_row_data(
+    for local_row, (stem, conditions, col_titles) in enumerate([
+        (panel_a_stems[0], EPOCH_CONDS, col_titles_a),
+        (panel_a_stems[1], EPOCH_CONDS, col_titles_a),
+        (panel_b_stems[0], DATA_CONDS, col_titles_b),
+        (panel_b_stems[1], DATA_CONDS, col_titles_b),
+    ]):
+        global_row = row_offset + local_row
+        print(f"  Loading row {global_row} ({struct}): {stem}...")
+        raw_crop, gt_crop, error_maps, crop_px = load_row_data(
             stem, conditions, load_raw_fn, load_gt_fn, load_pred_fn)
 
         for col_idx in range(n_cols):
-            ax = fig.add_subplot(gs[row_idx, col_idx])
+            ax = fig.add_subplot(gs_block[local_row, col_idx])
 
             if col_idx == 0:
                 ax.imshow(raw_crop, cmap="gray", vmin=0, vmax=1,
@@ -344,11 +361,8 @@ def build_qualitative(out_path):
             elif col_idx == 1:
                 ax.imshow(gt_crop.astype(np.float32), cmap="gray", vmin=0, vmax=1,
                           interpolation="nearest", aspect="equal")
-            elif col_idx == 2:
-                ax.imshow(base_crop, cmap="gray", vmin=0, vmax=1,
-                          interpolation="nearest", aspect="equal")
             else:
-                ax.imshow(error_maps[col_idx - 3],
+                ax.imshow(error_maps[col_idx - 2],
                           interpolation="nearest", aspect="equal")
 
             ax.set_xticks([])
@@ -357,19 +371,69 @@ def build_qualitative(out_path):
                 spine.set_linewidth(0.3)
                 spine.set_color("#555555")
 
-            if row_idx == 0:
-                ax.set_title(col_titles[col_idx], fontsize=9, fontweight="bold", pad=6)
+            if local_row == 0:
+                ax.set_title(col_titles_a[col_idx], fontsize=9,
+                             fontweight="bold", pad=6)
+            elif local_row == 2:
+                ax.set_title(col_titles_b[col_idx], fontsize=9,
+                             fontweight="bold", pad=6)
 
-    # Panel labels
-    fig.text(0.01, 0.78, "LMNB1",
-             fontsize=11, fontweight="bold", va="center", ha="left", rotation=90)
-    fig.text(0.01, 0.32, "LAMP1",
-             fontsize=11, fontweight="bold", va="center", ha="left", rotation=90)
 
-    # Separator line between LMNB1 and LAMP1
-    sep_y = (gs[1, 0].get_position(fig).y0 + gs[2, 0].get_position(fig).y1) / 2
+def build_qualitative(out_path):
+    """8 rows × 7 columns: Panel A/B for LMNB1, then Panel A/B for LAMP1.
+
+    Panel A: Epoch effect (100% data) — Raw | GT | MegaSeg | 10ep | 50ep | 100ep | Conv.
+    Panel B: Data effect (10 epochs) — Raw | GT | MegaSeg | 10% | 20% | 50% | 100%
+    """
+    n_rows = 8
+    n_cols = 7
+
+    fig = plt.figure(figsize=(n_cols * 2.5, n_rows * 2.5 + 2.0), facecolor="white")
+
+    outer_gs = gridspec.GridSpec(2, 1, hspace=0.12,
+                                top=0.95, bottom=0.04, left=0.07, right=0.98)
+
+    lmnb1_gs = gridspec.GridSpecFromSubplotSpec(4, n_cols, subplot_spec=outer_gs[0],
+                                                wspace=0.03, hspace=0.08)
+    lamp1_gs = gridspec.GridSpecFromSubplotSpec(4, n_cols, subplot_spec=outer_gs[1],
+                                                wspace=0.03, hspace=0.08)
+
+    _build_structure_panel(fig, lmnb1_gs, "LMNB1",
+                           LMNB1_PANEL_A_STEMS, LMNB1_PANEL_B_STEMS,
+                           load_lmnb1_raw, load_lmnb1_gt, load_lmnb1_pred, 0)
+
+    _build_structure_panel(fig, lamp1_gs, "LAMP1",
+                           LAMP1_PANEL_A_STEMS, LAMP1_PANEL_B_STEMS,
+                           load_lamp1_raw, load_lamp1_gt, load_lamp1_pred, 4)
+
+    # Structure + panel labels
+    fig.text(0.01, 0.73, "LMNB1\nA  Epoch effect\n(100% data)",
+             fontsize=9, fontweight="bold", va="center", ha="left", rotation=90)
+    fig.text(0.01, 0.56, "B  Data effect\n(10 epochs)",
+             fontsize=9, fontweight="bold", va="center", ha="left", rotation=90)
+
+    fig.text(0.01, 0.35, "LAMP1\nA  Epoch effect\n(100% data)",
+             fontsize=9, fontweight="bold", va="center", ha="left", rotation=90)
+    fig.text(0.01, 0.18, "B  Data effect\n(10 epochs)",
+             fontsize=9, fontweight="bold", va="center", ha="left", rotation=90)
+
+    # Separator between Panel A and B within each structure
+    for gs_block in [lmnb1_gs, lamp1_gs]:
+        pos_above = gs_block[1, 0].get_position(fig)
+        pos_below = gs_block[2, 0].get_position(fig)
+        sep_y = (pos_above.y0 + pos_below.y1) / 2
+        fig.add_artist(plt.Line2D(
+            [0.05, 0.98], [sep_y, sep_y],
+            transform=fig.transFigure,
+            color="gray", linewidth=0.5, linestyle=":",
+        ))
+
+    # Separator between LMNB1 and LAMP1
+    pos_lmnb1_bot = lmnb1_gs[3, 0].get_position(fig)
+    pos_lamp1_top = lamp1_gs[0, 0].get_position(fig)
+    sep_y = (pos_lmnb1_bot.y0 + pos_lamp1_top.y1) / 2
     fig.add_artist(plt.Line2D(
-        [0.04, 0.98], [sep_y, sep_y],
+        [0.03, 0.98], [sep_y, sep_y],
         transform=fig.transFigure,
         color="gray", linewidth=1, linestyle="--",
     ))
