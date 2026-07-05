@@ -45,7 +45,8 @@ DEND_PALETTE = ["#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#A65628"
 # Paths
 # ──────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).parent
-INPUT_CSV = SCRIPT_DIR.parent / "experiments" / "MegaSeg" / "benchmark" / "results" / "uint8" / "per_sample_metrics.csv"
+REPO_ROOT = SCRIPT_DIR.parent.parent
+INPUT_CSV = REPO_ROOT / "benchmark" / "results" / "uint8" / "per_sample_metrics.csv"
 
 # 13 training structures (NPM1 excluded)
 STRUCTURES_13 = [
@@ -419,7 +420,7 @@ def main():
         ce_mean, ce_std, ce_rows, ce_cols,
         title="Cross-Evaluation: Specialist Model Generalization (Dice Score)",
         save_path=str(SCRIPT_DIR / "fig_heatmap_crosseval.pdf"),
-        annotate_std=False, fontsize_annot=7,
+        annotate_std=True, fontsize_annot=7,
         figsize=(12, 10),
         symmetric=True,
         label_map=GENE_TO_STRUCTURE,
@@ -433,7 +434,7 @@ def main():
         ce_mean, ce_std, ce_rows, ce_cols,
         title="Cross-Evaluation: Radial Order (Viana et al. 2023)",
         save_path=str(SCRIPT_DIR / "fig_heatmap_crosseval_radial.pdf"),
-        annotate_std=False, fontsize_annot=7,
+        annotate_std=True, fontsize_annot=7,
         figsize=(12, 10),
         fixed_order=RADIAL_ORDER,
     )

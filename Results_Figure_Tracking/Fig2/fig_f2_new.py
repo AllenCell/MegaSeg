@@ -144,9 +144,11 @@ def build_sota_heatmap(out_path):
             rgba = HEATMAP_CMAP(norm(val))
             brightness = 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2]
             text_color = "white" if brightness < 0.55 else "black"
-            ax_heat.text(j, i, f"{val:.2f}",
+            std_val = std_ordered[i, j]
+            label = f"{val:.2f}\n±{std_val:.2f}" if not np.isnan(std_val) else f"{val:.2f}"
+            ax_heat.text(j, i, label,
                          ha="center", va="center",
-                         fontsize=9, fontweight="bold", color=text_color)
+                         fontsize=7, fontweight="bold", color=text_color)
 
     ax_heat.set_xticks(range(n_structs))
     ax_heat.set_xticklabels(struct_labels_ordered, fontsize=10, fontweight="bold",
