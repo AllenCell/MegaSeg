@@ -110,7 +110,7 @@ def build_sota_heatmap(out_path):
     struct_labels_ordered = [struct_labels[i] for i in col_order]
 
     # Figure layout: column dendrogram on top, colorbar on right
-    fig = plt.figure(figsize=(16, 7), facecolor="white")
+    fig = plt.figure(figsize=(20, 9), facecolor="white")
     gs = gridspec.GridSpec(
         2, 2,
         width_ratios=[1.0, 0.02],
@@ -148,7 +148,7 @@ def build_sota_heatmap(out_path):
             label = f"{val:.2f}\n±{std_val:.2f}" if not np.isnan(std_val) else f"{val:.2f}"
             ax_heat.text(j, i, label,
                          ha="center", va="center",
-                         fontsize=7, fontweight="bold", color=text_color)
+                         fontsize=11, fontweight="bold", color=text_color)
 
     ax_heat.set_xticks(range(n_structs))
     ax_heat.set_xticklabels(struct_labels_ordered, fontsize=10, fontweight="bold",

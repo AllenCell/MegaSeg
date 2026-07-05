@@ -406,8 +406,8 @@ def main():
         mean_mat, std_mat, row_labels, col_labels,
         title="Dice Score: Individual vs. MegaSeg Models (13 Structures)",
         save_path=str(SCRIPT_DIR / "fig_heatmap_models.pdf"),
-        annotate_std=True, fontsize_annot=7,
-        figsize=(10, 9),
+        annotate_std=True, fontsize_annot=11,
+        figsize=(12, 11),
         row_cluster_col=0,  # cluster rows using Individual model scores only
         label_map=GENE_TO_STRUCTURE,  # remaps structure rows; model cols unchanged
         xlabel="Model",
@@ -422,8 +422,8 @@ def main():
         ce_mean, ce_std, ce_rows, ce_cols,
         title="Cross-Evaluation: Specialist Model Generalization (Dice Score)",
         save_path=str(SCRIPT_DIR / "fig_heatmap_crosseval.pdf"),
-        annotate_std=True, fontsize_annot=7,
-        figsize=(12, 10),
+        annotate_std=True, fontsize_annot=10,
+        figsize=(16, 12),
         symmetric=True,
         label_map=GENE_TO_STRUCTURE,
         xlabel="Evaluation structure",
@@ -436,8 +436,8 @@ def main():
         ce_mean, ce_std, ce_rows, ce_cols,
         title="Cross-Evaluation: Radial Order (Viana et al. 2023)",
         save_path=str(SCRIPT_DIR / "fig_heatmap_crosseval_radial.pdf"),
-        annotate_std=True, fontsize_annot=7,
-        figsize=(12, 10),
+        annotate_std=True, fontsize_annot=10,
+        figsize=(16, 12),
         fixed_order=RADIAL_ORDER,
     )
 
