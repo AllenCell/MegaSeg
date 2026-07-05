@@ -294,6 +294,8 @@ def plot_heatmap_with_dendrograms(
     ax_dend_col = fig.add_subplot(gs[0, 0])
     if Z_col is not None:
         _draw_dendrogram(ax_dend_col, Z_col, "top")
+    else:
+        ax_dend_col.set_axis_off()
 
     # ── Heatmap ──
     ax_heat = fig.add_subplot(gs[1, 0])
