@@ -45,7 +45,8 @@ DEND_PALETTE = ["#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#A65628"
 # Paths
 # ──────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).parent
-INPUT_CSV = SCRIPT_DIR.parent / "experiments" / "MegaSeg" / "benchmark" / "results" / "uint8" / "per_sample_metrics.csv"
+REPO_ROOT = SCRIPT_DIR.parent.parent
+INPUT_CSV = REPO_ROOT / "benchmark" / "results" / "uint8" / "per_sample_metrics.csv"
 
 # 13 training structures (NPM1 excluded)
 STRUCTURES_13 = [
@@ -285,14 +286,16 @@ def plot_heatmap_with_dendrograms(
     gs = gridspec.GridSpec(
         2, 2,
         width_ratios=[1.0, 0.02],
-        height_ratios=[0.10, 1.0],
-        wspace=0.02, hspace=0.02,
+        height_ratios=[0.15, 1.0],
+        wspace=0.02, hspace=0.01,
     )
 
     # ── Column dendrogram (top only) ──
     ax_dend_col = fig.add_subplot(gs[0, 0])
     if Z_col is not None:
         _draw_dendrogram(ax_dend_col, Z_col, "top")
+    else:
+        ax_dend_col.set_axis_off()
 
     # ── Heatmap ──
     ax_heat = fig.add_subplot(gs[1, 0])
@@ -326,27 +329,27 @@ def plot_heatmap_with_dendrograms(
     # Axis labels
     ax_heat.set_xticks(range(n_cols))
     ax_heat.set_xticklabels(col_labels_ordered, rotation=45, ha="right",
-                            fontsize=10, fontweight="bold")
+                            fontsize=14, fontweight="bold")
     ax_heat.set_yticks(range(n_rows))
-    ax_heat.set_yticklabels(row_labels_ordered, fontsize=10, fontweight="bold")
+    ax_heat.set_yticklabels(row_labels_ordered, fontsize=14, fontweight="bold")
     ax_heat.tick_params(axis="both", which="both", length=0)
 
     # Axis titles (e.g. which axis is the trained vs the evaluation structure)
     if xlabel:
-        ax_heat.set_xlabel(xlabel, fontsize=12, fontweight="bold", labelpad=8)
+        ax_heat.set_xlabel(xlabel, fontsize=16, fontweight="bold", labelpad=10)
     if ylabel:
-        ax_heat.set_ylabel(ylabel, fontsize=12, fontweight="bold", labelpad=8)
+        ax_heat.set_ylabel(ylabel, fontsize=16, fontweight="bold", labelpad=10)
 
     # ── Colorbar ──
     ax_cbar = fig.add_subplot(gs[1, 1])
     sm = ScalarMappable(cmap=cmap_obj, norm=norm)
     sm.set_array([])
     cb = fig.colorbar(sm, cax=ax_cbar)
-    cb.set_label("Dice Score", fontsize=11, fontweight="bold")
-    cb.ax.tick_params(labelsize=9)
+    cb.set_label("Dice Score", fontsize=14, fontweight="bold")
+    cb.ax.tick_params(labelsize=12)
 
-    # Title
-    fig.suptitle(title, fontsize=14, fontweight="bold", y=0.98)
+    # Title — placed on dendrogram axes to eliminate gap
+    ax_dend_col.set_title(title, fontsize=18, fontweight="bold", pad=12)
 
     fig.savefig(save_path, dpi=300, bbox_inches="tight", facecolor="white", pad_inches=0.1)
     print(f"Saved: {save_path}")
@@ -403,8 +406,8 @@ def main():
         mean_mat, std_mat, row_labels, col_labels,
         title="Dice Score: Individual vs. MegaSeg Models (13 Structures)",
         save_path=str(SCRIPT_DIR / "fig_heatmap_models.pdf"),
-        annotate_std=True, fontsize_annot=7,
-        figsize=(10, 9),
+        annotate_std=True, fontsize_annot=11,
+        figsize=(12, 11),
         row_cluster_col=0,  # cluster rows using Individual model scores only
         label_map=GENE_TO_STRUCTURE,  # remaps structure rows; model cols unchanged
         xlabel="Model",
@@ -419,8 +422,8 @@ def main():
         ce_mean, ce_std, ce_rows, ce_cols,
         title="Cross-Evaluation: Specialist Model Generalization (Dice Score)",
         save_path=str(SCRIPT_DIR / "fig_heatmap_crosseval.pdf"),
-        annotate_std=False, fontsize_annot=7,
-        figsize=(12, 10),
+        annotate_std=True, fontsize_annot=10,
+        figsize=(16, 12),
         symmetric=True,
         label_map=GENE_TO_STRUCTURE,
         xlabel="Evaluation structure",
@@ -433,8 +436,8 @@ def main():
         ce_mean, ce_std, ce_rows, ce_cols,
         title="Cross-Evaluation: Radial Order (Viana et al. 2023)",
         save_path=str(SCRIPT_DIR / "fig_heatmap_crosseval_radial.pdf"),
-        annotate_std=False, fontsize_annot=7,
-        figsize=(12, 10),
+        annotate_std=True, fontsize_annot=10,
+        figsize=(16, 12),
         fixed_order=RADIAL_ORDER,
     )
 
