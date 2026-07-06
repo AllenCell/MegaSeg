@@ -1,0 +1,149 @@
+{
+  "seed": 42,
+  "crop_size": 320,
+  "samples": {
+    "ACTN1": {
+      "stem": "ACTN1_11459",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/ACTN1_11459.tiff",
+      "seg_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/ACTN1_11459_seg.tiff",
+      "megaseg_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/megaseg/dynunet/ACTN1/seg/ACTN1_11459.tif",
+      "individual_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/individual/ms13-ACTN1/seg/ACTN1_11459.tif",
+      "z_slice": 16,
+      "y_start": 164,
+      "x_start": 252,
+      "crop_size": 320
+    },
+    "ATP2A2": {
+      "stem": "ATP2A2_141566",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/ATP2A2_141566.tiff",
+      "seg_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/ATP2A2_141566_seg.tiff",
+      "megaseg_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/megaseg/dynunet/ATP2A2/seg/ATP2A2_141566.tif",
+      "individual_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/individual/ms13-ATP2A2/seg/ATP2A2_141566.tif",
+      "z_slice": 32,
+      "y_start": 141,
+      "x_start": 262,
+      "crop_size": 320
+    },
+    "CTNNB1": {
+      "stem": "CTNNB1_13430",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/CTNNB1_13430.tiff",
+      "seg_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/CTNNB1_13430_seg.tiff",
+      "megaseg_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/megaseg/dynunet/CTNNB1/seg/CTNNB1_13430.tif",
+      "individual_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/individual/ms13-CTNNB1/seg/CTNNB1_13430.tif",
+      "z_slice": 39,
+      "y_start": 114,
+      "x_start": 262,
+      "crop_size": 320
+    },
+    "DSP": {
+      "stem": "DSP_4144",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/DSP_4144.tiff",
+      "seg_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/DSP_4144_seg.tiff",
+      "megaseg_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/megaseg/dynunet/DSP/seg/DSP_4144.tif",
+      "individual_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/individual/ms13-DSP/seg/DSP_4144.tif",
+      "z_slice": 51,
+      "y_start": 234,
+      "x_start": 241,
+      "crop_size": 320
+    },
+    "GJA1": {
+      "stem": "GJA1_10539",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/GJA1_10539.tiff",
+      "seg_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/GJA1_10539_seg.tiff",
+      "megaseg_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/megaseg/dynunet/GJA1/seg/GJA1_10539.tif",
+      "individual_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/individual/ms13-GJA1/seg/GJA1_10539.tif",
+      "z_slice": 45,
+      "y_start": 193,
+      "x_start": 237,
+      "crop_size": 320
+    },
+    "MYH10": {
+      "stem": "MYH10_7549",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/MYH10_7549.tiff",
+      "seg_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/MYH10_7549_seg.tiff",
+      "megaseg_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/megaseg/dynunet/MYH10/seg/MYH10_7549.tif",
+      "individual_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/individual/ms13-MYH10/seg/MYH10_7549.tif",
+      "z_slice": 19,
+      "y_start": 172,
+      "x_start": 267,
+      "crop_size": 320
+    },
+    "NUP153": {
+      "stem": "NUP153_140317",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/NUP153_140317.tiff",
+      "seg_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/NUP153_140317_seg.tiff",
+      "megaseg_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/megaseg/dynunet/NUP153/seg/NUP153_140317.tif",
+      "individual_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/individual/ms13-NUP153/seg/NUP153_140317.tif",
+      "z_slice": 25,
+      "y_start": 155,
+      "x_start": 270,
+      "crop_size": 320
+    },
+    "RAB5A": {
+      "stem": "RAB5A_147798",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/RAB5A_147798.tiff",
+      "seg_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/RAB5A_147798_seg.tiff",
+      "megaseg_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/megaseg/dynunet/RAB5A/seg/RAB5A_147798.tif",
+      "individual_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/individual/ms13-RAB5A/seg/RAB5A_147798.tif",
+      "z_slice": 41,
+      "y_start": 193,
+      "x_start": 298,
+      "crop_size": 320
+    },
+    "SEC61B": {
+      "stem": "SEC61B_5293",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/SEC61B_5293.tiff",
+      "seg_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/SEC61B_5293_seg.tiff",
+      "megaseg_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/megaseg/dynunet/SEC61B/seg/SEC61B_5293.tif",
+      "individual_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/individual/ms13-SEC61B/seg/SEC61B_5293.tif",
+      "z_slice": 43,
+      "y_start": 133,
+      "x_start": 278,
+      "crop_size": 320
+    },
+    "SON": {
+      "stem": "SON_136098",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/SON_136098.tiff",
+      "seg_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/SON_136098_seg.tiff",
+      "megaseg_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/megaseg/dynunet/SON/seg/SON_136098.tif",
+      "individual_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/individual/ms13-SON/seg/SON_136098.tif",
+      "z_slice": 31,
+      "y_start": 143,
+      "x_start": 245,
+      "crop_size": 320
+    },
+    "ST6GAL1": {
+      "stem": "ST6GAL1_5555",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/ST6GAL1_5555.tiff",
+      "seg_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/ST6GAL1_5555_seg.tiff",
+      "megaseg_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/megaseg/dynunet/ST6GAL1/seg/ST6GAL1_5555.tif",
+      "individual_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/individual/ms13-ST6GAL1/seg/ST6GAL1_5555.tif",
+      "z_slice": 37,
+      "y_start": 166,
+      "x_start": 231,
+      "crop_size": 320
+    },
+    "TJP1": {
+      "stem": "TJP1_7369",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/TJP1_7369.tiff",
+      "seg_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/TJP1_7369_seg.tiff",
+      "megaseg_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/megaseg/dynunet/TJP1/seg/TJP1_7369.tif",
+      "individual_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/individual/ms13-TJP1/seg/TJP1_7369.tif",
+      "z_slice": 60,
+      "y_start": 119,
+      "x_start": 246,
+      "crop_size": 320
+    },
+    "TOMM20": {
+      "stem": "TOMM20_3822",
+      "raw_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/TOMM20_3822.tiff",
+      "seg_path": "//allen/aics/assay-dev/users/Suraj/megaSeg/14structs_rand/test/TOMM20_3822_seg.tiff",
+      "megaseg_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/megaseg/dynunet/TOMM20/seg/TOMM20_3822.tif",
+      "individual_pred_path": "/allen/aics/lumenoid/megaseg-benchmark/outputs/eval/uint8/individual/ms13-TOMM20/seg/TOMM20_3822.tif",
+      "z_slice": 42,
+      "y_start": 152,
+      "x_start": 221,
+      "crop_size": 320
+    }
+  }
+}
