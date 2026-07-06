@@ -100,6 +100,7 @@ METHODS = [
     ("otsu", "Otsu", "#7f7f7f"),
     ("stardist", "StarDist", "#9467bd"),
     ("cellpose", "CellPose v4", "#8c564b"),
+    ("microsam_lm", "MicroSAM (vit_b_lm)", "#e377c2"),
     ("sam", "SAM (vit_b)", "#d62728"),
 ]
 
@@ -147,7 +148,10 @@ def load_classic_workflow() -> pd.DataFrame | None:
     return df[COLS]
 
 
-def _load_generic(path: Path, method: str) -> pd.DataFrame:
+def _load_generic(path: Path, method: str) -> pd.DataFrame | None:
+    if not path.exists():
+        print(f"  WARNING: {path} not found, skipping {method}")
+        return None
     df = pd.read_csv(path)
     df["method"] = method
     df = df.rename(columns={"test_struct": "structure"})
@@ -162,12 +166,11 @@ def load_all() -> pd.DataFrame:
         _load_generic(RES / "cellpose_zeroshot_metrics.csv", "cellpose"),
         _load_generic(RES / "stardist_zeroshot_metrics.csv", "stardist"),
         _load_generic(RES / "sam_zeroshot_metrics.csv", "sam"),
+        _load_generic(RES / "microsam_b_lm_zeroshot_metrics.csv", "microsam_lm"),
         _load_generic(RES / "otsu_baseline_metrics.csv", "otsu"),
+        load_classic_workflow(),
     ]
-    classic_df = load_classic_workflow()
-    if classic_df is not None:
-        frames.append(classic_df)
-    return pd.concat(frames, ignore_index=True)
+    return pd.concat([f for f in frames if f is not None], ignore_index=True)
 
 
 def _active_methods(df: pd.DataFrame) -> list[tuple[str, str, str]]:
