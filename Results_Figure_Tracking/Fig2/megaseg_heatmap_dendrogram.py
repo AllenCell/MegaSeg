@@ -29,6 +29,13 @@ from matplotlib.cm import ScalarMappable
 from scipy.cluster.hierarchy import linkage, dendrogram, leaves_list, set_link_color_palette
 from scipy.spatial.distance import pdist
 
+plt.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
+
 # ──────────────────────────────────────────────────────────────
 # Color palette inspired by Viana et al., Nature 2023, Fig. 3d
 # ──────────────────────────────────────────────────────────────
