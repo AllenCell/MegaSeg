@@ -2,7 +2,7 @@
 """Classic aicssegmentation cross-eval: run 14 workflows on 14 test structures.
 
 Runs each of the 14 classic workflows on every structure's test set
-(67 images each), producing:
+(57 filtered images each), producing:
   - Prediction TIFFs in {output_dir}/{WORKFLOW}/tested_on_{TEST_STRUCT}/
   - Per-sample metrics CSV (same schema as per_sample_metrics.csv)
   - 14x14 heatmap CSV (rows=workflow, cols=test_struct, values=mean Dice)

@@ -45,7 +45,8 @@ DEND_PALETTE = ["#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#A65628"
 # Paths
 # ──────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).parent
-INPUT_CSV = SCRIPT_DIR.parent / "experiments" / "MegaSeg" / "benchmark" / "results" / "uint8" / "per_sample_metrics.csv"
+REPO_ROOT = SCRIPT_DIR.parent.parent
+INPUT_CSV = REPO_ROOT / "benchmark" / "results" / "uint8" / "per_sample_metrics.csv"
 
 # 13 training structures (NPM1 excluded)
 STRUCTURES_13 = [
@@ -293,6 +294,8 @@ def plot_heatmap_with_dendrograms(
     ax_dend_col = fig.add_subplot(gs[0, 0])
     if Z_col is not None:
         _draw_dendrogram(ax_dend_col, Z_col, "top")
+    else:
+        ax_dend_col.set_axis_off()
 
     # ── Heatmap ──
     ax_heat = fig.add_subplot(gs[1, 0])
@@ -403,8 +406,8 @@ def main():
         mean_mat, std_mat, row_labels, col_labels,
         title="Dice Score: Individual vs. MegaSeg Models (13 Structures)",
         save_path=str(SCRIPT_DIR / "fig_heatmap_models.pdf"),
-        annotate_std=True, fontsize_annot=7,
-        figsize=(10, 9),
+        annotate_std=True, fontsize_annot=11,
+        figsize=(12, 11),
         row_cluster_col=0,  # cluster rows using Individual model scores only
         label_map=GENE_TO_STRUCTURE,  # remaps structure rows; model cols unchanged
         xlabel="Model",
@@ -419,8 +422,8 @@ def main():
         ce_mean, ce_std, ce_rows, ce_cols,
         title="Cross-Evaluation: Specialist Model Generalization (Dice Score)",
         save_path=str(SCRIPT_DIR / "fig_heatmap_crosseval.pdf"),
-        annotate_std=False, fontsize_annot=7,
-        figsize=(12, 10),
+        annotate_std=True, fontsize_annot=10,
+        figsize=(16, 12),
         symmetric=True,
         label_map=GENE_TO_STRUCTURE,
         xlabel="Evaluation structure",
@@ -433,8 +436,8 @@ def main():
         ce_mean, ce_std, ce_rows, ce_cols,
         title="Cross-Evaluation: Radial Order (Viana et al. 2023)",
         save_path=str(SCRIPT_DIR / "fig_heatmap_crosseval_radial.pdf"),
-        annotate_std=False, fontsize_annot=7,
-        figsize=(12, 10),
+        annotate_std=True, fontsize_annot=10,
+        figsize=(16, 12),
         fixed_order=RADIAL_ORDER,
     )
 

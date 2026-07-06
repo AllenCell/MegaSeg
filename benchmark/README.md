@@ -215,13 +215,13 @@ Results are saved to `results/{dtype}/` with CSVs and a `figures/` subdirectory.
 
 ### Per-Image Metrics Manifest
 
-A standalone CSV with per-image Dice, IoU, precision, recall, and accuracy for all 871 test images evaluated by the megaseg-dynunet model is available at:
+A standalone CSV with per-image Dice, IoU, precision, recall, and accuracy for all test images evaluated by the megaseg-dynunet model is available at:
 
 ```
 results/uint8/megaseg_dynunet_per_image_dice.csv
 ```
 
-This covers the 13 MegaSeg-pretrained benchmark structures across 67 test images each (871 total evaluations) and is useful for sharing with collaborators without requiring the full pipeline.
+This covers the 13 MegaSeg benchmark structures across 57 test images each (741 total, bottom-10 low-signal samples removed per structure) and is useful for sharing with collaborators without requiring the full pipeline.
 
 ## Low-Signal Sample Filtering
 
@@ -271,21 +271,21 @@ A complete pipeline for LMNB1 (Lamin B1) fine-tuning, measuring how data fractio
 
 A 4x4 grid varying **data fraction** (10%, 20%, 50%, 100%) and **max training epochs** (10, 50, 100, converged/700), plus a baseline (no fine-tuning). Total: 16 fine-tuned models + 1 baseline = 17 experiments.
 
-### Results (Mean Dice, n=67 test samples)
+### Results (Mean Dice, n=57 test samples)
 
 |  | 10 epochs | 50 epochs | 100 epochs | Converged |
 |---|---|---|---|---|
-| **100% data** | 0.908 | 0.945 | 0.949 | **0.958** |
-| **50% data** | 0.879 | 0.932 | 0.945 | 0.952 |
-| **20% data** | 0.703 | 0.900 | 0.921 | 0.945 |
-| **10% data** | 0.699 | 0.895 | 0.914 | 0.942 |
+| **100% data** | 0.906 | 0.944 | 0.948 | **0.957** |
+| **50% data** | 0.877 | 0.931 | 0.944 | 0.951 |
+| **20% data** | 0.703 | 0.897 | 0.920 | 0.944 |
+| **10% data** | 0.699 | 0.893 | 0.913 | 0.941 |
 
-Baseline (no fine-tuning): **0.298**
+Baseline (no fine-tuning): **0.312**
 
 **Key findings:**
-- Fine-tuning improves Dice from 0.298 to 0.908-0.958
+- Fine-tuning improves Dice from 0.312 to 0.906-0.957
 - Training epochs dominate over data fraction: the biggest jump is 10 to 50 epochs regardless of data size
-- Even 10% of data (16 samples) trained to convergence reaches 0.942, only 0.016 below the best result
+- Even 10% of data (16 samples) trained to convergence reaches 0.941, only 0.016 below the best result
 - Diminishing returns beyond 50 epochs for all data fractions (50 to converged adds ~0.03-0.05)
 
 ### Training
@@ -340,25 +340,25 @@ LMNB1 `.ome.tiff` files have inconsistent channel layouts: 4-channel files have 
 
 Companion to the fine-tuning experiments: trains the same DynUNet architecture from random initialization (no MegaSeg pretrained checkpoint) to quantify the pretraining benefit.
 
-### From-Scratch Results (Mean Dice, n=67)
+### From-Scratch Results (Mean Dice, n=57)
 
 |  | 10 epochs | 50 epochs | 100 epochs | Converged |
 |---|---|---|---|---|
-| **100% data** | 0.535 | 0.839 | 0.895 | 0.935 |
-| **50% data** | 0.264 | 0.787 | 0.854 | 0.902 |
-| **20% data** | 0.097 | 0.474 | 0.699 | 0.832 |
-| **10% data** | 0.103 | 0.469 | 0.694 | 0.805 |
+| **100% data** | 0.528 | 0.836 | 0.893 | 0.934 |
+| **50% data** | 0.258 | 0.783 | 0.851 | 0.899 |
+| **20% data** | 0.096 | 0.466 | 0.696 | 0.828 |
+| **10% data** | 0.101 | 0.461 | 0.691 | 0.801 |
 
 ### Pretraining Benefit (Fine-Tune Dice minus Scratch Dice)
 
 |  | 10 epochs | 50 epochs | 100 epochs | Converged |
 |---|---|---|---|---|
-| **100% data** | +0.373 | +0.106 | +0.054 | +0.023 |
-| **50% data** | +0.615 | +0.145 | +0.090 | +0.050 |
-| **20% data** | +0.606 | +0.426 | +0.222 | +0.113 |
-| **10% data** | +0.596 | +0.426 | +0.220 | +0.137 |
+| **100% data** | +0.377 | +0.108 | +0.055 | +0.023 |
+| **50% data** | +0.619 | +0.147 | +0.093 | +0.052 |
+| **20% data** | +0.608 | +0.432 | +0.224 | +0.116 |
+| **10% data** | +0.597 | +0.432 | +0.222 | +0.140 |
 
-**Key takeaway:** MegaSeg pretraining provides +0.02 to +0.62 Dice improvement. The benefit is largest with limited data and training budget (bottom-left of the grid) and smallest when both data and compute are abundant (top-right). Even at convergence with 100% data, fine-tuning still outperforms scratch by +0.023.
+**Key takeaway:** MegaSeg pretraining provides +0.02 to +0.62 Dice improvement. The benefit is largest with limited data and training budget (bottom-left of the grid) and smallest when both data and compute are abundant (top-right). Even at convergence with 100% data, fine-tuning still outperforms scratch by +0.023 Dice.
 
 ### Running From-Scratch Experiments
 
@@ -973,9 +973,8 @@ The submodule includes a custom `channel_name` parameter added to `MonaiBioReade
 
 | Eval Type | Samples | Mean Dice |
 |---|---|---|
-| individual | 938 | 0.7671 |
-| megaseg | 3,952 | 0.8482 |
+| individual | 741 | 0.7733 |
+| megaseg | 741 | 0.9092 |
 | cross_eval | 13,132 | 0.5062 |
-| individual_test_new | 28 | 0.7885 |
 
-MegaSeg outperforms individual models on **13/14 structures** (only NPM1 is the exception). Best backbone: DynUNet (0.8684), followed by SwinUNETR (0.8601), AttentionUNet (0.8586), UNet (0.8329).
+All results use the filtered test set (57 samples per structure, bottom-10 low-signal samples removed). MegaSeg outperforms individual models on **12/13 structures**. Best backbone: DynUNet, followed by SwinUNETR, AttentionUNet, UNet.

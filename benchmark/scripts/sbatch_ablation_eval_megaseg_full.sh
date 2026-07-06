@@ -12,7 +12,7 @@
 set --
 
 echo "========================================="
-echo "Ablation Eval: MegaSeg-13 pretrained (FULL 67 images)"
+echo "Ablation Eval: MegaSeg-13 pretrained (57 filtered images)"
 echo "Node: $(hostname)"
 echo "GPU: $(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>/dev/null || echo 'unknown')"
 echo "Start time: $(date)"
