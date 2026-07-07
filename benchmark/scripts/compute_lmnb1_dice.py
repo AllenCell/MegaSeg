@@ -289,7 +289,7 @@ def print_summary(df: pd.DataFrame, label: str = "Fine-Tuning") -> pd.DataFrame:
     valid = df[df["error"] == ""]
 
     print(f"\n{'=' * 80}")
-    print(f"LMNB1 {label} Results — Dice Score (Test Set, n=67)")
+    print(f"LMNB1 {label} Results — Dice Score (Test Set, n=57)")
     print(f"{'=' * 80}")
 
     summary_rows = []

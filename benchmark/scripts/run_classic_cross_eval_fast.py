@@ -657,7 +657,7 @@ def main():
         args.metrics_only,
     )
     print(
-        f"  {len(tasks)} tasks ({len(wf_list)} workflows x {len(TEST_STRUCTS)} structs x ~67 images)"
+        f"  {len(tasks)} tasks ({len(wf_list)} workflows x {len(TEST_STRUCTS)} structs x ~57 images)"
     )
 
     if args.dry_run:

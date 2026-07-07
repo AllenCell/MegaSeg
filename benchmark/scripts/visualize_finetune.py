@@ -373,6 +373,9 @@ def make_heatmap(
 
     df = pd.read_csv(csv_path)
 
+    if "n_samples" in df.columns:
+        n_test = int(df["n_samples"].mode().iloc[0])
+
     # Build the 4x4 grid
     grid = np.full((len(DATA_FRACTIONS), len(EPOCH_CONFIGS)), np.nan)
     for i, frac in enumerate(DATA_FRACTIONS):
@@ -495,9 +498,7 @@ def main():
 
     structure = args.structure.lower()
     cfg = _get_structure_config(structure, args.mode)
-    gt_dir = _get_gt_dir(structure)
-    n_test = _count_test_samples(structure)
-
+    gt_dir = _get_gt_dir(structure) if not args.heatmap_only else None
     experiments = args.experiments or cfg["experiments"]
     output_dir = args.output_dir or cfg["figures_dir"]
     pred_base = cfg["pred_base"]
@@ -510,8 +511,8 @@ def main():
 
     print(f"Structure: {structure_name}")
     print(f"Mode: {args.mode} ({label})")
-    print(f"GT dir: {gt_dir}")
-    print(f"Test samples: {n_test}")
+    if gt_dir:
+        print(f"GT dir: {gt_dir}")
 
     if not args.heatmap_only:
         samples = _get_samples(structure, results_dir, pred_base, gt_dir)
@@ -544,7 +545,7 @@ def main():
             label=label,
             has_baseline=has_baseline,
             structure_name=structure_name,
-            n_test=n_test,
+            n_test=0,
         )
 
     print("\nDone.")
