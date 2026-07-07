@@ -82,7 +82,7 @@ def add_scalebar(ax, img_size, bar_um, pixel_um):
     line.set_path_effects(stroke)
     txt = ax.text((x_start + x_end) / 2, y - img_size * 0.03,
                   f"{bar_um:g} µm", color="white", ha="center", va="bottom",
-                  fontsize=5.5, fontweight="bold")
+                  fontsize=7, fontweight="bold")
     txt.set_path_effects(stroke)
 
 
@@ -102,9 +102,9 @@ def main():
     p_lo, p_hi, gamma = r["p_lo"], r["p_hi"], r["gamma"]
 
     n_cols, n_rows = 7, 2
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(7.2, 2.8), facecolor="white")
-    fig.subplots_adjust(wspace=0.06, hspace=0.35, left=0.01, right=0.99,
-                        top=0.85, bottom=0.08)
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(9.0, 3.2), facecolor="white")
+    fig.subplots_adjust(wspace=0.06, hspace=0.40, left=0.01, right=0.99,
+                        top=0.84, bottom=0.06)
 
     for idx, s in enumerate(structs):
         ax = axes[idx // n_cols, idx % n_cols]
@@ -120,11 +120,11 @@ def main():
             add_scalebar(ax, crop, bar_um, px_um)
 
         # Compartment colour square + "<structure> via <protein>" label.
-        ax.plot(0.03, 1.15, marker="s", markersize=4.2,
+        ax.plot(0.03, 1.16, marker="s", markersize=4.5,
                 color=colors[s["compartment"]], transform=ax.transAxes, clip_on=False)
-        ax.text(0.14, 1.15, f"{s['structure']}\nvia {s['marker']}",
+        ax.text(0.14, 1.16, f"{s['structure']}\nvia {s['marker']}",
                 transform=ax.transAxes, ha="left", va="center",
-                fontsize=4.8, fontweight="bold", linespacing=1.1)
+                fontsize=6, fontweight="bold", linespacing=1.1)
 
         ax.set_xticks([])
         ax.set_yticks([])
@@ -137,7 +137,7 @@ def main():
     ax_leg.axis("off")
     handles = [Patch(facecolor=colors[k], label=labels[k], edgecolor="none")
                for k in order]
-    ax_leg.legend(handles=handles, loc="center", ncol=1, fontsize=5,
+    ax_leg.legend(handles=handles, loc="center", ncol=1, fontsize=6,
                   frameon=False, handlelength=1.2, handletextpad=0.4,
                   labelspacing=0.6)
 

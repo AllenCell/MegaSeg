@@ -29,6 +29,13 @@ from matplotlib.colors import LinearSegmentedColormap, Normalize
 from matplotlib.cm import ScalarMappable
 from matplotlib.patches import Patch
 
+plt.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
+
 # ══════════════════════════════════════════════════════════════
 # Paths
 # ══════════════════════════════════════════════════════════════
@@ -97,31 +104,31 @@ def plot_single_heatmap(ax, grid, std_grid, base_mean, base_std, title, n,
         for j in range(4):
             val = grid[i, j]
             if np.isnan(val):
-                ax.text(j, i, "N/A", ha="center", va="center", fontsize=7, color="gray")
+                ax.text(j, i, "N/A", ha="center", va="center", fontsize=9, color="gray")
                 continue
             std = std_grid[i, j]
             rgba = HEATMAP_CMAP(norm(val))
             brightness = 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2]
             color = "white" if brightness < 0.55 else "black"
             ax.text(j, i, f"{val:.3f}\n±{std:.3f}",
-                    ha="center", va="center", fontsize=7.5,
+                    ha="center", va="center", fontsize=11,
                     fontweight="bold", color=color)
 
     ax.set_xticks(range(4))
-    ax.set_xticklabels(EPOCH_DISPLAY, fontsize=9)
+    ax.set_xticklabels(EPOCH_DISPLAY, fontsize=13, fontweight="bold")
     ax.set_yticks(range(4))
-    ax.set_yticklabels(FRAC_DISPLAY if show_ylabel else [], fontsize=8)
-    ax.set_xlabel("Training Epochs", fontsize=10)
+    ax.set_yticklabels(FRAC_DISPLAY if show_ylabel else [], fontsize=12, fontweight="bold")
+    ax.set_xlabel("Training Epochs", fontsize=14, fontweight="bold")
     if show_ylabel:
-        ax.set_ylabel("Data (train+val)", fontsize=10)
+        ax.set_ylabel("Data (train+val)", fontsize=14, fontweight="bold")
 
     subtitle = f"(n={n})" if n else ""
-    ax.set_title(f"{title} {subtitle}", fontsize=11, fontweight="bold", pad=8)
+    ax.set_title(f"{title} {subtitle}", fontsize=16, fontweight="bold", pad=10)
 
     if base_mean is not None:
-        ax.text(0.5, -0.15,
+        ax.text(0.5, -0.18,
                 f"Base MegaSeg (no finetuning): {base_mean:.3f} ± {base_std:.3f}",
-                transform=ax.transAxes, ha="center", va="top", fontsize=8.5,
+                transform=ax.transAxes, ha="center", va="top", fontsize=11,
                 fontweight="bold",
                 bbox=dict(boxstyle="round,pad=0.4",
                           facecolor="#2C2C2C",
@@ -140,8 +147,8 @@ def build_heatmaps(out_path):
         ("LAMP1 From-Scratch", RESULTS / "scratch" / "lamp1" / "summary.csv"),
     ]
 
-    fig, axes = plt.subplots(2, 2, figsize=(14, 11))
-    fig.subplots_adjust(hspace=0.4, wspace=0.25, right=0.88)
+    fig, axes = plt.subplots(2, 2, figsize=(16, 13))
+    fig.subplots_adjust(hspace=0.45, wspace=0.28, right=0.88)
 
     global_vmin, global_vmax = 1.0, 0.0
     grids = []
@@ -165,7 +172,7 @@ def build_heatmaps(out_path):
         if grids[idx] is None:
             ax.text(0.5, 0.5, f"{title}\n(data not available)",
                     ha="center", va="center", transform=ax.transAxes)
-            ax.set_title(title, fontsize=11, fontweight="bold")
+            ax.set_title(title, fontsize=16, fontweight="bold")
             continue
         grid, std_grid, base_mean, base_std, n = grids[idx]
 
@@ -175,31 +182,31 @@ def build_heatmaps(out_path):
             for j in range(4):
                 val = grid[i, j]
                 if np.isnan(val):
-                    ax.text(j, i, "N/A", ha="center", va="center", fontsize=7, color="gray")
+                    ax.text(j, i, "N/A", ha="center", va="center", fontsize=9, color="gray")
                     continue
                 std = std_grid[i, j]
                 rgba = HEATMAP_CMAP(global_norm(val))
                 brightness = 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2]
                 color = "white" if brightness < 0.55 else "black"
                 ax.text(j, i, f"{val:.3f}\n±{std:.3f}",
-                        ha="center", va="center", fontsize=7.5,
+                        ha="center", va="center", fontsize=11,
                         fontweight="bold", color=color)
 
         ax.set_xticks(range(4))
-        ax.set_xticklabels(EPOCH_DISPLAY, fontsize=9)
+        ax.set_xticklabels(EPOCH_DISPLAY, fontsize=13, fontweight="bold")
         ax.set_yticks(range(4))
-        ax.set_yticklabels(FRAC_DISPLAY if (idx % 2 == 0) else [], fontsize=8)
-        ax.set_xlabel("Training Epochs", fontsize=10)
+        ax.set_yticklabels(FRAC_DISPLAY if (idx % 2 == 0) else [], fontsize=12, fontweight="bold")
+        ax.set_xlabel("Training Epochs", fontsize=14, fontweight="bold")
         if idx % 2 == 0:
-            ax.set_ylabel("Data (train+val)", fontsize=10)
+            ax.set_ylabel("Data (train+val)", fontsize=14, fontweight="bold")
 
         subtitle = f"(n={n})" if n else ""
-        ax.set_title(f"{title} {subtitle}", fontsize=11, fontweight="bold", pad=8)
+        ax.set_title(f"{title} {subtitle}", fontsize=16, fontweight="bold", pad=10)
 
         if base_mean is not None:
-            ax.text(0.5, -0.15,
+            ax.text(0.5, -0.18,
                     f"Base MegaSeg (no finetuning): {base_mean:.3f} ± {base_std:.3f}",
-                    transform=ax.transAxes, ha="center", va="top", fontsize=8.5,
+                    transform=ax.transAxes, ha="center", va="top", fontsize=11,
                     fontweight="bold",
                     bbox=dict(boxstyle="round,pad=0.4",
                               facecolor="#2C2C2C",
@@ -209,7 +216,8 @@ def build_heatmaps(out_path):
     cbar_ax = fig.add_axes([0.90, 0.15, 0.02, 0.7])
     cbar = fig.colorbar(ScalarMappable(norm=global_norm, cmap=HEATMAP_CMAP),
                         cax=cbar_ax)
-    cbar.set_label("Mean Dice Score", fontsize=11)
+    cbar.set_label("Mean Dice Score", fontsize=14, fontweight="bold")
+    cbar.ax.tick_params(labelsize=12)
 
     fig.savefig(str(out_path), dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
@@ -350,7 +358,7 @@ def add_scalebar(ax, crop_pixels):
     ax.plot([bar_x_start, bar_x_end], [bar_y, bar_y],
             color="white", linewidth=2, solid_capstyle="butt")
     ax.text((bar_x_start + bar_x_end) / 2, bar_y - 5,
-            f"{SCALEBAR_UM} µm", color="white", fontsize=5,
+            f"{SCALEBAR_UM} µm", color="white", fontsize=10,
             ha="center", va="bottom", fontweight="bold")
 
 
@@ -383,23 +391,12 @@ def load_row_data(stem, conditions, load_raw_fn, load_gt_fn, load_pred_fn):
     return raw_crop, gt_crop, error_maps, cs
 
 
-def _build_structure_panel(fig, gs_block, struct, panel_a_stems, panel_b_stems,
-                           load_raw_fn, load_gt_fn, load_pred_fn, row_offset):
-    """Build Panel A (epoch effect) + Panel B (data effect) for one structure.
-
-    4 rows total: 2 for Panel A, 2 for Panel B.
-    7 columns: Raw | GT | MegaSeg/Base | cond1 | cond2 | cond3 | cond4
-    """
-    col_titles_a = ["Raw", "GT"] + EPOCH_COL_LABELS
-    col_titles_b = ["Raw", "GT"] + DATA_COL_LABELS
+def _build_sub_panel(fig, gs_block, stems, conditions, col_titles,
+                     load_raw_fn, load_gt_fn, load_pred_fn,
+                     struct, row_offset, show_titles=False):
+    """Build 2 rows of a sub-panel (Panel A or Panel B)."""
     n_cols = 7
-
-    for local_row, (stem, conditions, col_titles) in enumerate([
-        (panel_a_stems[0], EPOCH_CONDS, col_titles_a),
-        (panel_a_stems[1], EPOCH_CONDS, col_titles_a),
-        (panel_b_stems[0], DATA_CONDS, col_titles_b),
-        (panel_b_stems[1], DATA_CONDS, col_titles_b),
-    ]):
+    for local_row, stem in enumerate(stems):
         global_row = row_offset + local_row
         print(f"  Loading row {global_row} ({struct}): {stem}...")
         raw_crop, gt_crop, error_maps, crop_px = load_row_data(
@@ -422,99 +419,127 @@ def _build_structure_panel(fig, gs_block, struct, panel_a_stems, panel_b_stems,
             ax.set_xticks([])
             ax.set_yticks([])
             for spine in ax.spines.values():
-                spine.set_linewidth(0.3)
-                spine.set_color("#555555")
+                spine.set_linewidth(0.5)
+                spine.set_color("#888888")
 
-            if local_row == 0:
-                ax.set_title(col_titles_a[col_idx], fontsize=9,
-                             fontweight="bold", pad=6)
-            elif local_row == 2:
-                ax.set_title(col_titles_b[col_idx], fontsize=9,
+            if show_titles and local_row == 0:
+                ax.set_title(col_titles[col_idx], fontsize=17,
                              fontweight="bold", pad=6)
 
 
 def build_qualitative(out_path):
     """8 rows × 7 columns: Panel A/B for LMNB1, then Panel A/B for LAMP1.
 
-    Panel A: Epoch effect (100% data) — Raw | GT | MegaSeg | 10ep | 50ep | 100ep | Conv.
-    Panel B: Data effect (10 epochs) — Raw | GT | MegaSeg | 10% | 20% | 50% | 100%
+    Uses 4 separate sub-gridspecs so Panel B titles have room.
     """
-    n_rows = 8
     n_cols = 7
+    col_titles_a = ["Raw", "GT"] + EPOCH_COL_LABELS
+    col_titles_b = ["Raw", "GT"] + DATA_COL_LABELS
 
-    fig = plt.figure(figsize=(n_cols * 2.5, n_rows * 2.5 + 2.0), facecolor="white")
+    with plt.style.context("seaborn-v0_8-white"):
+        fig = plt.figure(figsize=(n_cols * 2.5, 8 * 2.5 + 1.5), facecolor="white")
 
-    outer_gs = gridspec.GridSpec(2, 1, hspace=0.12,
-                                top=0.95, bottom=0.04, left=0.09, right=0.98)
+        # 4 blocks: LMNB1-A, LMNB1-B, LAMP1-A, LAMP1-B
+        # height_ratios equal; hspace gives room for Panel B titles
+        outer_gs = gridspec.GridSpec(
+            4, 1,
+            height_ratios=[1, 1, 1, 1],
+            hspace=0.12,
+            top=0.96, bottom=0.04, left=0.07, right=0.98,
+        )
 
-    lmnb1_gs = gridspec.GridSpecFromSubplotSpec(4, n_cols, subplot_spec=outer_gs[0],
-                                                wspace=0.03, hspace=0.08)
-    lamp1_gs = gridspec.GridSpecFromSubplotSpec(4, n_cols, subplot_spec=outer_gs[1],
-                                                wspace=0.03, hspace=0.08)
+        lmnb1_a = gridspec.GridSpecFromSubplotSpec(
+            2, n_cols, subplot_spec=outer_gs[0], wspace=0.03, hspace=0.04)
+        lmnb1_b = gridspec.GridSpecFromSubplotSpec(
+            2, n_cols, subplot_spec=outer_gs[1], wspace=0.03, hspace=0.04)
+        lamp1_a = gridspec.GridSpecFromSubplotSpec(
+            2, n_cols, subplot_spec=outer_gs[2], wspace=0.03, hspace=0.04)
+        lamp1_b = gridspec.GridSpecFromSubplotSpec(
+            2, n_cols, subplot_spec=outer_gs[3], wspace=0.03, hspace=0.04)
 
-    _build_structure_panel(fig, lmnb1_gs, "LMNB1",
-                           LMNB1_PANEL_A_STEMS, LMNB1_PANEL_B_STEMS,
-                           load_lmnb1_raw, load_lmnb1_gt, load_lmnb1_pred, 0)
+        _build_sub_panel(fig, lmnb1_a, LMNB1_PANEL_A_STEMS, EPOCH_CONDS,
+                         col_titles_a, load_lmnb1_raw, load_lmnb1_gt,
+                         load_lmnb1_pred, "LMNB1", 0, show_titles=True)
+        _build_sub_panel(fig, lmnb1_b, LMNB1_PANEL_B_STEMS, DATA_CONDS,
+                         col_titles_b, load_lmnb1_raw, load_lmnb1_gt,
+                         load_lmnb1_pred, "LMNB1", 2, show_titles=True)
+        _build_sub_panel(fig, lamp1_a, LAMP1_PANEL_A_STEMS, EPOCH_CONDS,
+                         col_titles_a, load_lamp1_raw, load_lamp1_gt,
+                         load_lamp1_pred, "LAMP1", 4, show_titles=True)
+        _build_sub_panel(fig, lamp1_b, LAMP1_PANEL_B_STEMS, DATA_CONDS,
+                         col_titles_b, load_lamp1_raw, load_lamp1_gt,
+                         load_lamp1_pred, "LAMP1", 6, show_titles=True)
 
-    _build_structure_panel(fig, lamp1_gs, "LAMP1",
-                           LAMP1_PANEL_A_STEMS, LAMP1_PANEL_B_STEMS,
-                           load_lamp1_raw, load_lamp1_gt, load_lamp1_pred, 4)
+        fig.canvas.draw()
 
-    # Force layout so we can read actual subplot positions
-    fig.canvas.draw()
+        def _gs_y_center(gs_block):
+            top = gs_block[0, 0].get_position(fig).y1
+            bot = gs_block[1, 0].get_position(fig).y0
+            return (top + bot) / 2
 
-    def _panel_y_center(gs_block, row_start, row_end):
-        top = gs_block[row_start, 0].get_position(fig).y1
-        bot = gs_block[row_end, 0].get_position(fig).y0
-        return (top + bot) / 2
+        # Structure labels + panel labels
+        for gs_a, gs_b, struct_name in [
+            (lmnb1_a, lmnb1_b, "LMNB1"),
+            (lamp1_a, lamp1_b, "LAMP1"),
+        ]:
+            struct_top = gs_a[0, 0].get_position(fig).y1
+            struct_bot = gs_b[1, 0].get_position(fig).y0
+            struct_y = (struct_top + struct_bot) / 2
+            panel_a_y = _gs_y_center(gs_a)
+            panel_b_y = _gs_y_center(gs_b)
 
-    # Structure + panel labels — aligned to actual subplot positions
-    for gs_block, struct_name in [(lmnb1_gs, "LMNB1"), (lamp1_gs, "LAMP1")]:
-        panel_a_y = _panel_y_center(gs_block, 0, 1)
-        panel_b_y = _panel_y_center(gs_block, 2, 3)
-        struct_y = _panel_y_center(gs_block, 0, 3)
+            fig.text(0.005, struct_y, struct_name,
+                     fontsize=22, fontweight="bold", va="center", ha="left",
+                     rotation=90)
+            fig.text(0.025, panel_a_y, "A  Epoch effect\n(100% data)",
+                     fontsize=18, fontweight="bold", va="center", ha="left",
+                     rotation=90, color="#333333")
+            fig.text(0.025, panel_b_y, "B  Data effect\n(10 epochs)",
+                     fontsize=18, fontweight="bold", va="center", ha="left",
+                     rotation=90, color="#333333")
 
-        fig.text(0.005, struct_y, struct_name,
-                 fontsize=11, fontweight="bold", va="center", ha="left", rotation=90)
-        fig.text(0.025, panel_a_y, "A  Epoch effect\n(100% data)",
-                 fontsize=8, fontweight="bold", va="center", ha="left", rotation=90)
-        fig.text(0.025, panel_b_y, "B  Data effect\n(10 epochs)",
-                 fontsize=8, fontweight="bold", va="center", ha="left", rotation=90)
+        # Separator between Panel A and B within each structure (dotted)
+        for gs_a, gs_b in [(lmnb1_a, lmnb1_b), (lamp1_a, lamp1_b)]:
+            pos_above = gs_a[1, 0].get_position(fig)
+            pos_below = gs_b[0, 0].get_position(fig)
+            sep_y = (pos_above.y0 + pos_below.y1) / 2
+            fig.add_artist(plt.Line2D(
+                [0.05, 0.98], [sep_y, sep_y],
+                transform=fig.transFigure,
+                color="#AAAAAA", linewidth=0.8, linestyle=":",
+            ))
 
-    # Separator between Panel A and B within each structure
-    for gs_block in [lmnb1_gs, lamp1_gs]:
-        pos_above = gs_block[1, 0].get_position(fig)
-        pos_below = gs_block[2, 0].get_position(fig)
-        sep_y = (pos_above.y0 + pos_below.y1) / 2
+        # Separator between LMNB1 and LAMP1 (solid)
+        pos_lmnb1_bot = lmnb1_b[1, 0].get_position(fig)
+        pos_lamp1_top = lamp1_a[0, 0].get_position(fig)
+        sep_y = (pos_lmnb1_bot.y0 + pos_lamp1_top.y1) / 2
         fig.add_artist(plt.Line2D(
-            [0.05, 0.98], [sep_y, sep_y],
+            [0.03, 0.98], [sep_y, sep_y],
             transform=fig.transFigure,
-            color="gray", linewidth=0.5, linestyle=":",
+            color="#555555", linewidth=1.2, linestyle="-",
         ))
 
-    # Separator between LMNB1 and LAMP1
-    pos_lmnb1_bot = lmnb1_gs[3, 0].get_position(fig)
-    pos_lamp1_top = lamp1_gs[0, 0].get_position(fig)
-    sep_y = (pos_lmnb1_bot.y0 + pos_lamp1_top.y1) / 2
-    fig.add_artist(plt.Line2D(
-        [0.03, 0.98], [sep_y, sep_y],
-        transform=fig.transFigure,
-        color="gray", linewidth=1, linestyle="--",
-    ))
-
-    # Error map legend
-    legend_handles = [
-        Patch(facecolor=(0.85, 0.75, 0.25), edgecolor="gray", label="True Positive"),
-        Patch(facecolor=(0.82, 0.35, 0.45), edgecolor="gray", label="False Positive"),
-        Patch(facecolor=(0.30, 0.55, 0.75), edgecolor="gray", label="False Negative"),
-        Patch(facecolor=(0.12, 0.12, 0.12), edgecolor="gray", label="True Negative"),
-    ]
-    fig.legend(handles=legend_handles, loc="lower center", ncol=4,
-               fontsize=9, frameon=True, edgecolor="black",
-               bbox_to_anchor=(0.52, -0.01))
+        # Error map legend
+        legend_handles = [
+            Patch(facecolor=(0.85, 0.75, 0.25), edgecolor="#666666",
+                  linewidth=1.2, label="True Positive"),
+            Patch(facecolor=(0.82, 0.35, 0.45), edgecolor="#666666",
+                  linewidth=1.2, label="False Positive"),
+            Patch(facecolor=(0.30, 0.55, 0.75), edgecolor="#666666",
+                  linewidth=1.2, label="False Negative"),
+            Patch(facecolor=(0.12, 0.12, 0.12), edgecolor="#666666",
+                  linewidth=1.2, label="True Negative"),
+        ]
+        leg = fig.legend(handles=legend_handles, loc="lower center", ncol=4,
+                         fontsize=20, frameon=True, edgecolor="#999999",
+                         fancybox=True, shadow=False, framealpha=0.95,
+                         bbox_to_anchor=(0.52, -0.015),
+                         handlelength=2.5, handleheight=1.5, handletextpad=0.8,
+                         columnspacing=4.0, borderpad=0.6)
+        leg.get_frame().set_linewidth(1.2)
 
     fig.savefig(str(out_path), dpi=300, bbox_inches="tight",
-                facecolor="white", pad_inches=0.1)
+                facecolor="white", pad_inches=0.08)
     plt.close(fig)
     print(f"  Saved: {out_path}")
 

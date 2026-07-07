@@ -39,6 +39,13 @@ from matplotlib.colors import Normalize
 from matplotlib.patches import Patch
 from pathlib import Path
 
+plt.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
+
 # ──────────────────────────────────────────────────────────────
 # Paths
 # ──────────────────────────────────────────────────────────────

@@ -29,6 +29,13 @@ from matplotlib.cm import ScalarMappable
 from scipy.cluster.hierarchy import linkage, dendrogram, leaves_list, set_link_color_palette
 from scipy.spatial.distance import pdist
 
+plt.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
+
 # ──────────────────────────────────────────────────────────────
 # Color palette inspired by Viana et al., Nature 2023, Fig. 3d
 # ──────────────────────────────────────────────────────────────
@@ -286,8 +293,8 @@ def plot_heatmap_with_dendrograms(
     gs = gridspec.GridSpec(
         2, 2,
         width_ratios=[1.0, 0.02],
-        height_ratios=[0.10, 1.0],
-        wspace=0.02, hspace=0.02,
+        height_ratios=[0.15, 1.0],
+        wspace=0.02, hspace=0.01,
     )
 
     # ── Column dendrogram (top only) ──
@@ -329,27 +336,27 @@ def plot_heatmap_with_dendrograms(
     # Axis labels
     ax_heat.set_xticks(range(n_cols))
     ax_heat.set_xticklabels(col_labels_ordered, rotation=45, ha="right",
-                            fontsize=10, fontweight="bold")
+                            fontsize=14, fontweight="bold")
     ax_heat.set_yticks(range(n_rows))
-    ax_heat.set_yticklabels(row_labels_ordered, fontsize=10, fontweight="bold")
+    ax_heat.set_yticklabels(row_labels_ordered, fontsize=14, fontweight="bold")
     ax_heat.tick_params(axis="both", which="both", length=0)
 
     # Axis titles (e.g. which axis is the trained vs the evaluation structure)
     if xlabel:
-        ax_heat.set_xlabel(xlabel, fontsize=12, fontweight="bold", labelpad=8)
+        ax_heat.set_xlabel(xlabel, fontsize=16, fontweight="bold", labelpad=10)
     if ylabel:
-        ax_heat.set_ylabel(ylabel, fontsize=12, fontweight="bold", labelpad=8)
+        ax_heat.set_ylabel(ylabel, fontsize=16, fontweight="bold", labelpad=10)
 
     # ── Colorbar ──
     ax_cbar = fig.add_subplot(gs[1, 1])
     sm = ScalarMappable(cmap=cmap_obj, norm=norm)
     sm.set_array([])
     cb = fig.colorbar(sm, cax=ax_cbar)
-    cb.set_label("Dice Score", fontsize=11, fontweight="bold")
-    cb.ax.tick_params(labelsize=9)
+    cb.set_label("Dice Score", fontsize=14, fontweight="bold")
+    cb.ax.tick_params(labelsize=12)
 
-    # Title
-    fig.suptitle(title, fontsize=14, fontweight="bold", y=0.98)
+    # Title — placed on dendrogram axes to eliminate gap
+    ax_dend_col.set_title(title, fontsize=18, fontweight="bold", pad=12)
 
     fig.savefig(save_path, dpi=300, bbox_inches="tight", facecolor="white", pad_inches=0.1)
     print(f"Saved: {save_path}")

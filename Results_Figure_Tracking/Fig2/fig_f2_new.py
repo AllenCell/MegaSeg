@@ -27,6 +27,13 @@ from matplotlib.cm import ScalarMappable
 from scipy.cluster.hierarchy import linkage, dendrogram, leaves_list, set_link_color_palette
 from scipy.spatial.distance import pdist
 
+plt.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
+
 SCRIPT_DIR = Path(__file__).parent
 REPO_ROOT = SCRIPT_DIR.parent.parent
 RESULTS = REPO_ROOT / "benchmark" / "results"
@@ -114,8 +121,8 @@ def build_sota_heatmap(out_path):
     gs = gridspec.GridSpec(
         2, 2,
         width_ratios=[1.0, 0.02],
-        height_ratios=[0.10, 1.0],
-        wspace=0.02, hspace=0.02,
+        height_ratios=[0.15, 1.0],
+        wspace=0.02, hspace=0.01,
     )
 
     # Column dendrogram (top)
@@ -148,21 +155,22 @@ def build_sota_heatmap(out_path):
             label = f"{val:.2f}\n±{std_val:.2f}" if not np.isnan(std_val) else f"{val:.2f}"
             ax_heat.text(j, i, label,
                          ha="center", va="center",
-                         fontsize=11, fontweight="bold", color=text_color)
+                         fontsize=13, fontweight="bold", color=text_color)
 
     ax_heat.set_xticks(range(n_structs))
-    ax_heat.set_xticklabels(struct_labels_ordered, fontsize=10, fontweight="bold",
+    ax_heat.set_xticklabels(struct_labels_ordered, fontsize=14, fontweight="bold",
                             rotation=45, ha="right")
     ax_heat.set_yticks(range(n_methods))
-    ax_heat.set_yticklabels(method_labels_ordered, fontsize=10, fontweight="bold")
+    ax_heat.set_yticklabels(method_labels_ordered, fontsize=14, fontweight="bold")
 
     # Colorbar
-    cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=HEATMAP_CMAP),
-                        cax=fig.add_subplot(gs[1, 1]))
-    cbar.set_label("Dice Score", fontsize=11, fontweight="bold")
+    cbar_ax = fig.add_subplot(gs[1, 1])
+    cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=HEATMAP_CMAP), cax=cbar_ax)
+    cbar.set_label("Dice Score", fontsize=14, fontweight="bold")
+    cbar.ax.tick_params(labelsize=12)
 
-    fig.suptitle("SOTA Method Comparison: Mean Dice Score (n=57 per structure)",
-                 fontsize=14, fontweight="bold", y=0.98)
+    ax_dend_col.set_title("SOTA Method Comparison: Mean Dice Score (n=57 per structure)",
+                          fontsize=18, fontweight="bold", pad=12)
 
     fig.savefig(str(out_path), dpi=300, bbox_inches="tight",
                 facecolor="white", pad_inches=0.1)
