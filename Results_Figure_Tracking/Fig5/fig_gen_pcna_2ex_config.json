@@ -1,0 +1,24 @@
+{
+  "figure": "Generalization — PCNA (2 examples, single Z): Raw + MegaSeg Prob + MegaSeg Mask",
+  "output": "fig_gen_pcna_2examples.pdf",
+
+  "czi": "//allen/aics/assay-dev/MicroscopyData/Frick/2021/20210518/20210518_F03_001.czi",
+  "pred_root": "//allen/aics/rep_learn/MegaSeg/benchmark/outputs/eval/uint8/megaseg/dynunet/PCNA/seg",
+  "pred_template": "20210518_F03_001_dimension_order_out_CZYX_C_1_T_{t}_scene_{scene}.tif",
+  "raw_channel": 1,
+
+  "pixel_size_um": 0.10833333333333332,
+  "scalebar_um": 10,
+  "crop_size_px": 400,
+  "threshold": 128,
+  "prob_cmap": "inferno",
+  "p_lo": 1,
+  "p_hi": 99,
+
+  "columns": ["Raw", "MegaSeg Prob.", "MegaSeg Mask"],
+
+  "examples": [
+    {"scene": "P36-D6", "T": 0, "z": null, "center_xy": null, "label": "Example 1"},
+    {"scene": "P37-D6", "T": 0, "z": null, "center_xy": null, "label": "Example 2"}
+  ]
+}
