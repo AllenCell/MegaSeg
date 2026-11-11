@@ -1,5 +1,19 @@
 # MegaSeg
 
+> [!WARNING]
+> **Work in progress, not intended for public use.** This repository is the
+> research record behind the MegaSeg paper: the experiments, the benchmark and
+> the code that makes the figures. It is shared for transparency and is not
+> maintained as software. Paths point to Allen Institute storage, the model
+> checkpoints and most of the data are not included, and the code is not
+> expected to run outside our environment. We do not provide support, and
+> issues and pull requests may not get a response.
+>
+> **To segment your own images or fine-tune the model, use
+> [SubCellSeg](https://github.com/AllenCell/SubCellSeg)**. It is the released,
+> maintained version of the MegaSeg model and installs with one command.
+> MegaSeg was the name of the model during development.
+
 Multi-structure segmentation for fluorescently-tagged cellular structures. This repository contains classical segmentation workflows, ML-based segmentation experiments, and a comprehensive evaluation benchmark comparing MegaSeg (multi-structure) models against individual (specialized) models.
 
 ## Repository Structure
